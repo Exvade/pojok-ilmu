@@ -2,52 +2,66 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory;
+    use HasFactory, Notifiable;
 
-    use HasUuids;
-    use Notifiable;
+    protected $guarded = [];
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    public function getConnectionName()
+    {
+        return app()->environment('testing')
+            ? parent::getConnectionName()
+            : config('database.s2s_connection', env('DB_S2S_CONNECTION', 's2s'));
+    }
+
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_superadmin' => 'boolean',
+            'role' => 'integer',
         ];
+    }
+
+    /**
+     * Relasi ke data Master Manpower
+     */
+    public function manpower(): BelongsTo
+    {
+        return $this->belongsTo(MManpower::class, 'user_id', 'mp_id');
+    }
+
+    /**
+     * Accessor untuk nama user (fallback ke MManpower jika tidak ada)
+     */
+    public function getNameAttribute(): string
+    {
+        return $this->attributes['name'] ?? $this->manpower?->nama ?? $this->user_id;
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->is_superadmin || $this->role === 1;
+    }
+
+    public function isManagement(): bool
+    {
+        return $this->is_superadmin || $this->role === 1 || $this->role === 2;
+    }
+
+    public function isOperator(): bool
+    {
+        return $this->role === 0;
     }
 }

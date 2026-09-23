@@ -16,6 +16,16 @@ abstract class BaseModel extends Model
      */
     protected $guarded = [];
 
+    /**
+     * Pastikan semua local model MWT menggunakan koneksi default (mysql / pojok_ilmu)
+     */
+    public function getConnectionName()
+    {
+        return app()->environment('testing')
+            ? parent::getConnectionName()
+            : config('database.default', env('DB_CONNECTION', 'mysql'));
+    }
+
     protected static function boot()
     {
         parent::boot();
