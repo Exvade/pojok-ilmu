@@ -28,6 +28,14 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'haris' => [
+        'url' => env('HARIS_API_URL'),
+        'token' => env('HARIS_API_TOKEN'),
+        'sync_at' => env('HARIS_SYNC_AT', '02:00'),
+        'scope_plant_code' => env('HARIS_SCOPE_PLANT_CODE', 'PSG'),
+        'scope_plant_id' => env('HARIS_SCOPE_PLANT_ID', '3'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

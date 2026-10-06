@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\QuizController as AdminQuizController;
+use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SkillController;
 use App\Http\Controllers\Admin\SkillMatrixController;
 use App\Http\Controllers\Admin\TrainingController;
@@ -36,30 +37,34 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 // Admin & Management Routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [SkillMatrixController::class, 'index'])->name('dashboard');
-    Route::post('/reset-remedi/{enrollmentId}', [SkillMatrixController::class, 'resetRemedi'])->name('reset-remedi');
+    Route::post('/reset-remedi/{enrollmentId}', [SkillMatrixController::class, 'resetRemedi'])->middleware('management-permission:competency')->name('reset-remedi');
 
     // Skills & Target Levels
-    Route::get('/skills', [SkillController::class, 'index'])->name('skills.index');
-    Route::post('/skills', [SkillController::class, 'store'])->name('skills.store');
-    Route::post('/skills/target-level', [SkillController::class, 'storeTargetLevel'])->name('skills.target-level');
-    Route::delete('/skills/{id}', [SkillController::class, 'destroy'])->name('skills.destroy');
+    Route::get('/skills', [SkillController::class, 'index'])->middleware('management-permission:competency')->name('skills.index');
+    Route::post('/skills', [SkillController::class, 'store'])->middleware('management-permission:competency')->name('skills.store');
+    Route::post('/skills/target-level', [SkillController::class, 'storeTargetLevel'])->middleware('management-permission:competency')->name('skills.target-level');
+    Route::delete('/skills/{id}', [SkillController::class, 'destroy'])->middleware('management-permission:competency')->name('skills.destroy');
 
     // Trainings & Materials
-    Route::get('/trainings', [TrainingController::class, 'index'])->name('trainings.index');
-    Route::post('/trainings', [TrainingController::class, 'store'])->name('trainings.store');
-    Route::get('/trainings/{id}', [TrainingController::class, 'show'])->name('trainings.show');
-    Route::post('/trainings/{id}/materials', [TrainingController::class, 'storeMaterial'])->name('trainings.materials.store');
-    Route::delete('/materials/{id}', [TrainingController::class, 'destroyMaterial'])->name('materials.destroy');
-    Route::delete('/trainings/{id}', [TrainingController::class, 'destroy'])->name('trainings.destroy');
+    Route::get('/trainings', [TrainingController::class, 'index'])->middleware('management-permission:curriculum')->name('trainings.index');
+    Route::post('/trainings', [TrainingController::class, 'store'])->middleware('management-permission:curriculum')->name('trainings.store');
+    Route::get('/trainings/{id}', [TrainingController::class, 'show'])->middleware('management-permission:curriculum')->name('trainings.show');
+    Route::post('/trainings/{id}/materials', [TrainingController::class, 'storeMaterial'])->middleware('management-permission:curriculum')->name('trainings.materials.store');
+    Route::delete('/materials/{id}', [TrainingController::class, 'destroyMaterial'])->middleware('management-permission:curriculum')->name('materials.destroy');
+    Route::delete('/trainings/{id}', [TrainingController::class, 'destroy'])->middleware('management-permission:curriculum')->name('trainings.destroy');
 
     // Quizzes & Questions
-    Route::post('/quizzes', [AdminQuizController::class, 'store'])->name('quizzes.store');
-    Route::post('/quizzes/{id}/questions', [AdminQuizController::class, 'storeQuestion'])->name('quizzes.questions.store');
-    Route::delete('/questions/{id}', [AdminQuizController::class, 'destroyQuestion'])->name('questions.destroy');
+    Route::post('/quizzes', [AdminQuizController::class, 'store'])->middleware('management-permission:curriculum')->name('quizzes.store');
+    Route::post('/quizzes/{id}/questions', [AdminQuizController::class, 'storeQuestion'])->middleware('management-permission:curriculum')->name('quizzes.questions.store');
+    Route::delete('/questions/{id}', [AdminQuizController::class, 'destroy'])->middleware('management-permission:curriculum')->name('questions.destroy');
+
+    Route::get('/roles', [RoleController::class, 'index'])->middleware('management-permission:superadmin')->name('roles.index');
+    Route::get('/roles/{manpower}/edit', [RoleController::class, 'edit'])->middleware('management-permission:superadmin')->name('roles.edit');
+    Route::put('/roles/{manpower}', [RoleController::class, 'update'])->middleware('management-permission:superadmin')->name('roles.update');
 });
 
 // Operator Portal Routes
-Route::middleware('auth')->prefix('operator')->name('operator.')->group(function () {
+Route::middleware(['auth', 'active-operator'])->prefix('operator')->name('operator.')->group(function () {
     Route::get('/dashboard', [OperatorDashboardController::class, 'index'])->name('dashboard');
     Route::get('/materials/{trainingId}', [OperatorMaterialController::class, 'show'])->name('materials.show');
     Route::get('/quizzes/{quizId}', [OperatorQuizController::class, 'show'])->name('quizzes.show');

@@ -20,13 +20,14 @@ class SkillMatrixController extends Controller
         $search = $request->get('search');
 
         // Stat Widgets
-        $totalOperator = MManpower::where('status', true)->count();
+        $totalOperator = MManpower::where('status', true)->whereNotNull('haris_synced_at')->count();
         $totalSkill = MSkill::count();
         $totalTerakreditasi = OperatorSkillMatrix::where('status_gap', 'Lulus / Sesuai Target')->count();
         $totalEscalated = TrainingEnrollment::where('status', 'failed_escalated')->count();
 
         // Skill Matrix Grid
         $queryManpowers = MManpower::where('status', true)
+            ->whereNotNull('haris_synced_at')
             ->with(['skillMatrices.skill']);
 
         if ($departemenFilter) {
@@ -41,7 +42,7 @@ class SkillMatrixController extends Controller
             });
         }
 
-        $manpowers = $queryManpowers->paginate(10);
+        $manpowers = $queryManpowers->orderBy('nama')->paginate(10)->withQueryString();
         $skills = MSkill::all();
 
         // Escalated TNA List
@@ -50,7 +51,14 @@ class SkillMatrixController extends Controller
             ->latest()
             ->get();
 
-        $departemens = MManpower::distinct()->pluck('departemen')->filter();
+        $departemens = MManpower::query()
+            ->where('status', true)
+            ->whereNotNull('haris_synced_at')
+            ->distinct()
+            ->orderBy('departemen')
+            ->pluck('departemen')
+            ->filter()
+            ->values();
 
         return view('admin.skill-matrix.index', compact(
             'totalOperator',

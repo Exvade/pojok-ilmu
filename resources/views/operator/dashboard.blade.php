@@ -1,142 +1,59 @@
 @extends('layouts.app')
-
-@section('title', 'Training Saya - Portal Operator Pojok Ilmu')
-
+@section('title', 'Pelatihan saya · Pojok Ilmu')
 @section('content')
-@include('layouts.navigation')
-
-<div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-8">
-    
-    <!-- Operator Greeting Banner -->
-    <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-brand-dark to-green-900 text-white shadow-xl relative overflow-hidden">
-        <div class="absolute right-0 top-0 bottom-0 opacity-10 flex items-center pr-8 pointer-events-none">
-            <svg class="w-64 h-64" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
-        </div>
-
-        <div class="relative z-10 space-y-2">
-            <div class="inline-flex items-center px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold">
-                Portal Operator &bull; PT Mada Wikri Tunggal
-            </div>
-            <h1 class="text-3xl font-extrabold font-heading">Selamat Datang, {{ $manpower?->nama ?? auth()->user()->name }}!</h1>
-            <p class="text-green-100 text-sm max-w-xl">
-                Departemen: <strong>{{ $manpower?->departemen ?? '-' }}</strong> &bull; 
-                Bagian: <strong>{{ $manpower?->bagian ?? '-' }}</strong> &bull; 
-                NPK: <strong>{{ $manpower?->mp_id ?? auth()->user()->user_id }}</strong>
-            </p>
-        </div>
+<div class="page-shell">
+    <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+        <div><p class="mb-2 text-xs font-semibold uppercase tracking-wider text-brand-dark dark:text-green-400">Ruang belajar karyawan</p><h1 class="page-title">Selamat datang, {{ $manpower?->nama ?? auth()->user()->name }}</h1><p class="page-description">Lanjutkan pembelajaran dan pantau perkembangan kompetensi Anda.</p></div>
+        <span class="self-start rounded-md border border-gray-200 bg-white px-3 py-2 font-mono text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-800">{{ $manpower?->mp_id ?? auth()->user()->user_id }}</span>
     </div>
-
-    <!-- Section 1: Dynamic Skill Level Matrix Operator -->
-    <x-card>
-        <x-slot name="header">
-            <h3 class="font-bold font-heading text-lg">Matriks Kompetensi Saya (Actual Skill Level)</h3>
-        </x-slot>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-            @forelse($matrices as $mx)
-                @php
-                    $gap = $mx->target_level - $mx->current_level;
-                @endphp
-                <div class="p-5 rounded-2xl bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-bold font-mono text-gray-400">{{ $mx->skill->kode_skill }}</span>
-                            @if($gap <= 0)
-                                <span class="px-2.5 py-1 text-xs font-extrabold rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">
-                                    Lulus / Sesuai Target
-                                </span>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        @foreach([['Pelatihan ditugaskan', $enrollments->count()], ['Pelatihan selesai', $enrollments->where('status', 'passed')->count()], ['Kompetensi ditargetkan', $matrices->count()]] as [$label, $value])
+            <x-card><p class="text-xs font-medium text-gray-500">{{ $label }}</p><p class="mt-3 text-3xl font-semibold tracking-tight">{{ $value }}</p></x-card>
+        @endforeach
+    </div>
+    <div class="rounded-lg border border-green-200 bg-green-50 px-5 py-4 dark:border-green-900 dark:bg-green-950/30">
+        <p class="text-sm font-semibold text-brand-dark dark:text-green-300">{{ $manpower?->departemen ?? 'Departemen belum tersedia' }}</p>
+        <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">{{ $manpower?->bagian ?? 'Jabatan belum tersedia' }} · Materi ditugaskan berdasarkan kebutuhan kompetensi.</p>
+    </div>
+    <section aria-labelledby="training-heading">
+        <div class="mb-4 flex items-center justify-between gap-3"><h2 id="training-heading" class="text-base font-semibold">Pelatihan saya</h2><span class="text-xs text-gray-500">{{ $enrollments->count() }} pelatihan</span></div>
+        <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+            @forelse($enrollments as $en)
+                <x-card>
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <span class="text-xs font-medium text-gray-500">{{ $en->training->kode_training }} · Level {{ $en->training->level }}</span>
+                        <span class="rounded-md px-2 py-1 text-xs font-semibold {{ $en->status === 'passed' ? 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300' : ($en->status === 'failed_escalated' ? 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300' : 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300') }}">{{ ['passed' => 'Selesai', 'failed_escalated' => 'Perlu tindak lanjut', 'in_progress' => 'Sedang dipelajari', 'enrolled' => 'Belum dimulai'][$en->status] ?? 'Ditugaskan' }}</span>
+                    </div>
+                    <h3 class="mt-4 text-lg font-semibold">{{ $en->training->judul }}</h3>
+                    <p class="mt-2 text-sm text-gray-500">{{ $en->training->skill?->nama_skill ?? 'Kompetensi tidak tersedia' }}</p>
+                    <x-slot name="footer">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div class="text-xs leading-5 text-gray-500">Nilai kelulusan {{ $en->training->passing_grade }}%<br>Percobaan gagal {{ $en->current_retry_count }} / {{ $en->training->quiz?->max_retries ?? $en->training->max_retries }}</div>
+                            @if($en->status === 'failed_escalated')
+                                <span class="text-xs text-red-600 dark:text-red-400">Hubungi HR / atasan</span>
                             @else
-                                <span class="px-2.5 py-1 text-xs font-extrabold rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400">
-                                    Gap -{{ $gap }} Level
-                                </span>
+                                <x-button :href="route('operator.materials.show', $en->training->id)" size="sm">{{ $en->status === 'passed' ? 'Tinjau materi' : 'Buka materi' }}<x-icon name="arrow" class="h-4 w-4" /></x-button>
                             @endif
                         </div>
-                        <h4 class="font-bold text-base text-gray-900 dark:text-gray-100">{{ $mx->skill->nama_skill }}</h4>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $mx->skill->kategori }}</p>
-                    </div>
-
-                    <!-- 4-Block Level Visualizer -->
-                    <div class="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
-                        <div class="flex items-center justify-between text-xs text-gray-500 mb-1.5">
-                            <span>Kemampuan Aktual</span>
-                            <span class="font-bold text-brand-dark dark:text-green-400">Level {{ $mx->current_level }} / Target {{ $mx->target_level }}</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            @for($l = 1; $l <= 4; $l++)
-                                <div class="flex-1 h-3 rounded-md border {{ $l <= $mx->current_level ? 'bg-brand-light border-green-600 shadow-sm' : 'bg-gray-200 dark:bg-gray-700 border-gray-300 dark:border-gray-600' }}"></div>
-                            @endfor
-                        </div>
-                    </div>
-                </div>
+                    </x-slot>
+                </x-card>
             @empty
-                <div class="col-span-full">
-                    <x-empty-state title="Belum Ada Target Skill" description="Silakan hubungi HR/Atasan untuk penetapan target skill jabatan." />
-                </div>
+                <x-card class="xl:col-span-2"><x-empty-state title="Belum ada pelatihan yang ditugaskan" description="Pelatihan akan muncul setelah HR menetapkan target kompetensi dan materi yang sesuai dengan jabatan Anda." /></x-card>
             @endforelse
         </div>
-    </x-card>
-
-    <!-- Section 2: Daftar Training (Auto TNA) -->
+    </section>
     <x-card>
-        <x-slot name="header">
-            <h3 class="font-bold font-heading text-lg">Daftar Pelatihan Mandiri (TNA Tugas Saya)</h3>
-        </x-slot>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            @forelse($enrollments as $en)
-                <div class="p-6 rounded-3xl bg-white dark:bg-gray-800 border-2 {{ $en->status === 'failed_escalated' ? 'border-red-300 dark:border-red-800 bg-red-50/30' : ($en->status === 'passed' ? 'border-emerald-200 dark:border-emerald-900 bg-emerald-50/20' : 'border-brand-light/30') }} shadow-md flex flex-col justify-between space-y-4">
-                    
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="px-2.5 py-1 text-xs font-mono font-bold rounded-lg bg-green-100 dark:bg-green-950/60 text-brand-dark dark:text-green-400">
-                                {{ $en->training->kode_training }}
-                            </span>
-
-                            @if($en->status === 'passed')
-                                <span class="px-3 py-1 text-xs font-extrabold rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400">
-                                    &check; LULUS
-                                </span>
-                            @elseif($en->status === 'failed_escalated')
-                                <span class="px-3 py-1 text-xs font-extrabold rounded-full bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-400">
-                                    &excl; ESKALASI HR
-                                </span>
-                            @else
-                                <span class="px-3 py-1 text-xs font-extrabold rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-400">
-                                    WAJIB DIKERJAKAN
-                                </span>
-                            @endif
-                        </div>
-
-                        <h3 class="font-bold font-heading text-xl text-gray-900 dark:text-gray-100 leading-snug">
-                            {{ $en->training->judul }}
-                        </h3>
-
-                        <p class="text-xs text-gray-500 dark:text-gray-400">
-                            Skill: <strong>{{ $en->training->skill->nama_skill }}</strong> &bull; Level: <strong>Level {{ $en->training->level }}</strong>
-                        </p>
-                    </div>
-
-                    <div class="pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                        <div class="text-xs text-gray-500">
-                            Passing Grade: <strong>{{ $en->training->passing_grade }}%</strong> <br>
-                            Percobaan: <strong>{{ $en->attempts->count() }} / {{ $en->training->max_retries }} kali</strong>
-                        </div>
-
-                        <div>
-                            @if($en->status === 'failed_escalated')
-                                <span class="text-xs font-bold text-red-600">Menunggu Respon HR</span>
-                            @else
-                                <a href="{{ route('operator.materials.show', $en->training->id) }}" class="inline-flex items-center px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-brand-dark hover:bg-green-900 shadow-md shadow-green-900/20 transition-all">
-                                    {{ $en->status === 'passed' ? 'Ulang Materi' : 'Buka Materi Belajar &rarr;' }}
-                                </a>
-                            @endif
-                        </div>
-                    </div>
+        <x-slot name="header"><h2 class="text-base font-semibold">Perkembangan kompetensi</h2></x-slot>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            @forelse($matrices as $mx)
+                <div class="rounded-md border border-gray-200 p-4 dark:border-gray-700">
+                    <p class="text-xs text-gray-500">{{ $mx->skill?->kode_skill }}</p><h3 class="mt-2 text-sm font-semibold">{{ $mx->skill?->nama_skill ?? 'Kompetensi tidak tersedia' }}</h3>
+                    <div class="mb-2 mt-5 flex justify-between text-xs text-gray-500"><span>Level {{ $mx->current_level }}</span><span>Target {{ $mx->target_level }}</span></div>
+                    <div class="flex gap-1" aria-label="Level {{ $mx->current_level }} dari target {{ $mx->target_level }}">@for($level = 1; $level <= 4; $level++)<div class="h-2 flex-1 rounded-sm {{ $level <= $mx->current_level ? 'bg-brand-dark dark:bg-green-500' : 'bg-gray-100 dark:bg-gray-700' }}"></div>@endfor</div>
+                    <p class="mt-3 text-xs {{ $mx->current_level >= $mx->target_level ? 'text-green-700 dark:text-green-400' : 'text-amber-700 dark:text-amber-400' }}">{{ $mx->current_level >= $mx->target_level ? 'Target tercapai' : 'Masih perlu peningkatan '.($mx->target_level - $mx->current_level).' level' }}</p>
                 </div>
             @empty
-                <div class="col-span-full">
-                    <x-empty-state title="Tidak Ada Tugas Training" description="Selamat! Semua target skill Anda sudah terpenuhi atau belum ada penugasan baru." />
-                </div>
+                <div class="col-span-full"><x-empty-state title="Target kompetensi belum ditetapkan" description="Hubungi HR atau atasan untuk penetapan target sesuai jabatan Anda." /></div>
             @endforelse
         </div>
     </x-card>

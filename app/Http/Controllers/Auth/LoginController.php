@@ -39,36 +39,10 @@ class LoginController extends Controller
         $userId = trim($request->input('user_id'));
         $password = $request->input('password');
 
-        // 1. HARDCODED SUPERADMIN BYPASS (superadmin / 2025)
-        if ($userId === 'superadmin' && $password === '2025') {
-            $user = User::where('is_superadmin', true)->first();
-
-            if (! $user) {
-                $user = User::create([
-                    'user_id' => 'SUPERADMIN',
-                    'password' => Hash::make('2025'),
-                    'role' => 1,
-                    'is_superadmin' => true,
-                ]);
-            }
-
-            Auth::login($user);
-
-            session([
-                'user_id' => 'SUPERADMIN',
-                'role' => 1,
-                'is_superadmin' => true,
-                'user_name' => 'SUPER ADMIN',
-                'departemen' => 'MANAGEMENT',
-            ]);
-
-            return redirect('/admin/dashboard')->with('success', 'Selamat datang Superadmin!');
-        }
-
-        // 2. Cari User Terdaftar di Database S2S (berdasarkan user_id / NPK)
+        // 1. Cari akun yang sudah terdaftar berdasarkan user_id / NPK
         $user = User::where('user_id', $userId)->first();
 
-        // 3. Jika Akun Admin / Management (Role 1 atau 2) -> Wajib Password
+        // 2. Jika Akun Admin / Management (Role 1 atau 2) -> Wajib Password
         if ($user && ($user->isAdmin() || $user->isManagement())) {
             if (! $password) {
                 return back()->with('error', 'Password wajib diisi untuk akun Admin/Management.')->withInput();
@@ -91,7 +65,7 @@ class LoginController extends Controller
             return redirect('/admin/dashboard')->with('success', 'Selamat datang, ' . $user->name . '!');
         }
 
-        // 4. Regular Operator Login (berdasarkan NPK / MP_ID di Master Manpower S2S)
+        // 3. Login operator berdasarkan NPK / MP_ID pada master karyawan HaRis lokal
         $manpower = MManpower::where('mp_id', $userId)
             ->orWhere('nik', $userId)
             ->first();
@@ -104,10 +78,11 @@ class LoginController extends Controller
             return back()->with('error', 'Akun Manpower Anda non-aktif. Silakan hubungi HR.')->withInput();
         }
 
-        // Cari atau buatkan akun User untuk Operator ini di S2S database
+        // Cari atau buatkan akun lokal untuk operator ini
         $user = User::firstOrCreate(
             ['user_id' => $manpower->mp_id],
             [
+                'name' => $manpower->nama,
                 'password' => null,
                 'role' => 0, // Operator
                 'is_superadmin' => false,
@@ -169,6 +144,7 @@ class LoginController extends Controller
         $user = User::firstOrCreate(
             ['user_id' => $manpower->mp_id],
             [
+                'name' => $manpower->nama,
                 'password' => null,
                 'role' => 0,
                 'is_superadmin' => false,

@@ -69,7 +69,7 @@ class DashboardController extends Controller
         }
 
         // Fetch operator enrollments & skill matrices
-        $enrollments = TrainingEnrollment::with(['training.skill', 'attempts'])
+        $enrollments = TrainingEnrollment::with(['training.skill', 'training.quiz', 'attempts'])
             ->where('manpower_id', $manpower->id)
             ->latest()
             ->get();

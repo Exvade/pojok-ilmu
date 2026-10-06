@@ -3,22 +3,22 @@
 @section('title', 'Master Skill - Pojok Ilmu MWT')
 
 @section('content')
-@include('layouts.navigation')
 
-<div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-8" x-data="{ showSkillModal: false, showTargetModal: false }">
+
+<div class="page-shell" x-data>
     
     <!-- Page Header -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-            <h1 class="text-3xl font-extrabold font-heading text-brand-dark dark:text-green-400">Master Skill & Target Level</h1>
+            <h1 class="page-title">Kompetensi & target level</h1>
             <p class="text-sm text-gray-500 dark:text-gray-400">Manajemen daftar keahlian dan standar target level per jabatan/posisi</p>
         </div>
-        <div class="flex items-center gap-3">
-            <x-button @click="showTargetModal = true" variant="secondary" size="md">
-                + Setting Target Level
+        <div class="flex items-center gap-3 flex-wrap">
+            <x-button @click="$dispatch('open-modal', 'add-target-modal')" variant="secondary" size="md">
+                Atur Target Level
             </x-button>
-            <x-button @click="showSkillModal = true" variant="primary" size="md">
-                + Tambah Skill Baru
+            <x-button @click="$dispatch('open-modal', 'add-skill-modal')" variant="primary" size="md">
+                Tambah Skill Baru
             </x-button>
         </div>
     </div>
@@ -30,8 +30,7 @@
         </x-slot>
 
         <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left">
-                <thead class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-bold uppercase">
+            <x-table><x-slot name="head">
                     <tr>
                         <th class="py-3 px-4">Kode Skill</th>
                         <th class="py-3 px-4">Nama Skill</th>
@@ -39,8 +38,7 @@
                         <th class="py-3 px-4">Deskripsi</th>
                         <th class="py-3 px-4 text-center">Aksi</th>
                     </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                </x-slot>
                     @forelse($skills as $sk)
                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                             <td class="py-3.5 px-4 font-mono font-bold text-brand-dark dark:text-green-400">{{ $sk->kode_skill }}</td>
@@ -52,12 +50,10 @@
                             </td>
                             <td class="py-3.5 px-4 text-gray-500 dark:text-gray-400 text-xs">{{ $sk->deskripsi ?? '-' }}</td>
                             <td class="py-3.5 px-4 text-center">
-                                <form action="{{ route('admin.skills.destroy', $sk->id) }}" method="POST" onsubmit="return confirm('Hapus skill ini?')">
+                                <form action="{{ route('admin.skills.destroy', $sk->id) }}" method="POST" data-confirm="Hapus skill ini?">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all" title="Hapus">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    </button>
+                                    <x-button type="submit" variant="ghost" size="sm" class="text-red-600" aria-label="Hapus skill" title="Hapus skill"><x-icon name="trash" class="h-4 w-4" /></x-button>
                                 </form>
                             </td>
                         </tr>
@@ -68,71 +64,89 @@
                             </td>
                         </tr>
                     @endforelse
-                </tbody>
-            </table>
+                </x-table>
         </div>
     </x-card>
 
+    <x-card>
+        <x-slot name="header"><h2 class="text-base font-semibold">Target kompetensi per jabatan</h2><p class="mt-1 text-xs text-gray-500">Daftar aturan penugasan pelatihan yang sudah ditetapkan.</p></x-slot>
+        <x-table :headers="['Departemen', 'Jabatan', 'Kompetensi', 'Target']">
+            @forelse($targetLevels as $target)
+                <tr><td>{{ $target->departemen }}</td><td>{{ $target->bagian }}</td><td>{{ $target->skill?->nama_skill ?? 'Kompetensi tidak tersedia' }}</td><td class="whitespace-nowrap">Level {{ $target->target_level }}</td></tr>
+            @empty
+                <tr><td colspan="4"><x-empty-state title="Belum ada target level" description="Gunakan Atur Target Level untuk menetapkan kebutuhan kompetensi karyawan." /></td></tr>
+            @endforelse
+        </x-table>
+    </x-card>
+
     <!-- Modal Tambah Skill -->
-    <x-modal name="add-skill-modal" show="showSkillModal" @close="showSkillModal = false" title="Tambah Master Skill Baru">
+    <x-modal name="add-skill-modal" :show="$errors->any() && old('_modal') === 'add-skill-modal'" title="Tambah Master Skill Baru">
         <form action="{{ route('admin.skills.store') }}" method="POST" class="space-y-4">
             @csrf
+            <input type="hidden" name="_modal" value="add-skill-modal">
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kode Skill</label>
-                <x-input type="text" name="kode_skill" placeholder="MISAL: SKILL-KZN-01" required class="uppercase" />
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-skill-modal-kode_skill">Kode Skill</label>
+                <x-input type="text" name="kode_skill" placeholder="MISAL: SKILL-KZN-01" required class="uppercase" id="add-skill-modal-kode_skill" />
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nama Skill</label>
-                <x-input type="text" name="nama_skill" placeholder="MISAL: Pengenalan Kaizen" required />
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-skill-modal-nama_skill">Nama Skill</label>
+                <x-input type="text" name="nama_skill" placeholder="MISAL: Pengenalan Kaizen" required id="add-skill-modal-nama_skill" />
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kategori</label>
-                <x-input type="text" name="kategori" placeholder="MISAL: Continues Improvement (CI)" required />
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-skill-modal-kategori">Kategori</label>
+                <x-input type="text" name="kategori" placeholder="MISAL: Continues Improvement (CI)" required id="add-skill-modal-kategori" />
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Deskripsi</label>
-                <textarea name="deskripsi" rows="3" class="w-full px-3 py-2 rounded-xl text-sm border border-gray-300 dark:border-gray-700 dark:bg-gray-800" placeholder="Penjelasan singkat keahlian..."></textarea>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-skill-modal-deskripsi">Deskripsi</label>
+                <x-textarea name="deskripsi" rows="3" placeholder="Penjelasan singkat keahlian..." id="add-skill-modal-deskripsi"></x-textarea>
             </div>
             <div class="flex justify-end gap-2 pt-4">
-                <x-button type="button" @click="showSkillModal = false" variant="outline">Batal</x-button>
+                <x-button type="button" @click="$dispatch('close-modal', 'add-skill-modal')" variant="outline">Batal</x-button>
                 <x-button type="submit" variant="primary">Simpan Skill</x-button>
             </div>
         </form>
     </x-modal>
 
-    <!-- Modal Setting Target Level -->
-    <x-modal name="add-target-modal" show="showTargetModal" @close="showTargetModal = false" title="Setting Target Level Skill per Jabatan">
+    <!-- Modal Atur Target Level -->
+    <x-modal name="add-target-modal" :show="$errors->any() && old('_modal') === 'add-target-modal'" title="Atur Target Level Skill per Jabatan">
         <form action="{{ route('admin.skills.target-level') }}" method="POST" class="space-y-4">
             @csrf
+            <input type="hidden" name="_modal" value="add-target-modal">
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pilih Skill</label>
-                <select name="skill_id" required class="w-full px-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-sm">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-target-modal-skill_id">Pilih Skill</label>
+                <x-select name="skill_id" required id="add-target-modal-skill_id">
                     <option value="">-- Pilih Skill --</option>
                     @foreach($skills as $sk)
                         <option value="{{ $sk->id }}">{{ $sk->kode_skill }} - {{ $sk->nama_skill }}</option>
                     @endforeach
-                </select>
+                </x-select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Departemen</label>
-                <x-input type="text" name="departemen" placeholder="MISAL: PRODUKSI PLASTIK" required class="uppercase" />
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-target-modal-departemen">Departemen</label>
+                <x-select name="departemen" required id="add-target-modal-departemen">
+                    <option value="">-- Pilih departemen dari HaRis --</option>
+                    @foreach($departments as $department)<option value="{{ $department }}">{{ $department }}</option>@endforeach
+                </x-select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Bagian / Stasiun Kerja</label>
-                <x-input type="text" name="bagian" placeholder="MISAL: ASSEMBLY" required class="uppercase" />
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-target-modal-bagian">Jabatan</label>
+                <x-select name="bagian" required id="add-target-modal-bagian">
+                    <option value="">-- Pilih jabatan dari HaRis --</option>
+                    @foreach($jobTitles as $jobTitle)<option value="{{ $jobTitle }}">{{ $jobTitle }}</option>@endforeach
+                </x-select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Target Level (Level 1 s/d 4)</label>
-                <select name="target_level" required class="w-full px-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-sm font-bold">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-target-modal-target_level">Target Level (Level 1 s/d 4)</label>
+                <x-select name="target_level" required id="add-target-modal-target_level">
                     <option value="1">Level 1 (Pemula / Trainee)</option>
                     <option value="2">Level 2 (Mandiri / Operator)</option>
                     <option value="3">Level 3 (Mahir / Senior Operator)</option>
                     <option value="4">Level 4 (Ahli / Instruktur / Leader)</option>
-                </select>
+                </x-select>
             </div>
             <div class="flex justify-end gap-2 pt-4">
-                <x-button type="button" @click="showTargetModal = false" variant="outline">Batal</x-button>
-                <x-button type="submit" variant="primary">Simpan & Sync Matrix</x-button>
+                <x-button type="button" @click="$dispatch('close-modal', 'add-target-modal')" variant="outline">Batal</x-button>
+                <x-button type="submit" variant="primary">Simpan Target</x-button>
             </div>
         </form>
     </x-modal>

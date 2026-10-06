@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import 'sweetalert2/dist/sweetalert2.min.css';
 
 [x-cloak] { display: none !important; }
 
@@ -11,13 +12,40 @@
 
 @theme {
     --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-    --font-heading: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+    --font-heading: 'Inter', ui-sans-serif, system-ui, sans-serif;
     
     /* PT Mada Wikri Tunggal Brand Colors */
     --color-brand-dark: #14532d;
     --color-brand-light: #22c55e;
-    --color-brand-surface: #f8fafc;
+    --color-brand-surface: #f4f6f8;
     --color-brand-text: #1e293b;
+}
+
+@layer base {
+    button:not(:disabled), a, select { cursor: pointer; }
+    input[type='radio'], input[type='checkbox'] { accent-color: var(--color-brand-dark); }
+    :focus-visible { outline: 2px solid var(--color-brand-dark); outline-offset: 3px; }
+    .dark :focus-visible { outline-color: var(--color-brand-light); }
+    h1, h2, h3, h4 { text-wrap: balance; }
+}
+@layer components {
+    .form-control { @apply w-full min-w-0 rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-green-600 focus:outline-2 focus:outline-green-600/20 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 dark:disabled:bg-gray-800; }
+    .page-shell { @apply mx-auto w-full max-w-[1600px] space-y-6 px-4 py-6 sm:px-8 sm:py-8; }
+    .page-title { @apply text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-100; }
+    .page-description { @apply mt-2 max-w-3xl text-sm leading-6 text-gray-500 dark:text-gray-400; }
+    .data-table { @apply w-full text-left text-sm; }
+    .data-table thead { @apply border-y border-gray-200 bg-gray-50 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400; }
+    .data-table th { @apply px-4 py-3 font-semibold; }
+    .data-table td { @apply px-4 py-4 align-top; }
+    .data-table tbody { @apply divide-y divide-gray-100 dark:divide-gray-700; }
+    .data-table tbody tr:hover { @apply bg-gray-50/70 dark:bg-gray-900/50; }
+}
+.swal2-popup { border-radius: 8px; font-family: var(--font-sans); }
+.swal2-title { font-size: 1.125rem; }
+.swal2-styled { border-radius: 6px; font-size: .875rem; }
+.dark .swal2-popup { background: #1f2937; color: #f3f4f6; }
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
 
 /* Custom Scrollbar */

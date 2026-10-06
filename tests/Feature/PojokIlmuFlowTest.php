@@ -24,6 +24,7 @@ test('operator accessing dashboard auto generates TNA and skill matrix based on 
 
     $user = User::create([
         'user_id' => 'OP100',
+        'name' => 'Joko Operator',
         'role' => 0,
     ]);
 
@@ -80,6 +81,7 @@ test('operator passing quiz automatically upgrades skill matrix current level an
 
     $user = User::create([
         'user_id' => 'OP101',
+        'name' => 'Siti Trainee',
         'role' => 0,
     ]);
 

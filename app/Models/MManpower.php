@@ -13,17 +13,11 @@ class MManpower extends BaseModel
 
     protected $table = 'm_manpower';
 
-    public function getConnectionName()
-    {
-        return app()->environment('testing')
-            ? parent::getConnectionName()
-            : config('database.s2s_connection', env('DB_S2S_CONNECTION', 's2s'));
-    }
-
     protected function casts(): array
     {
         return [
             'status' => 'boolean',
+            'haris_synced_at' => 'datetime',
         ];
     }
 

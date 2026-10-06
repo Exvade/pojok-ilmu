@@ -2,99 +2,22 @@
 
 namespace Database\Seeders;
 
-use App\Models\MManpower;
 use App\Models\MSkill;
 use App\Models\MSkillTargetLevel;
-use App\Models\OperatorSkillMatrix;
 use App\Models\Quiz;
 use App\Models\QuizQuestion;
 use App\Models\Training;
-use App\Models\TrainingEnrollment;
 use App\Models\TrainingMaterial;
-use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Seed Manpower & Users
-        $adminMp = MManpower::create([
-            'mp_id' => 'ADMIN001',
-            'nik' => '990001',
-            'nama' => 'Administrator MWT',
-            'departemen' => 'IT & HRD',
-            'bagian' => 'System Administrator',
-            'status' => true,
-        ]);
+        // Akun berasal dari HaRis. Jalankan haris:sync-manpower lalu
+        // pojok-ilmu:bootstrap-superadmin untuk menetapkan superadmin.
 
-        User::create([
-            'user_id' => 'ADMIN001',
-            'name' => 'Administrator MWT',
-            'email' => 'admin@mada.co.id',
-            'password' => Hash::make('2025'),
-            'role' => 1, // Superadmin/Admin
-            'is_superadmin' => true,
-        ]);
-
-        $hrMp = MManpower::create([
-            'mp_id' => 'HR001',
-            'nik' => '990002',
-            'nama' => 'Siti Supervisor HR',
-            'departemen' => 'HRD',
-            'bagian' => 'Training & Development',
-            'status' => true,
-        ]);
-
-        User::create([
-            'user_id' => 'HR001',
-            'name' => 'Siti Supervisor HR',
-            'email' => 'hr@mada.co.id',
-            'password' => Hash::make('123456'),
-            'role' => 2, // Management/HR
-            'is_superadmin' => false,
-        ]);
-
-        // Operator 1: Budi Trainee (OP001)
-        $budiMp = MManpower::create([
-            'mp_id' => 'OP001',
-            'nik' => '100001',
-            'nama' => 'BUDI TRAINEE',
-            'departemen' => 'PRODUKSI PLASTIK',
-            'bagian' => 'ASSEMBLY',
-            'status' => true,
-        ]);
-
-        User::create([
-            'user_id' => 'OP001',
-            'name' => 'BUDI TRAINEE',
-            'email' => 'budi@mada.co.id',
-            'password' => null, // Operator login scan/NPK
-            'role' => 0, // Operator
-            'is_superadmin' => false,
-        ]);
-
-        // Operator 2: Ani Operator (OP002)
-        $aniMp = MManpower::create([
-            'mp_id' => 'OP002',
-            'nik' => '100002',
-            'nama' => 'ANI OPERATOR',
-            'departemen' => 'PRODUKSI PLASTIK',
-            'bagian' => 'INJECTION',
-            'status' => true,
-        ]);
-
-        User::create([
-            'user_id' => 'OP002',
-            'name' => 'ANI OPERATOR',
-            'email' => 'ani@mada.co.id',
-            'password' => null,
-            'role' => 0,
-            'is_superadmin' => false,
-        ]);
-
-        // 2. Seed Skills
+        // 1. Seed Skills
         $skill1 = MSkill::create([
             'kode_skill' => 'SKILL-KZN-01',
             'nama_skill' => 'Pengenalan Kaizen',
@@ -138,35 +61,7 @@ class DatabaseSeeder extends Seeder
             'target_level' => 3,
         ]);
 
-        // 4. Initial Skill Matrix Budi Trainee
-        $matrix1 = OperatorSkillMatrix::create([
-            'manpower_id' => $budiMp->id,
-            'skill_id' => $skill1->id,
-            'current_level' => 0,
-            'target_level' => 2,
-            'status_gap' => 'Gap -2 Level',
-            'last_updated_at' => now(),
-        ]);
-
-        $matrix2 = OperatorSkillMatrix::create([
-            'manpower_id' => $budiMp->id,
-            'skill_id' => $skill2->id,
-            'current_level' => 0,
-            'target_level' => 2,
-            'status_gap' => 'Gap -2 Level',
-            'last_updated_at' => now(),
-        ]);
-
-        $matrix3 = OperatorSkillMatrix::create([
-            'manpower_id' => $budiMp->id,
-            'skill_id' => $skill3->id,
-            'current_level' => 1,
-            'target_level' => 3,
-            'status_gap' => 'Gap -2 Level',
-            'last_updated_at' => now(),
-        ]);
-
-        // 5. Seed Training Programs & Materials
+        // 4. Seed Training Programs & Materials
         $training1 = Training::create([
             'kode_training' => 'TRN-KZN-L1',
             'skill_id' => $skill1->id,
@@ -237,14 +132,6 @@ class DatabaseSeeder extends Seeder
             'opsi_c' => 'Menghentikan seluruh line produksi selama seminggu',
             'opsi_d' => 'Menunggu instruksi langsung dari direksi',
             'kunci_jawaban' => 'a',
-        ]);
-
-        // 6. Auto-Enroll Budi Trainee to TNA Training 1
-        TrainingEnrollment::create([
-            'manpower_id' => $budiMp->id,
-            'training_id' => $training1->id,
-            'status' => 'enrolled',
-            'current_retry_count' => 0,
         ]);
     }
 }

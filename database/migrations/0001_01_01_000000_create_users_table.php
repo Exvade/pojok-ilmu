@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // 1. Manpower Table (Master Data Karyawan / Operator - Sama dengan S2S)
+        // 1. Master Data Karyawan / Operator
         Schema::create('m_manpower', function (Blueprint $table) {
             $table->id();
             $table->string('mp_id')->unique(); // Linked to User (NPK / ID Operator)
@@ -25,14 +25,17 @@ return new class extends Migration
             $table->mwtTimestamps();
         });
 
-        // 2. Users Table (Sama dengan S2S: Auto Increment BigInt ID)
+        // 2. Akun aplikasi lokal
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('user_id')->nullable()->unique(); // Maps to m_manpower.mp_id
+            $table->uuid('id')->primary();
+            $table->string('user_id')->unique(); // Maps to m_manpower.mp_id
+            $table->string('name');
+            $table->string('email')->nullable()->unique();
             $table->string('password')->nullable(); // Nullable for operators (login via scan/NPK)
             $table->integer('role')->default(0); // 1 = Admin/Superadmin, 2 = Management/HR/Supervisor, 0 = Operator
             $table->boolean('is_superadmin')->default(false);
             $table->rememberToken();
+            $table->softDeletes();
             $table->mwtTimestamps();
         });
 
@@ -44,7 +47,7 @@ return new class extends Migration
 
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
+            $table->uuid('user_id')->nullable()->index();
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();
             $table->longText('payload');

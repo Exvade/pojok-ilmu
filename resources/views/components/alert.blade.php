@@ -1,6 +1,7 @@
 @props(['type' => 'info', 'title' => null])
 
 @php
+    $type = in_array($type, ['info', 'success', 'warning', 'danger']) ? $type : 'info';
     $typeClasses = [
         'info' => 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300',
         'success' => 'bg-green-50 border-brand-light/30 text-brand-dark dark:bg-green-900/30 dark:border-green-800 dark:text-green-300',
@@ -16,7 +17,7 @@
     ][$type];
 @endphp
 
-<div {{ $attributes->merge(['class' => "border-l-4 p-4 rounded-r-xl shadow-sm mb-4 $typeClasses"]) }} role="alert">
+<div {{ $attributes->merge(['class' => "border p-4 rounded-lg mb-4 $typeClasses"]) }} role="alert">
     <div class="flex items-start">
         <div class="flex-shrink-0">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

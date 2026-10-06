@@ -1,59 +1,36 @@
-<nav class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm sticky top-0 z-30">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <!-- Brand Logo & Links -->
-            <div class="flex items-center space-x-8">
-                <a href="{{ auth()->user()?->isManagement() ? route('admin.dashboard') : route('operator.dashboard') }}" class="flex items-center gap-3">
-                    <img src="{{ asset('assets/images/logo/logo-landscape.webp') }}" alt="Logo MWT" class="h-9 w-auto object-contain">
-                    <span class="font-heading font-extrabold text-xl text-brand-dark dark:text-green-400 tracking-tight hidden sm:inline">Pojok Ilmu</span>
-                </a>
-
-                @if(auth()->user()?->isManagement())
-                    <div class="hidden md:flex space-x-4">
-                        <a href="{{ route('admin.dashboard') }}" class="px-3 py-2 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-brand-dark text-white shadow-md' : 'text-gray-600 dark:text-gray-300 hover:text-brand-dark dark:hover:text-green-400' }}">
-                            Skill Matrix
-                        </a>
-                        <a href="{{ route('admin.skills.index') }}" class="px-3 py-2 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('admin.skills.*') ? 'bg-brand-dark text-white shadow-md' : 'text-gray-600 dark:text-gray-300 hover:text-brand-dark dark:hover:text-green-400' }}">
-                            Master Skill
-                        </a>
-                        <a href="{{ route('admin.trainings.index') }}" class="px-3 py-2 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('admin.trainings.*') ? 'bg-brand-dark text-white shadow-md' : 'text-gray-600 dark:text-gray-300 hover:text-brand-dark dark:hover:text-green-400' }}">
-                            Program & Materi
-                        </a>
-                    </div>
-                @else
-                    <div class="hidden md:flex space-x-4">
-                        <a href="{{ route('operator.dashboard') }}" class="px-3 py-2 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('operator.dashboard') ? 'bg-brand-dark text-white shadow-md' : 'text-gray-600 dark:text-gray-300 hover:text-brand-dark dark:hover:text-green-400' }}">
-                            Training Saya (TNA)
-                        </a>
-                    </div>
-                @endif
-            </div>
-
-            <!-- User Menu & Dark Mode Toggle -->
-            <div class="flex items-center space-x-4">
-                <div class="text-right text-xs">
-                    <p class="font-bold text-gray-800 dark:text-gray-200">{{ auth()->user()?->name }}</p>
-                    <p class="text-gray-500 dark:text-gray-400">{{ session('departemen', 'MWT Staff') }}</p>
-                </div>
-
-                <!-- Dark Mode Toggle Button -->
-                <button @click="darkMode = !darkMode" type="button" class="p-2 rounded-xl text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 bg-gray-100 dark:bg-gray-700 transition-all" title="Toggle Theme">
-                    <template x-if="!darkMode">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                    </template>
-                    <template x-if="darkMode">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                    </template>
-                </button>
-
-                <!-- Logout Form -->
-                <form action="{{ route('logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="p-2 rounded-xl text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all" title="Keluar">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-                    </button>
-                </form>
-            </div>
-        </div>
+<div x-show="sidebarOpen" x-cloak @click="closeSidebar()" class="fixed inset-0 z-30 bg-gray-950/50 lg:hidden" aria-hidden="true"></div>
+<aside id="app-sidebar" x-ref="sidebar" :inert="!sidebarOpen && !desktop" :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'" @keydown.escape.window="closeSidebar()" @keydown.tab="trapSidebar($event)" class="fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-gray-200 bg-white transition-transform duration-200 dark:border-gray-800 dark:bg-gray-900" aria-label="Menu utama">
+    <div class="flex h-20 shrink-0 items-center justify-between border-b border-gray-100 px-5 dark:border-gray-800">
+        <a href="{{ auth()->user()->isManagement() ? route('admin.dashboard') : route('operator.dashboard') }}" aria-label="Beranda Pojok Ilmu"><img src="{{ asset('assets/images/logo/logo-landscape.webp') }}" alt="PT Mada Wikri Tunggal" class="w-48 rounded bg-white p-1.5"></a>
+        <button type="button" @click="closeSidebar()" aria-label="Tutup menu" class="ml-2 text-gray-500 lg:hidden"><x-icon name="close" /></button>
     </div>
-</nav>
+    <div class="px-6 pb-5 pt-6">
+        <p class="text-xl font-bold tracking-tight text-brand-dark dark:text-green-400">Pojok Ilmu<span class="text-brand-light">.</span></p>
+        <p class="mt-1 text-xs text-gray-500">Belajar. Berkembang. Berkontribusi.</p>
+    </div>
+    <nav class="flex-1 space-y-1 overflow-y-auto px-3" aria-label="Navigasi aplikasi">
+        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-400">{{ auth()->user()->isManagement() ? 'Manajemen pembelajaran' : 'Pembelajaran' }}</p>
+        @php
+            $user = auth()->user();
+            $items = $user->isManagement() ? [['admin.dashboard', 'admin.dashboard', 'grid', 'Ringkasan']]
+                : [['operator.dashboard', 'operator.*', 'book', 'Pelatihan saya']];
+            if ($user->canManageCompetency()) $items[] = ['admin.skills.index', 'admin.skills.*', 'chart', 'Kompetensi & target'];
+            if ($user->canManageCurriculum()) $items[] = ['admin.trainings.index', 'admin.trainings.*', 'book', 'Kurikulum & modul'];
+            if ($user->is_superadmin) $items[] = ['admin.roles.index', 'admin.roles.*', 'user', 'Kelola role'];
+        @endphp
+        @foreach($items as [$route, $pattern, $icon, $label])
+            <a href="{{ route($route) }}" @if(request()->routeIs($pattern)) aria-current="page" @endif class="flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium transition-colors {{ request()->routeIs($pattern) ? 'bg-brand-dark text-white' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800' }}"><x-icon :name="$icon" />{{ $label }}</a>
+        @endforeach
+        <div class="mx-3 mt-7 border-t border-gray-100 pt-5 dark:border-gray-800">
+            <p class="text-xs font-semibold text-gray-700 dark:text-gray-300">Dari target ke kompetensi</p>
+            <p class="mt-2 text-xs leading-5 text-gray-500">Materi, evaluasi, dan perkembangan karyawan dalam satu ruang.</p>
+        </div>
+    </nav>
+    <div class="shrink-0 border-t border-gray-200 p-4 dark:border-gray-800">
+        <div class="mb-3 flex items-start gap-3">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-green-50 text-brand-dark dark:bg-gray-800 dark:text-green-400"><x-icon name="user" /></span>
+            <div class="min-w-0"><p class="break-words text-xs font-semibold">{{ auth()->user()->name }}</p><p class="mt-1 break-words text-[11px] text-gray-500">{{ auth()->user()->manpower?->departemen ?? 'Pengelola aplikasi' }}</p></div>
+        </div>
+        <form action="{{ route('logout') }}" method="POST">@csrf<x-button type="submit" variant="outline" size="sm" class="w-full"><x-icon name="logout" class="h-4 w-4" />Keluar</x-button></form>
+    </div>
+</aside>

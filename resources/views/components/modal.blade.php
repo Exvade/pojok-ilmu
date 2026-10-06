@@ -1,74 +1,18 @@
-@props(['name', 'show' => false, 'maxWidth' => '2xl'])
-
-@php
-$maxWidthClass = [
-    'sm' => 'sm:max-w-sm',
-    'md' => 'sm:max-w-md',
-    'lg' => 'sm:max-w-lg',
-    'xl' => 'sm:max-w-xl',
-    '2xl' => 'sm:max-w-2xl',
-][$maxWidth];
-@endphp
-
-<div
-    x-data="{
-        show: @js($show),
-        focusables() {
-            let selector = 'a, button, input:not([type=\'hidden\']), textarea, select, details, [tabindex]:not([tabindex=\'-1\'])'
-            return [...$el.querySelectorAll(selector)]
-                .filter(el => ! el.hasAttribute('disabled'))
-        },
-        firstFocusable() { return this.focusables()[0] },
-        lastFocusable() { return this.focusables().slice(-1)[0] },
-        nextFocusable() { return this.focusables()[this.nextFocusableIndex()] || this.firstFocusable() },
-        prevFocusable() { return this.focusables()[this.prevFocusableIndex()] || this.lastFocusable() },
-        nextFocusableIndex() { return (this.focusables().indexOf(document.activeElement) + 1) % (this.focusables().length + 1) },
-        prevFocusableIndex() { return Math.max(0, this.focusables().indexOf(document.activeElement)) -1 },
-    }"
-    x-init="$watch('show', value => {
-        if (value) {
-            document.body.classList.add('overflow-y-hidden');
-            {{ $attributes->has('focusable') ? 'setTimeout(() => firstFocusable().focus(), 100)' : '' }}
-        } else {
-            document.body.classList.remove('overflow-y-hidden');
-        }
-    })"
-    x-on:open-modal.window="$event.detail == '{{ $name }}' ? show = true : null"
-    x-on:close-modal.window="$event.detail == '{{ $name }}' ? show = false : null"
-    x-on:close.stop="show = false"
-    x-on:keydown.escape.window="show = false"
-    x-on:keydown.tab.prevent="$event.shiftKey || nextFocusable().focus()"
-    x-on:keydown.shift.tab.prevent="prevFocusable().focus()"
-    x-show="show"
-    class="fixed inset-0 overflow-y-auto px-4 py-6 sm:px-0 z-50 flex items-center justify-center"
-    style="display: {{ $show ? 'flex' : 'none' }};"
->
-    <!-- Backdrop -->
-    <div
-        x-show="show"
-        class="fixed inset-0 transform transition-all"
-        x-on:click="show = false"
-        x-transition:enter="ease-out duration-300"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave="ease-in duration-200"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
-    >
-        <div class="absolute inset-0 bg-gray-900/75 backdrop-blur-sm"></div>
-    </div>
-
-    <!-- Modal Panel -->
-    <div
-        x-show="show"
-        class="mb-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden shadow-2xl transform transition-all sm:w-full {{ $maxWidthClass }} sm:mx-auto z-10"
-        x-transition:enter="ease-out duration-300"
-        x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-        x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-        x-transition:leave="ease-in duration-200"
-        x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-        x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-    >
-        {{ $slot }}
+@props(['name', 'show' => false, 'title' => 'Formulir', 'maxWidth' => '2xl'])
+@php($width = ['sm' => 'max-w-sm', 'md' => 'max-w-md', 'lg' => 'max-w-lg', 'xl' => 'max-w-xl', '2xl' => 'max-w-2xl'][$maxWidth] ?? 'max-w-2xl')
+<div x-data="modalDialog(@js($name), @js((bool) $show))"
+     @open-modal.window="if ($event.detail === name) openDialog()"
+     @close-modal.window="if ($event.detail === name) closeDialog()"
+     @keydown.escape.window="if (open) closeDialog()" @close.stop="closeDialog()"
+     @keydown.tab="trapFocus($event)" x-show="open" x-cloak
+     class="fixed inset-0 z-50 overflow-y-auto bg-gray-950/60 p-3 sm:p-6"
+     role="dialog" aria-modal="true" aria-labelledby="{{ $name }}-title"
+     @click.self="closeDialog()">
+    <div x-ref="panel" tabindex="-1" class="relative mx-auto my-5 w-full {{ $width }} rounded-lg border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800">
+        <div class="flex items-center justify-between gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-700">
+            <h2 id="{{ $name }}-title" class="text-base font-semibold">{{ $title }}</h2>
+            <x-button variant="ghost" size="sm" @click="closeDialog()" aria-label="Tutup formulir"><x-icon name="close" /></x-button>
+        </div>
+        <div class="p-5 sm:p-6">{{ $slot }}</div>
     </div>
 </div>

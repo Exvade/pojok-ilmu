@@ -1,17 +1,10 @@
-<div {{ $attributes->merge(['class' => 'bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden']) }}>
-    @if(isset($header))
-        <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
-            {{ $header }}
-        </div>
-    @endif
-
-    <div class="p-6">
-        {{ $slot }}
-    </div>
-
-    @if(isset($footer))
-        <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
-            {{ $footer }}
-        </div>
-    @endif
-</div>
+@props(['bodyClass' => 'p-5 sm:p-6'])
+<section {{ $attributes->class(['min-w-0 rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800']) }}>
+    @isset($header)
+        <div class="border-b border-gray-200 px-5 py-4 dark:border-gray-700 sm:px-6">{{ $header }}</div>
+    @endisset
+    <div class="{{ $bodyClass }}">{{ $slot }}</div>
+    @isset($footer)
+        <div class="border-t border-gray-200 px-5 py-4 dark:border-gray-700 sm:px-6">{{ $footer }}</div>
+    @endisset
+</section>

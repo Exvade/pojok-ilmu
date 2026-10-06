@@ -16,8 +16,10 @@ class SkillController extends Controller
     {
         $skills = MSkill::with('targetLevels')->latest()->get();
         $targetLevels = MSkillTargetLevel::with('skill')->get();
+        $departments = MManpower::query()->where('status', true)->whereNotNull('haris_synced_at')->distinct()->orderBy('departemen')->pluck('departemen');
+        $jobTitles = MManpower::query()->where('status', true)->whereNotNull('haris_synced_at')->distinct()->orderBy('jabatan')->pluck('jabatan')->filter();
 
-        return view('admin.skills.index', compact('skills', 'targetLevels'));
+        return view('admin.skills.index', compact('skills', 'targetLevels', 'departments', 'jobTitles'));
     }
 
     public function store(Request $request)
@@ -42,8 +44,8 @@ class SkillController extends Controller
     public function storeTargetLevel(Request $request)
     {
         $request->validate([
-            'departemen' => 'required|string',
-            'bagian' => 'required|string',
+            'departemen' => 'required|string|exists:m_manpower,departemen',
+            'bagian' => 'required|string|exists:m_manpower,jabatan',
             'skill_id' => 'required|exists:m_skills,id',
             'target_level' => 'required|integer|min:1|max:4',
         ]);
@@ -52,8 +54,8 @@ class SkillController extends Controller
         try {
             $target = MSkillTargetLevel::updateOrCreate(
                 [
-                    'departemen' => $request->departemen,
-                    'bagian' => $request->bagian,
+                    'departemen' => strtoupper(trim($request->departemen)),
+                    'bagian' => strtoupper(trim($request->bagian)),
                     'skill_id' => $request->skill_id,
                 ],
                 [
@@ -62,8 +64,9 @@ class SkillController extends Controller
             );
 
             // Sync Operator Skill Matrices untuk operator di departemen & bagian ini
-            $operators = MManpower::where('departemen', $request->departemen)
-                ->where('bagian', $request->bagian)
+            $operators = MManpower::whereNotNull('haris_synced_at')
+                ->where('departemen', strtoupper(trim($request->departemen)))
+                ->where('jabatan', strtoupper(trim($request->bagian)))
                 ->get();
 
             foreach ($operators as $op) {
