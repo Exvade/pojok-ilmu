@@ -28,9 +28,13 @@
                     <p class="mt-2 text-sm text-gray-500">{{ $en->training->skill?->nama_skill ?? 'Kompetensi tidak tersedia' }}</p>
                     <x-slot name="footer">
                         <div class="flex flex-wrap items-center justify-between gap-3">
-                            <div class="text-xs leading-5 text-gray-500">Nilai kelulusan {{ $en->training->passing_grade }}%<br>Percobaan gagal {{ $en->current_retry_count }} / {{ $en->training->quiz?->max_retries ?? $en->training->max_retries }}</div>
+                            <div class="text-xs leading-5 text-gray-500">Nilai kelulusan {{ $en->training->passing_grade }}%<br>Percobaan gagal {{ $en->current_retry_count }} / {{ $en->training->postTest?->max_retries ?? $en->training->max_retries }}</div>
                             @if($en->status === 'failed_escalated')
                                 <span class="text-xs text-red-600 dark:text-red-400">Hubungi HR / atasan</span>
+                            @elseif($en->training->preTest && !$en->pre_test_completed_at)
+                                <x-button :href="route('operator.quizzes.show', $en->training->preTest->id)" size="sm">Mulai pre-test<x-icon name="arrow" class="h-4 w-4" /></x-button>
+                            @elseif($en->next_attempt_at?->isFuture())
+                                <span class="text-xs text-amber-700 dark:text-amber-300">Tersedia kembali {{ $en->next_attempt_at->translatedFormat('d M, H:i') }}</span>
                             @else
                                 <x-button :href="route('operator.materials.show', $en->training->id)" size="sm">{{ $en->status === 'passed' ? 'Tinjau materi' : 'Buka materi' }}<x-icon name="arrow" class="h-4 w-4" /></x-button>
                             @endif

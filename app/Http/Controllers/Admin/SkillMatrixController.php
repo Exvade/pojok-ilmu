@@ -7,6 +7,7 @@ use App\Models\MManpower;
 use App\Models\MSkill;
 use App\Models\OperatorSkillMatrix;
 use App\Models\TrainingEnrollment;
+use App\Services\TrainingNeedAnalysisService;
 use Illuminate\Http\Request;
 
 class SkillMatrixController extends Controller
@@ -85,5 +86,39 @@ class SkillMatrixController extends Controller
         $enrollment->save();
 
         return back()->with('success', 'Kuota remedi operator berhasil di-reset oleh HR/Admin.');
+    }
+
+    /**
+     * Record a validated initial level before the employee starts the next gap training.
+     */
+    public function setInitialLevel(Request $request, string $matrixId, TrainingNeedAnalysisService $tna)
+    {
+        $data = $request->validate([
+            'current_level' => 'required|integer|min:0|max:4',
+        ]);
+
+        $matrix = OperatorSkillMatrix::with(['manpower', 'skill'])->findOrFail($matrixId);
+        $level = (int) $data['current_level'];
+
+        $matrix->current_level = $level;
+        $matrix->last_updated_at = now();
+        $matrix->updateGapStatus();
+
+        // Automatically generated, untouched lower-level assignments are no longer relevant
+        // once HR has validated a higher baseline. In-progress work is left untouched.
+        TrainingEnrollment::query()
+            ->where('manpower_id', $matrix->manpower_id)
+            ->where('status', 'enrolled')
+            ->whereHas('training', fn ($query) => $query
+                ->where('skill_id', $matrix->skill_id)
+                ->where('level', '<=', $level))
+            ->delete();
+
+        $newAssignments = $matrix->manpower ? $tna->synchronizeFor($matrix->manpower) : 0;
+
+        return back()->with(
+            'success',
+            "Level awal {$matrix->skill?->nama_skill} diperbarui ke Level {$level}. {$newAssignments} training berikutnya ditugaskan."
+        );
     }
 }

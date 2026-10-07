@@ -30,21 +30,21 @@
         </x-slot>
 
         <div class="overflow-x-auto">
-            <x-table><x-slot name="head">
+            <x-table class="min-w-[980px]"><x-slot name="head">
                     <tr>
-                        <th class="py-3 px-4">Kode Skill</th>
+                        <th class="w-36 py-3 px-4">Kode Skill</th>
                         <th class="py-3 px-4">Nama Skill</th>
-                        <th class="py-3 px-4">Kategori</th>
+                        <th class="w-64 py-3 px-4">Kategori</th>
                         <th class="py-3 px-4">Deskripsi</th>
-                        <th class="py-3 px-4 text-center">Aksi</th>
+                        <th class="w-20 py-3 px-4 text-center">Aksi</th>
                     </tr>
                 </x-slot>
                     @forelse($skills as $sk)
                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                             <td class="py-3.5 px-4 font-mono font-bold text-brand-dark dark:text-green-400">{{ $sk->kode_skill }}</td>
                             <td class="py-3.5 px-4 font-semibold text-gray-900 dark:text-gray-100">{{ $sk->nama_skill }}</td>
-                            <td class="py-3.5 px-4">
-                                <span class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-green-100 dark:bg-green-950/60 text-brand-dark dark:text-green-400">
+                            <td class="w-64 py-3.5 px-4">
+                                <span class="inline-flex whitespace-nowrap px-2.5 py-1 text-xs font-semibold rounded-md bg-green-100 dark:bg-green-950/60 text-brand-dark dark:text-green-400">
                                     {{ $sk->kategori }}
                                 </span>
                             </td>

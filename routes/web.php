@@ -38,6 +38,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [SkillMatrixController::class, 'index'])->name('dashboard');
     Route::post('/reset-remedi/{enrollmentId}', [SkillMatrixController::class, 'resetRemedi'])->middleware('management-permission:competency')->name('reset-remedi');
+    Route::post('/matrix/{matrixId}/initial-level', [SkillMatrixController::class, 'setInitialLevel'])->middleware('management-permission:competency')->name('matrix.initial-level');
 
     // Skills & Target Levels
     Route::get('/skills', [SkillController::class, 'index'])->middleware('management-permission:competency')->name('skills.index');
@@ -56,6 +57,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Quizzes & Questions
     Route::post('/quizzes', [AdminQuizController::class, 'store'])->middleware('management-permission:curriculum')->name('quizzes.store');
     Route::post('/quizzes/{id}/questions', [AdminQuizController::class, 'storeQuestion'])->middleware('management-permission:curriculum')->name('quizzes.questions.store');
+    Route::post('/questions', [AdminQuizController::class, 'storeQuestionGeneric'])->middleware('management-permission:curriculum')->name('questions.store');
     Route::delete('/questions/{id}', [AdminQuizController::class, 'destroy'])->middleware('management-permission:curriculum')->name('questions.destroy');
 
     Route::get('/roles', [RoleController::class, 'index'])->middleware('management-permission:superadmin')->name('roles.index');
@@ -67,6 +69,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 Route::middleware(['auth', 'active-operator'])->prefix('operator')->name('operator.')->group(function () {
     Route::get('/dashboard', [OperatorDashboardController::class, 'index'])->name('dashboard');
     Route::get('/materials/{trainingId}', [OperatorMaterialController::class, 'show'])->name('materials.show');
+    Route::post('/materials/{trainingId}/complete', [OperatorMaterialController::class, 'complete'])->name('materials.complete');
     Route::get('/quizzes/{quizId}', [OperatorQuizController::class, 'show'])->name('quizzes.show');
     Route::post('/quizzes/{quizId}/submit', [OperatorQuizController::class, 'submit'])->name('quizzes.submit');
 });

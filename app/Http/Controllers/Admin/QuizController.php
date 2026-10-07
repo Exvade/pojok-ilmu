@@ -15,26 +15,50 @@ class QuizController extends Controller
         $request->validate([
             'training_id' => 'required|exists:trainings,id',
             'judul' => 'required|string',
+            'tipe' => 'required|in:pre_test,post_test',
             'durasi_menit' => 'required|integer|min:1',
             'passing_grade' => 'required|integer|min:50|max:100',
             'max_retries' => 'required|integer|min:1',
+            'cooldown_hours' => 'required|integer|min:1|max:168',
         ]);
+
+        $alreadyExists = Quiz::where('training_id', $request->training_id)
+            ->where('tipe', $request->tipe)
+            ->exists();
+
+        if ($alreadyExists) {
+            return back()->withInput()->withErrors(['tipe' => 'Jenis assessment ini sudah dibuat untuk training tersebut.']);
+        }
 
         Quiz::create([
             'training_id' => $request->training_id,
             'judul' => $request->judul,
+            'tipe' => $request->tipe,
             'durasi_menit' => $request->durasi_menit,
             'passing_grade' => $request->passing_grade,
             'max_retries' => $request->max_retries,
+            'cooldown_hours' => $request->cooldown_hours,
         ]);
 
-        return back()->with('success', 'Modul Ujian / Kuis berhasil dibuat.');
+        return back()->with('success', $request->tipe === 'pre_test' ? 'Modul pre-test berhasil dibuat.' : 'Modul post-test berhasil dibuat.');
     }
 
     public function storeQuestion(Request $request, string $quizId)
     {
         $quiz = Quiz::findOrFail($quizId);
 
+        return $this->createQuestion($request, $quiz);
+    }
+
+    public function storeQuestionGeneric(Request $request)
+    {
+        $request->validate(['quiz_id' => 'required|exists:quizzes,id']);
+
+        return $this->createQuestion($request, Quiz::findOrFail($request->quiz_id));
+    }
+
+    private function createQuestion(Request $request, Quiz $quiz)
+    {
         $request->validate([
             'pertanyaan' => 'required|string',
             'tipe_media' => 'required|in:none,image,video_gdrive,video_youtube',

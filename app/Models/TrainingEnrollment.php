@@ -14,6 +14,17 @@ class TrainingEnrollment extends BaseModel
 
     protected $table = 'training_enrollments';
 
+    protected function casts(): array
+    {
+        return [
+            'pre_test_completed_at' => 'datetime',
+            'material_completed_at' => 'datetime',
+            'next_attempt_at' => 'datetime',
+            'assessment_started_at' => 'datetime',
+            'assessment_expires_at' => 'datetime',
+        ];
+    }
+
     public function manpower(): BelongsTo
     {
         return $this->belongsTo(MManpower::class, 'manpower_id', 'id');
@@ -27,5 +38,10 @@ class TrainingEnrollment extends BaseModel
     public function attempts(): HasMany
     {
         return $this->hasMany(QuizAttempt::class, 'enrollment_id', 'id')->orderBy('attempt_number', 'desc');
+    }
+
+    public function activeQuiz(): BelongsTo
+    {
+        return $this->belongsTo(Quiz::class, 'active_quiz_id', 'id');
     }
 }

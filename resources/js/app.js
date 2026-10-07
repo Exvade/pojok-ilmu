@@ -62,12 +62,13 @@ Alpine.data('scanLogin', url => ({
     }
 }));
 
-Alpine.data('quizEngine', (minutes, total) => ({
-    timeLeft: minutes * 60, total, answered: 0, submitting: false, timer: null,
+Alpine.data('quizEngine', (expiresAt, total) => ({
+    timeLeft: 0, total, answered: 0, submitting: false, timer: null,
     init() {
         this.$nextTick(() => this.countAnswers());
         if (!total) return;
-        this.deadline = Date.now() + this.timeLeft * 1000;
+        this.deadline = new Date(expiresAt).getTime();
+        this.timeLeft = Math.max(0, Math.ceil((this.deadline - Date.now()) / 1000));
         this.timer = setInterval(() => {
             this.timeLeft = Math.max(0, Math.ceil((this.deadline - Date.now()) / 1000));
             if (this.timeLeft === 0 && !this.submitting) {

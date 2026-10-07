@@ -27,7 +27,23 @@ class Training extends BaseModel
 
     public function quiz(): HasOne
     {
-        return $this->hasOne(Quiz::class, 'training_id', 'id');
+        return $this->postTest();
+    }
+
+    /** Post-test is the assessment that determines a level increase. */
+    public function postTest(): HasOne
+    {
+        return $this->hasOne(Quiz::class, 'training_id', 'id')->where('tipe', 'post_test');
+    }
+
+    public function preTest(): HasOne
+    {
+        return $this->hasOne(Quiz::class, 'training_id', 'id')->where('tipe', 'pre_test');
+    }
+
+    public function quizzes(): HasMany
+    {
+        return $this->hasMany(Quiz::class, 'training_id', 'id');
     }
 
     public function enrollments(): HasMany

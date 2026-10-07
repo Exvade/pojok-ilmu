@@ -5,13 +5,13 @@
 @section('content')
 
 
-<div class="page-shell !max-w-4xl" x-data="quizEngine({{ $quiz->durasi_menit }}, {{ $quiz->questions->count() }})">
+<div class="page-shell !max-w-4xl" x-data="quizEngine(@js($enrollment->assessment_expires_at?->toIso8601String()), {{ $quiz->questions->count() }})">
     
     <!-- Assessment Sticky Header with Timer -->
     <div class="sticky top-3 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md p-4 rounded-lg shadow-none border border-gray-200 dark:border-gray-700 flex flex-wrap items-center justify-between gap-3">
         <div>
             <h2 class="font-semibold font-heading text-lg text-brand-dark dark:text-green-400">{{ $quiz->judul }}</h2>
-            <p class="text-xs text-gray-500">Nilai kelulusan: {{ $quiz->passing_grade }}% &bull; Total: {{ $quiz->questions->count() }} Soal</p>
+            <p class="text-xs text-gray-500">{{ $quiz->tipe === 'pre_test' ? 'Pre-test diagnostik' : 'Post-test penentuan level' }} &bull; Nilai kelulusan: {{ $quiz->passing_grade }}% &bull; Total: {{ $quiz->questions->count() }} Soal</p>
         </div>
 
         <div class="flex items-center gap-2 bg-red-100 dark:bg-red-950/60 px-4 py-2 rounded-lg border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 font-mono font-bold text-sm">

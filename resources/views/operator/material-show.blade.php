@@ -21,7 +21,7 @@
             </span>
         </div>
         <h1 class="page-title">{{ $training->judul }}</h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400">Pelajari seluruh modul secara mendalam sebelum mengambil ujian assessment.</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Pelajari seluruh modul sebelum menandainya selesai dan mengambil post-test.</p>
     </div>
 
     <!-- Materials Content List -->
@@ -68,14 +68,21 @@
         @endforelse
     </div>
 
-    <!-- Bottom Action to Start Assessment -->
-    @if($training->quiz && $training->quiz->questions()->exists())
+    <!-- Completion gate: post-test is only opened after the employee confirms reviewing the material. -->
+    @if($training->postTest && $training->postTest->questions->isNotEmpty())
         <div class="p-6 rounded-lg bg-gradient-to-r from-green-100 to-brand-surface dark:from-gray-800 dark:to-gray-900 border-2 border-brand-light/40 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-none">
             <div>
                 <h4 class="font-bold font-heading text-lg text-brand-dark dark:text-green-400">Sudah Selesai Mempelajari Seluruh Materi?</h4>
-                <p class="text-xs text-gray-600 dark:text-gray-400">Ujian: {{ $training->quiz->judul }} &bull; Durasi: {{ $training->quiz->durasi_menit }} Menit &bull; Target: {{ $training->quiz->passing_grade }}%</p>
+                <p class="text-xs text-gray-600 dark:text-gray-400">Post-test: {{ $training->postTest->judul }} &bull; Durasi: {{ $training->postTest->durasi_menit }} Menit &bull; Target: {{ $training->postTest->passing_grade }}%</p>
             </div>
-            <x-button :href="route('operator.quizzes.show', $training->quiz->id)">Mulai evaluasi <x-icon name="arrow" /></x-button>
+            @if($enrollment->next_attempt_at?->isFuture())
+                <p class="text-xs font-medium text-amber-700 dark:text-amber-300">Post-test tersedia kembali: {{ $enrollment->next_attempt_at->translatedFormat('d M Y, H:i') }}</p>
+            @else
+                <form action="{{ route('operator.materials.complete', $training->id) }}" method="POST">
+                    @csrf
+                    <x-button type="submit">Tandai selesai &amp; mulai post-test <x-icon name="arrow" /></x-button>
+                </form>
+            @endif
         </div>
     @endif
 </div>

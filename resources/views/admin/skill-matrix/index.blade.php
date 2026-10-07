@@ -177,6 +177,30 @@
                                             <span class="mt-1 px-2 py-0.5 text-[10px] font-bold rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400">Gap -{{ $gap }} Lvl</span>
                                         @endif
                                     </div>
+                                    <x-button @click="$dispatch('open-modal', 'baseline-{{ $matrix->id }}')" variant="ghost" size="sm" class="mt-2 text-[11px]">
+                                        Atur level awal
+                                    </x-button>
+                                    <x-modal name="baseline-{{ $matrix->id }}" title="Atur Level Awal">
+                                        <form action="{{ route('admin.matrix.initial-level', $matrix->id) }}" method="POST" class="space-y-4">
+                                            @csrf
+                                            <div class="rounded-md border border-blue-200 bg-blue-50 p-3 text-xs text-blue-900 dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-200">
+                                                <p class="font-semibold">{{ $mp->nama }} — {{ $sk->nama_skill }}</p>
+                                                <p class="mt-1">Gunakan hasil asesmen/OJT yang sudah divalidasi. Training yang belum dimulai di bawah level ini akan dibatalkan otomatis.</p>
+                                            </div>
+                                            <div>
+                                                <label class="mb-1 block text-sm font-medium" for="baseline-{{ $matrix->id }}-current_level">Level kemampuan saat ini</label>
+                                                <x-select name="current_level" id="baseline-{{ $matrix->id }}-current_level">
+                                                    @for($optionLevel = 0; $optionLevel <= 4; $optionLevel++)
+                                                        <option value="{{ $optionLevel }}" @selected($current === $optionLevel)>Level {{ $optionLevel }}{{ $optionLevel === 0 ? ' — Belum tervalidasi' : '' }}</option>
+                                                    @endfor
+                                                </x-select>
+                                            </div>
+                                            <div class="flex justify-end gap-2 pt-2">
+                                                <x-button type="button" @click="$dispatch('close-modal', 'baseline-{{ $matrix->id }}')" variant="outline">Batal</x-button>
+                                                <x-button type="submit" variant="primary">Simpan level awal</x-button>
+                                            </div>
+                                        </form>
+                                    </x-modal>
                                     @endif
                                 </td>
                             @endforeach

@@ -29,9 +29,9 @@
                 <x-button @click="$dispatch('open-modal', 'add-material-modal')" variant="primary" size="md">
                     Tambah Materi Pelatihan
                 </x-button>
-                @if(!$training->quiz)
+                @if(!$training->preTest || !$training->postTest)
                     <x-button @click="$dispatch('open-modal', 'add-quiz-modal')" variant="secondary" size="md">
-                        Tambah evaluasi Assessment
+                        Tambah pre-test / post-test
                     </x-button>
                 @endif
             </div>
@@ -95,12 +95,42 @@
         </div>
     </x-card>
 
-    <!-- Section 2: Kuis Assessment & Bank Soal -->
+    <!-- Assessment setup: pre-test is diagnostic; post-test determines the level. -->
     <x-card>
         <x-slot name="header">
             <div class="flex items-center justify-between w-full">
-                <h3 class="font-bold font-heading text-lg">Modul Assessment & Bank Soal</h3>
-                @if($training->quiz)
+                <h3 class="font-bold font-heading text-lg">Pre-test diagnostik</h3>
+                @if($training->preTest)
+                    <x-button @click="$dispatch('open-modal', 'add-question-modal')" variant="primary" size="sm">Tambah soal</x-button>
+                @endif
+            </div>
+        </x-slot>
+        @if($training->preTest)
+            <div class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/30">
+                <p class="font-semibold text-blue-950 dark:text-blue-100">{{ $training->preTest->judul }}</p>
+                <p class="mt-1 text-xs text-blue-800 dark:text-blue-200">Durasi {{ $training->preTest->durasi_menit }} menit &bull; {{ $training->preTest->questions->count() }} soal. Nilainya hanya untuk pemetaan awal dan tidak mengubah level.</p>
+            </div>
+            <div class="mt-4 space-y-2">
+                @forelse($training->preTest->questions as $index => $question)
+                    <div class="flex items-start justify-between gap-3 rounded-md border border-gray-200 p-3 text-sm dark:border-gray-700">
+                        <span><strong>{{ $index + 1 }}.</strong> {{ $question->pertanyaan }}</span>
+                        <form action="{{ route('admin.questions.destroy', $question->id) }}" method="POST" data-confirm="Hapus soal ini?">@csrf @method('DELETE')<x-button type="submit" variant="ghost" size="sm" class="text-red-600" aria-label="Hapus"><x-icon name="trash" class="h-4 w-4" /></x-button></form>
+                    </div>
+                @empty
+                    <x-empty-state title="Belum ada soal pre-test" description="Tambahkan soal untuk pemetaan awal sebelum materi dibuka." />
+                @endforelse
+            </div>
+        @else
+            <x-empty-state title="Pre-test belum dibuat" description="Opsional, namun direkomendasikan untuk memetakan kemampuan awal karyawan." />
+        @endif
+    </x-card>
+
+    <!-- Section 2: Post-test & bank soal -->
+    <x-card>
+        <x-slot name="header">
+            <div class="flex items-center justify-between w-full">
+                <h3 class="font-bold font-heading text-lg">Post-test &amp; Bank Soal</h3>
+                @if($training->postTest)
                     <x-button @click="$dispatch('open-modal', 'add-question-modal')" variant="primary" size="sm">
                         Tambah Soal Kuis
                     </x-button>
@@ -108,18 +138,18 @@
             </div>
         </x-slot>
 
-        @if($training->quiz)
+        @if($training->postTest)
             <div class="space-y-6">
                 <div class="p-4 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h4 class="font-bold text-brand-dark dark:text-green-400 text-lg">{{ $training->quiz->judul }}</h4>
-                        <p class="text-xs text-gray-600 dark:text-gray-300">Durasi: {{ $training->quiz->durasi_menit }} Menit &bull; Nilai kelulusan: {{ $training->quiz->passing_grade }}% &bull; Total Soal: {{ $training->quiz->questions->count() }} Soal</p>
+                        <h4 class="font-bold text-brand-dark dark:text-green-400 text-lg">{{ $training->postTest->judul }}</h4>
+                        <p class="text-xs text-gray-600 dark:text-gray-300">Durasi: {{ $training->postTest->durasi_menit }} Menit &bull; Nilai kelulusan: {{ $training->postTest->passing_grade }}% &bull; Masa tunggu: {{ $training->postTest->cooldown_hours }} jam &bull; Total Soal: {{ $training->postTest->questions->count() }} Soal</p>
                     </div>
                 </div>
 
                 <!-- List Question Bank -->
                 <div class="space-y-4">
-                    @forelse($training->quiz->questions as $idx => $q)
+                    @forelse($training->postTest->questions as $idx => $q)
                         <div class="p-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm space-y-3">
                             <div class="flex items-start justify-between">
                                 <div class="font-semibold text-sm text-gray-900 dark:text-gray-100 flex gap-2">
@@ -164,7 +194,7 @@
                 </div>
             </div>
         @else
-            <x-empty-state title="Kuis Belum Dibuat" description="Klik Tambah evaluasi Assessment untuk membuat ujian evaluasi untuk level ini." />
+            <x-empty-state title="Post-test belum dibuat" description="Buat post-test sebagai assessment penentuan kenaikan level." />
         @endif
     </x-card>
 
@@ -207,17 +237,24 @@
     </x-modal>
 
     <!-- Modal Tambah evaluasi -->
-    @if(!$training->quiz)
+    @if(!$training->preTest || !$training->postTest)
         <x-modal name="add-quiz-modal" :show="$errors->any() && old('_modal') === 'add-quiz-modal'" title="Buat Modul Kuis Assessment">
             <form action="{{ route('admin.quizzes.store') }}" method="POST" class="space-y-4">
                 @csrf
             <input type="hidden" name="_modal" value="add-quiz-modal">
                 <input type="hidden" name="training_id" value="{{ $training->id }}">
                 <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-quiz-modal-tipe">Jenis assessment</label>
+                    <x-select name="tipe" required id="add-quiz-modal-tipe">
+                        @if(!$training->preTest)<option value="pre_test" @selected(old('tipe') === 'pre_test')>Pre-test (pemetaan awal)</option>@endif
+                        @if(!$training->postTest)<option value="post_test" @selected(old('tipe', !$training->preTest ? '' : 'post_test') === 'post_test')>Post-test (penentuan level)</option>@endif
+                    </x-select>
+                </div>
+                <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-quiz-modal-judul">Judul Kuis</label>
                     <x-input type="text" name="judul" :value="old('judul', 'Evaluasi '.$training->judul)" required id="add-quiz-modal-judul" />
                 </div>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-quiz-modal-durasi_menit">Durasi (Menit)</label>
                         <x-input type="number" name="durasi_menit" value="15" min="1" required id="add-quiz-modal-durasi_menit" />
@@ -230,6 +267,10 @@
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-quiz-modal-max_retries">Batas percobaan</label>
                         <x-input type="number" name="max_retries" :value="old('max_retries', $training->max_retries)" min="1" required id="add-quiz-modal-max_retries" />
                     </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-quiz-modal-cooldown_hours">Masa tunggu (jam)</label>
+                        <x-input type="number" name="cooldown_hours" :value="old('cooldown_hours', 24)" min="1" max="168" required id="add-quiz-modal-cooldown_hours" />
+                    </div>
                 </div>
                 <div class="flex justify-end gap-2 pt-4">
                     <x-button type="button" @click="$dispatch('close-modal', 'add-quiz-modal')" variant="outline">Batal</x-button>
@@ -240,11 +281,18 @@
     @endif
 
     <!-- Modal Tambah Soal Kuis -->
-    @if($training->quiz)
+    @if($training->preTest || $training->postTest)
         <x-modal name="add-question-modal" :show="$errors->any() && old('_modal') === 'add-question-modal'" title="Tambah Soal Kuis">
-            <form action="{{ route('admin.quizzes.questions.store', $training->quiz->id) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+            <form action="{{ route('admin.questions.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                 @csrf
             <input type="hidden" name="_modal" value="add-question-modal">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-question-modal-quiz_id">Jenis assessment</label>
+                    <x-select name="quiz_id" required id="add-question-modal-quiz_id">
+                        @if($training->preTest)<option value="{{ $training->preTest->id }}">Pre-test — {{ $training->preTest->judul }}</option>@endif
+                        @if($training->postTest)<option value="{{ $training->postTest->id }}">Post-test — {{ $training->postTest->judul }}</option>@endif
+                    </x-select>
+                </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-question-modal-pertanyaan">Pertanyaan Soal</label>
                     <x-textarea name="pertanyaan" rows="3" required placeholder="Tuliskan pertanyaan..." id="add-question-modal-pertanyaan"></x-textarea>

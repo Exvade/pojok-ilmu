@@ -13,7 +13,7 @@ class TrainingController extends Controller
 {
     public function index()
     {
-        $trainings = Training::with(['skill', 'materials', 'quiz'])->latest()->get();
+        $trainings = Training::with(['skill', 'materials', 'preTest', 'postTest'])->latest()->get();
         $skills = MSkill::all();
 
         return view('admin.trainings.index', compact('trainings', 'skills'));
@@ -46,7 +46,7 @@ class TrainingController extends Controller
 
     public function show(string $id)
     {
-        $training = Training::with(['skill', 'materials', 'quiz.questions'])->findOrFail($id);
+        $training = Training::with(['skill', 'materials', 'preTest.questions', 'postTest.questions'])->findOrFail($id);
 
         return view('admin.trainings.show', compact('training'));
     }

@@ -120,10 +120,13 @@ test('operator passing quiz automatically upgrades skill matrix current level an
         'manpower_id' => $operator->id,
         'training_id' => $training->id,
         'status' => 'in_progress',
+        'material_completed_at' => now(),
     ]);
 
+    $this->actingAs($user)->get("/operator/quizzes/{$quiz->id}")->assertOk();
+
     // Submit correct answer (100% score)
-    $response = $this->actingAs($user)->post("/operator/quizzes/{$quiz->id}/submit", [
+    $response = $this->post("/operator/quizzes/{$quiz->id}/submit", [
         'answers' => [
             $q1->id => 'a',
         ],

@@ -14,6 +14,13 @@ class Quiz extends BaseModel
 
     protected $table = 'quizzes';
 
+    protected function casts(): array
+    {
+        return [
+            'cooldown_hours' => 'integer',
+        ];
+    }
+
     public function training(): BelongsTo
     {
         return $this->belongsTo(Training::class, 'training_id', 'id');

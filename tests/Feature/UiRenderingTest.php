@@ -21,7 +21,7 @@ test('management pages render shared sidebar and training forms with and without
     foreach (['/admin/dashboard', '/admin/skills', '/admin/trainings'] as $url) {
         $this->get($url)->assertOk()->assertSee('id="app-sidebar"', false)->assertSee('Kurikulum &amp; modul', false);
     }
-    $this->get('/admin/trainings/' . $training->id)->assertOk()->assertSee('Buat Modul Kuis Assessment')->assertSee('add-quiz-modal-judul');
+    $this->get('/admin/trainings/' . $training->id)->assertOk()->assertSee('Buat Modul Kuis Assessment')->assertSee('add-quiz-modal-judul')->assertSee('x-teleport="body"', false);
     $quiz = Quiz::create(['training_id' => $training->id, 'judul' => 'Evaluasi keselamatan', 'durasi_menit' => 15, 'passing_grade' => 80]);
     QuizQuestion::create(['quiz_id' => $quiz->id, 'pertanyaan' => 'Apa langkah pertama?', 'opsi_a' => 'Periksa alat', 'opsi_b' => 'Mulai bekerja', 'opsi_c' => 'Abaikan', 'opsi_d' => 'Pulang', 'kunci_jawaban' => 'a']);
     $this->get('/admin/trainings/' . $training->id)->assertOk()->assertSee('Tambah Soal Kuis')->assertSee('Apa langkah pertama?');
@@ -46,9 +46,9 @@ test('operator material and assessment pages render media and answer controls', 
     TrainingMaterial::create(['training_id' => $training->id, 'judul' => 'Panduan kerja', 'tipe_media' => 'pdf', 'media_url' => '/storage/panduan.pdf', 'urutan' => 1]);
     $quiz = Quiz::create(['training_id' => $training->id, 'judul' => 'Evaluasi keselamatan', 'durasi_menit' => 15, 'passing_grade' => 80]);
     QuizQuestion::create(['quiz_id' => $quiz->id, 'pertanyaan' => 'Apa langkah pertama?', 'opsi_a' => 'Periksa alat', 'opsi_b' => 'Mulai bekerja', 'opsi_c' => 'Abaikan', 'opsi_d' => 'Pulang', 'kunci_jawaban' => 'a']);
-    TrainingEnrollment::create(['training_id' => $training->id, 'manpower_id' => $employee->id, 'status' => 'in_progress']);
+    TrainingEnrollment::create(['training_id' => $training->id, 'manpower_id' => $employee->id, 'status' => 'in_progress', 'material_completed_at' => now()]);
     $material = $this->actingAs($user)->get('/operator/materials/' . $training->id)->assertOk()->assertSee('Buka dokumen PDF')->assertDontSee('Administrasi pelatihan');
-    $assessment = $this->get('/operator/quizzes/' . $quiz->id)->assertOk()->assertSee('Periksa alat')->assertSee('quizEngine(15, 1)', false);
+    $assessment = $this->get('/operator/quizzes/' . $quiz->id)->assertOk()->assertSee('Periksa alat')->assertSee('quizEngine(', false);
     $result = $this->post('/operator/quizzes/' . $quiz->id . '/submit', ['answers' => [$quiz->questions->first()->id => 'a']])->assertOk();
     // Optional isolated fixtures for browser QA; never insert test enrollments in the local MySQL database.
     if (getenv('UI_CAPTURE_FIXTURES') === '1') {

@@ -3,16 +3,20 @@
 <div x-data="modalDialog(@js($name), @js((bool) $show))"
      @open-modal.window="if ($event.detail === name) openDialog()"
      @close-modal.window="if ($event.detail === name) closeDialog()"
-     @keydown.escape.window="if (open) closeDialog()" @close.stop="closeDialog()"
-     @keydown.tab="trapFocus($event)" x-show="open" x-cloak
-     class="fixed inset-0 z-50 overflow-y-auto bg-gray-950/60 p-3 sm:p-6"
-     role="dialog" aria-modal="true" aria-labelledby="{{ $name }}-title"
-     @click.self="closeDialog()">
-    <div x-ref="panel" tabindex="-1" class="relative mx-auto my-5 w-full {{ $width }} rounded-lg border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800">
-        <div class="flex items-center justify-between gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-700">
-            <h2 id="{{ $name }}-title" class="text-base font-semibold">{{ $title }}</h2>
-            <x-button variant="ghost" size="sm" @click="closeDialog()" aria-label="Tutup formulir"><x-icon name="close" /></x-button>
+     @keydown.escape.window="if (open) closeDialog()" x-cloak>
+    {{-- Teleport prevents a parent scrolling/stacking context from clipping the backdrop. --}}
+    <template x-teleport="body">
+        <div x-show="open" x-cloak @keydown.tab="trapFocus($event)" @close.stop="closeDialog()"
+             class="fixed inset-0 z-[70] flex h-[100dvh] w-screen items-start justify-center overflow-y-auto overscroll-contain bg-gray-950/60 p-3 sm:p-6"
+             role="dialog" aria-modal="true" aria-labelledby="{{ $name }}-title"
+             @click.self="closeDialog()">
+            <div x-ref="panel" tabindex="-1" class="relative my-auto w-full {{ $width }} rounded-lg border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800">
+                <div class="flex items-center justify-between gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-700">
+                    <h2 id="{{ $name }}-title" class="text-base font-semibold">{{ $title }}</h2>
+                    <x-button variant="ghost" size="sm" @click="closeDialog()" aria-label="Tutup formulir"><x-icon name="close" /></x-button>
+                </div>
+                <div class="p-5 sm:p-6">{{ $slot }}</div>
+            </div>
         </div>
-        <div class="p-5 sm:p-6">{{ $slot }}</div>
-    </div>
+    </template>
 </div>
