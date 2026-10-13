@@ -142,7 +142,7 @@
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
             <p class="text-xs font-semibold uppercase tracking-wider text-brand-dark dark:text-green-400">Pengaturan training</p>
-            <h1 class="page-title">Produk & training</h1>
+            <h1 class="page-title">Product / training</h1>
             <p class="page-description">Satu produk adalah satu training. Atur level produk, isi training, lalu tugaskan manpower yang perlu mempelajarinya.</p>
         </div>
         <div class="flex flex-wrap gap-2">
@@ -173,7 +173,7 @@
                     <div class="flex justify-between gap-3"><dt class="text-gray-500">Isi training</dt><dd class="font-semibold">{{ $training->materials->count() }} materi · {{ $training->preTest ? 'Pre-test' : 'Tanpa pre-test' }} · {{ $training->postTest ? 'Post-test' : 'Post-test belum ada' }}</dd></div>
                     <div class="flex justify-between gap-3"><dt class="text-gray-500">Ditugaskan</dt><dd class="font-semibold">{{ $training->enrollments_count }} manpower</dd></div>
                 </dl>
-                <x-slot name="footer"><div class="flex items-center justify-between gap-3"><x-button :href="route('admin.trainings.show', $training->id)" variant="secondary" size="sm">Atur isi training <x-icon name="arrow" class="h-4 w-4" /></x-button><form action="{{ route('admin.trainings.destroy', $training->id) }}" method="POST" data-confirm="Hapus produk dan training ini?">@csrf @method('DELETE')<x-button type="submit" variant="ghost" size="sm" class="text-red-600" aria-label="Hapus produk" title="Hapus produk"><x-icon name="trash" class="h-4 w-4" /></x-button></form></div></x-slot>
+                <x-slot name="footer"><div class="flex items-center justify-between gap-3"><x-button :href="route('admin.trainings.show', $training->id)" variant="secondary" size="sm">Atur isi training <x-icon name="arrow" class="h-4 w-4" /></x-button><form action="{{ route('admin.trainings.destroy', $training->id) }}" method="POST" data-confirm="Hapus product/training ini?">@csrf @method('DELETE')<x-button type="submit" variant="ghost" size="sm" class="text-red-600" aria-label="Hapus product" title="Hapus product"><x-icon name="trash" class="h-4 w-4" /></x-button></form></div></x-slot>
             </x-card>
         @empty
             <div class="md:col-span-2 xl:col-span-3"><x-empty-state title="Belum ada produk" description="Tambahkan produk pertama untuk memulai penyusunan training." /></div>

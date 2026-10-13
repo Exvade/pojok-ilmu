@@ -25,7 +25,7 @@
     <x-card>
         <x-slot name="header">
             <h3 class="font-bold font-heading text-lg">Daftar kompetensi</h3>
-            <p class="mt-1 text-xs text-gray-500">Kompetensi adalah topik atau kemampuan yang menjadi dasar produk dan training.</p>
+            <p class="mt-1 text-xs text-gray-500">Kompetensi adalah topik atau kemampuan yang menjadi dasar product/training.</p>
         </x-slot>
 
         <div class="overflow-x-auto">

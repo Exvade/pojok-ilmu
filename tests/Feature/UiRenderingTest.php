@@ -19,7 +19,7 @@ test('management pages render shared sidebar and product training forms', functi
     $training = Training::create(['kode_training' => 'UI-TR', 'skill_id' => $skill->id, 'level' => 1, 'judul' => 'Dasar keselamatan', 'passing_grade' => 80, 'max_retries' => 3]);
     $this->actingAs($admin);
     foreach (['/admin/dashboard', '/admin/skills', '/admin/trainings'] as $url) {
-        $this->get($url)->assertOk()->assertSee('id="app-sidebar"', false)->assertSee('Produk &amp; training', false);
+        $this->get($url)->assertOk()->assertSee('id="app-sidebar"', false)->assertSee('Product / training', false);
     }
     $this->get('/admin/trainings/' . $training->id)->assertOk()->assertSee('Siapkan pre-test & post-test', false)->assertSee('activeSection', false)->assertSee('x-teleport="body"', false);
     $quiz = Quiz::create(['training_id' => $training->id, 'tipe' => 'post_test', 'judul' => 'Evaluasi keselamatan', 'durasi_menit' => 15, 'passing_grade' => 80]);
@@ -27,7 +27,7 @@ test('management pages render shared sidebar and product training forms', functi
     $this->get('/admin/trainings/' . $training->id)->assertOk()->assertSee('Tambah Soal Kuis')->assertSee('Apa langkah pertama?');
     $skill->delete();
     $this->get('/admin/trainings/' . $training->id)->assertOk()->assertSee('Produk Level 1');
-    $this->get('/admin/trainings')->assertOk()->assertSee('Produk &amp; training', false);
+    $this->get('/admin/trainings')->assertOk()->assertSee('Product / training', false);
 });
 
 test('invalid form preserves user input and reopens the correct modal', function () {

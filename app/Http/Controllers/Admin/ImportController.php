@@ -85,7 +85,7 @@ class ImportController extends Controller
                 'notes' => ['Kode kompetensi harus unik.', 'Baris dengan kode yang sama akan diperbarui.'],
             ],
             'trainings' => [
-                'label' => 'produk dan training',
+                'label' => 'product/training',
                 'description' => 'Satu baris adalah satu produk yang wajib dipelajari. Level menunjukkan kelompok produk, bukan tahapan pada produk tersebut.',
                 'headings' => ['kode_training', 'departemen', 'level', 'judul', 'deskripsi', 'nilai_lulus', 'batas_percobaan'],
                 'samples' => [['BOX-BATTERY', 'PRODUKSI PLASTIK', 1, 'BOX BATTERY', 'Pelatihan produk BOX BATTERY.', 80, 3]],

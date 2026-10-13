@@ -64,7 +64,7 @@ class TrainingController extends Controller
             'requires_ojt' => true,
         ]);
 
-        return back()->with('success', 'Produk dan training berhasil dibuat.');
+        return back()->with('success', 'Product/training berhasil dibuat.');
     }
 
     public function show(string $id)
