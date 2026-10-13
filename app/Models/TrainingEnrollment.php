@@ -60,9 +60,4 @@ class TrainingEnrollment extends BaseModel
     {
         return $this->belongsTo(User::class, 'assigned_to_user_id', 'id');
     }
-
-    public function escalationLogs(): HasMany
-    {
-        return $this->hasMany(TrainingEscalationLog::class, 'enrollment_id', 'id')->latest();
-    }
 }

@@ -6,7 +6,7 @@
     <div class="page-shell" x-data>
         <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div><h1 class="page-title">Penugasan product</h1><p class="page-description">Tentukan manpower yang wajib mempelajari setiap product. Pengalaman kerja tidak menggantikan proses training pada sistem.</p></div>
-            <form method="GET" class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center"><x-select name="departemen" aria-label="Filter departemen" class="h-10 w-full py-0 sm:w-72"><option value="">Semua departemen</option>@foreach($departments as $item)<option value="{{ $item }}" @selected($department === $item)>{{ $item }}</option>@endforeach</x-select><x-button type="submit" variant="secondary" class="h-10">Tampilkan</x-button></form>
+            <form method="GET" class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center"><x-select-menu name="departemen" :options="['' => 'Semua departemen'] + $departments->mapWithKeys(fn ($item) => [$item => $item])->all()" :selected="$department" aria-label="Filter departemen" class="w-full sm:w-72" /><x-button type="submit" variant="secondary" class="h-10">Tampilkan</x-button></form>
         </div>
 
         <x-card bodyClass="p-5">

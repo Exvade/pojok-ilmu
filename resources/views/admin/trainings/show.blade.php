@@ -248,12 +248,7 @@
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-material-modal-tipe_media">Tipe Media</label>
-                <x-select name="tipe_media" required id="add-material-modal-tipe_media">
-                    <option value="text">Teks</option>
-                    <option value="video_gdrive">Video Google Drive Embed (Rekomendasi)</option>
-                    <option value="video_youtube">Video YouTube Link</option>
-                    <option value="image">Gambar</option><option value="pdf">Dokumen PDF</option>
-                </x-select>
+                <x-select-menu name="tipe_media" id="add-material-modal-tipe_media" :options="['text' => 'Teks', 'video_gdrive' => 'Video Google Drive Embed (Rekomendasi)', 'video_youtube' => 'Video YouTube Link', 'image' => 'Gambar', 'pdf' => 'Dokumen PDF']" selected="text" />
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-material-modal-konten_teks">Penjelasan Teks / Instruksi</label>
@@ -284,10 +279,16 @@
                 <input type="hidden" name="training_id" value="{{ $training->id }}">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-quiz-modal-tipe">Jenis evaluasi</label>
-                    <x-select name="tipe" required id="add-quiz-modal-tipe">
-                        @if(!$training->preTest)<option value="pre_test" @selected(old('tipe') === 'pre_test')>Pre-test (pemetaan awal)</option>@endif
-                        @if(!$training->postTest)<option value="post_test" @selected(old('tipe', !$training->preTest ? '' : 'post_test') === 'post_test')>Post-test (validasi materi)</option>@endif
-                    </x-select>
+                    @php
+                        $evaluationTypes = [];
+                        if (! $training->preTest) {
+                            $evaluationTypes['pre_test'] = 'Pre-test (pemetaan awal)';
+                        }
+                        if (! $training->postTest) {
+                            $evaluationTypes['post_test'] = 'Post-test (validasi materi)';
+                        }
+                    @endphp
+                    <x-select-menu name="tipe" id="add-quiz-modal-tipe" :options="$evaluationTypes" :selected="old('tipe', !$training->preTest ? 'pre_test' : 'post_test')" />
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-quiz-modal-judul">Judul Kuis</label>
@@ -341,12 +342,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-question-modal-tipe_media">Media Pendukung Soal (Opsional)</label>
-                    <x-select name="tipe_media" id="add-question-modal-tipe_media">
-                        <option value="none">Tanpa Media</option>
-                        <option value="video_gdrive">Video Google Drive Embed</option>
-                        <option value="video_youtube">Video YouTube</option>
-                        <option value="image">Upload Foto Gambar</option>
-                    </x-select>
+                    <x-select-menu name="tipe_media" id="add-question-modal-tipe_media" :options="['none' => 'Tanpa Media', 'video_gdrive' => 'Video Google Drive Embed', 'video_youtube' => 'Video YouTube', 'image' => 'Unggah Foto Gambar']" selected="none" />
                     <label for="add-question-modal-media_url" class="mt-3 mb-1 block text-sm text-gray-600 dark:text-gray-300">URL video (jika menggunakan video)</label>
                     <x-input type="text" name="media_url" placeholder="URL Google Drive / YouTube" class="mb-2" id="add-question-modal-media_url" />
                     <label for="add-question-modal-file_upload" class="mb-1 block text-sm text-gray-600 dark:text-gray-300">Unggah gambar (opsional)</label>
@@ -372,12 +368,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-brand-dark dark:text-green-400 mb-1" for="add-question-modal-kunci_jawaban">Kunci Jawaban Benar</label>
-                    <x-select name="kunci_jawaban" required id="add-question-modal-kunci_jawaban">
-                        <option value="a">Jawaban A</option>
-                        <option value="b">Jawaban B</option>
-                        <option value="c">Jawaban C</option>
-                        <option value="d">Jawaban D</option>
-                    </x-select>
+                    <x-select-menu name="kunci_jawaban" id="add-question-modal-kunci_jawaban" :options="['a' => 'Jawaban A', 'b' => 'Jawaban B', 'c' => 'Jawaban C', 'd' => 'Jawaban D']" selected="a" />
                 </div>
                 <div class="flex justify-end gap-2 pt-4">
                     <x-button type="button" @click="$dispatch('close-modal', 'add-question-modal')" variant="outline">Batal</x-button>
