@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\MSkill;
-use App\Models\MSkillTargetLevel;
 use App\Models\Quiz;
 use App\Models\QuizQuestion;
 use App\Models\Training;
@@ -39,29 +38,7 @@ class DatabaseSeeder extends Seeder
             'deskripsi' => 'Pemahaman standar mutu, penanganan part COVER FUEL TANK, dan deteksi cacat visual.',
         ]);
 
-        // 3. Seed Target Levels
-        MSkillTargetLevel::create([
-            'departemen' => 'PRODUKSI PLASTIK',
-            'bagian' => 'ASSEMBLY',
-            'skill_id' => $skill1->id,
-            'target_level' => 2,
-        ]);
-
-        MSkillTargetLevel::create([
-            'departemen' => 'PRODUKSI PLASTIK',
-            'bagian' => 'ASSEMBLY',
-            'skill_id' => $skill2->id,
-            'target_level' => 2,
-        ]);
-
-        MSkillTargetLevel::create([
-            'departemen' => 'PRODUKSI PLASTIK',
-            'bagian' => 'ASSEMBLY',
-            'skill_id' => $skill3->id,
-            'target_level' => 3,
-        ]);
-
-        // 4. Seed Training Programs & Materials
+        // 3. Seed Training Programs & Materials
         $training1 = Training::create([
             'kode_training' => 'TRN-KZN-L1',
             'skill_id' => $skill1->id,
