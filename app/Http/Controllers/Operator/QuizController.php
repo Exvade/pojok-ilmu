@@ -103,7 +103,7 @@ class QuizController extends Controller
 
         $allEnrollments = TrainingEnrollment::with('training')->where('manpower_id', $enrollment->manpower_id)->get();
         if (! $progress->isUnlocked($enrollment, $allEnrollments)) {
-            return redirect()->route('operator.dashboard')->with('error', 'Selesaikan OJT produk pada level sebelumnya terlebih dahulu.');
+            return redirect()->route('operator.dashboard')->with('error', 'Selesaikan OJT seluruh training pada level sebelumnya terlebih dahulu.');
         }
 
         if ($enrollment->status === 'failed_escalated') {

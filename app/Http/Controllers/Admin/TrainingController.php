@@ -7,8 +7,11 @@ use App\Models\MManpower;
 use App\Models\MSkill;
 use App\Models\Training;
 use App\Models\TrainingMaterial;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class TrainingController extends Controller
 {
@@ -64,7 +67,7 @@ class TrainingController extends Controller
             'requires_ojt' => true,
         ]);
 
-        return back()->with('success', 'Product/training berhasil dibuat.');
+        return back()->with('success', 'Training berhasil dibuat.');
     }
 
     public function show(string $id)
@@ -72,6 +75,46 @@ class TrainingController extends Controller
         $training = Training::with(['skill', 'materials', 'preTest.questions', 'postTest.questions'])->findOrFail($id);
 
         return view('admin.trainings.show', compact('training'));
+    }
+
+    public function update(Request $request, string $id): RedirectResponse
+    {
+        $training = Training::findOrFail($id);
+        $data = $request->validate([
+            'kode_training' => 'required|string|unique:trainings,kode_training,' . $training->id,
+            'departemen' => 'required|string|max:255',
+            'level' => 'required|integer|min:1|max:4',
+            'judul' => 'required|string',
+            'deskripsi' => 'nullable|string',
+            'max_retries' => 'required|integer|min:1',
+            'passing_grade' => 'required|integer|min:50|max:100',
+        ]);
+
+        try {
+            DB::transaction(function () use ($training, $data): void {
+                $training->update([
+                    'kode_training' => strtoupper($data['kode_training']),
+                    'departemen' => $data['departemen'],
+                    'level' => $data['level'],
+                    'judul' => $data['judul'],
+                    'deskripsi' => $data['deskripsi'] ?? null,
+                    'max_retries' => $data['max_retries'],
+                    'passing_grade' => $data['passing_grade'],
+                ]);
+                $training->quizzes()->update([
+                    'max_retries' => $data['max_retries'],
+                ]);
+                $training->postTest()->update([
+                    'passing_grade' => $data['passing_grade'],
+                ]);
+            });
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return back()->with('error', 'Data training belum dapat diubah. Silakan coba kembali.');
+        }
+
+        return back()->with('success', 'Data training berhasil diubah.');
     }
 
     public function storeMaterial(Request $request, string $trainingId)

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TrainingEnrollment extends BaseModel
@@ -49,6 +50,11 @@ class TrainingEnrollment extends BaseModel
     public function materialProgresses(): HasMany
     {
         return $this->hasMany(TrainingMaterialProgress::class, 'enrollment_id', 'id');
+    }
+
+    public function ojtAssessment(): HasOne
+    {
+        return $this->hasOne(OjtAssessment::class, 'enrollment_id', 'id');
     }
 
     public function activeQuiz(): BelongsTo

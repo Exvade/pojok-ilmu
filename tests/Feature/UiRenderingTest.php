@@ -13,21 +13,21 @@ use Illuminate\Support\Facades\File;
 
 uses(RefreshDatabase::class);
 
-test('management pages render shared sidebar and product training forms', function () {
+test('management pages render shared sidebar and training forms', function () {
     $admin = User::create(['user_id' => 'UI-ADMIN', 'name' => 'UI Admin', 'role' => 1, 'is_superadmin' => true, 'can_manage_competency' => true, 'can_manage_curriculum' => true]);
     $skill = MSkill::create(['kode_skill' => 'UI-SK', 'nama_skill' => 'Keselamatan kerja', 'kategori' => 'Safety']);
     $training = Training::create(['kode_training' => 'UI-TR', 'skill_id' => $skill->id, 'level' => 1, 'judul' => 'Dasar keselamatan', 'passing_grade' => 80, 'max_retries' => 3]);
     $this->actingAs($admin);
     foreach (['/admin/dashboard', '/admin/skills', '/admin/trainings'] as $url) {
-        $this->get($url)->assertOk()->assertSee('id="app-sidebar"', false)->assertSee('Product / training', false);
+        $this->get($url)->assertOk()->assertSee('id="app-sidebar"', false)->assertSee('Training', false);
     }
     $this->get('/admin/trainings/' . $training->id)->assertOk()->assertSee('Siapkan pre-test & post-test', false)->assertSee('activeSection', false)->assertSee('x-teleport="body"', false);
     $quiz = Quiz::create(['training_id' => $training->id, 'tipe' => 'post_test', 'judul' => 'Evaluasi keselamatan', 'durasi_menit' => 15, 'passing_grade' => 80]);
     QuizQuestion::create(['quiz_id' => $quiz->id, 'pertanyaan' => 'Apa langkah pertama?', 'opsi_a' => 'Periksa alat', 'opsi_b' => 'Mulai bekerja', 'opsi_c' => 'Abaikan', 'opsi_d' => 'Pulang', 'kunci_jawaban' => 'a']);
     $this->get('/admin/trainings/' . $training->id)->assertOk()->assertSee('Tambah Soal Kuis')->assertSee('Apa langkah pertama?');
     $skill->delete();
-    $this->get('/admin/trainings/' . $training->id)->assertOk()->assertSee('Produk Level 1');
-    $this->get('/admin/trainings')->assertOk()->assertSee('Product / training', false);
+    $this->get('/admin/trainings/' . $training->id)->assertOk()->assertSee('Training Level 1');
+    $this->get('/admin/trainings')->assertOk()->assertSee('Training', false);
 });
 
 test('invalid form preserves user input and reopens the correct modal', function () {
@@ -66,13 +66,20 @@ test('flash messages safely encode script markup and apostrophes', function () {
 
 test('skill matrix department filter excludes inactive and unsynchronized manpower', function () {
     $admin = User::create(['user_id' => 'UI-ADMIN', 'name' => 'UI Admin', 'role' => 1, 'is_superadmin' => true, 'can_manage_competency' => true, 'can_manage_curriculum' => true]);
-    MManpower::create(['mp_id' => 'ACTIVE-P3', 'nik' => 'ACTIVE-P3', 'nama' => 'Aktif', 'departemen' => 'IT', 'bagian' => 'STAFF', 'status' => true, 'haris_synced_at' => now()]);
+    $activeManpower = MManpower::create(['mp_id' => 'ACTIVE-P3', 'nik' => 'ACTIVE-P3', 'nama' => 'Aktif', 'departemen' => 'IT', 'bagian' => 'STAFF', 'status' => true, 'haris_synced_at' => now()]);
     MManpower::create(['mp_id' => 'INACTIVE-OUTSIDE', 'nik' => 'INACTIVE-OUTSIDE', 'nama' => 'Nonaktif', 'departemen' => 'WELDING - CIKARANG', 'bagian' => 'OPERATOR', 'status' => false, 'haris_synced_at' => now()]);
     MManpower::create(['mp_id' => 'LOCAL-DUMMY', 'nik' => 'LOCAL-DUMMY', 'nama' => 'Lokal', 'departemen' => 'DUMMY', 'bagian' => 'STAFF', 'status' => true]);
 
-    $this->actingAs($admin)->get('/admin/dashboard')
+    $skill = MSkill::create(['kode_skill' => 'UI-PRODUCT', 'nama_skill' => 'Software Engineering', 'kategori' => 'IT']);
+    $itProduct = Training::create(['kode_training' => 'IT-SE-01', 'skill_id' => $skill->id, 'departemen' => 'IT', 'level' => 1, 'judul' => 'Training Software Engineering', 'passing_grade' => 80, 'max_retries' => 3]);
+    $qualityProduct = Training::create(['kode_training' => 'QC-01', 'skill_id' => $skill->id, 'departemen' => 'QUALITY CONTROL', 'level' => 1, 'judul' => 'Training Quality Control', 'passing_grade' => 80, 'max_retries' => 3]);
+    TrainingEnrollment::create(['training_id' => $itProduct->id, 'manpower_id' => $activeManpower->id, 'status' => 'passed', 'ojt_status' => 'approved', 'post_test_completed_at' => now()]);
+
+    $this->actingAs($admin)->get('/admin/dashboard?departemen=IT')
         ->assertOk()
-        ->assertSee('IT')
+        ->assertSee('Training Software Engineering')
+        ->assertSee('Balok 2')
+        ->assertDontSee('Training Quality Control')
         ->assertDontSee('WELDING - CIKARANG')
         ->assertDontSee('DUMMY');
 });

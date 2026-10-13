@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Exports\SpreadsheetTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Imports\SpreadsheetRowsImport;
+use App\Models\MManpower;
 use App\Models\MSkill;
 use App\Models\Quiz;
 use App\Models\QuizQuestion;
 use App\Models\Training;
+use App\Models\TrainingEnrollment;
 use App\Models\TrainingMaterial;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -32,6 +34,11 @@ class ImportController extends Controller
         ]);
     }
 
+    public function createAssignments(): View
+    {
+        return $this->create('assignments');
+    }
+
     public function template(string $type): BinaryFileResponse
     {
         $definition = $this->definition($type);
@@ -40,6 +47,11 @@ class ImportController extends Controller
             new SpreadsheetTemplateExport($definition['headings'], $definition['samples']),
             'template-' . $type . '.xlsx'
         );
+    }
+
+    public function assignmentTemplate(): BinaryFileResponse
+    {
+        return $this->template('assignments');
     }
 
     public function store(Request $request, string $type): RedirectResponse
@@ -69,8 +81,13 @@ class ImportController extends Controller
         }
 
         return redirect()
-            ->route('admin.imports.create', ['type' => $type])
+            ->route($type === 'assignments' ? 'admin.assignments.import' : 'admin.imports.create', $type === 'assignments' ? [] : ['type' => $type])
             ->with('success', count($rows) . ' baris ' . strtolower($definition['label']) . ' berhasil diimpor.');
+    }
+
+    public function storeAssignments(Request $request): RedirectResponse
+    {
+        return $this->store($request, 'assignments');
     }
 
     /** @return array<string, array{label: string, description: string, headings: array<int, string>, samples: array<int, array<int, string|int>>, notes: array<int, string>}> */
@@ -85,10 +102,10 @@ class ImportController extends Controller
                 'notes' => ['Kode kompetensi harus unik.', 'Baris dengan kode yang sama akan diperbarui.'],
             ],
             'trainings' => [
-                'label' => 'product/training',
-                'description' => 'Satu baris adalah satu produk yang wajib dipelajari. Level menunjukkan kelompok produk, bukan tahapan pada produk tersebut.',
+                'label' => 'training',
+                'description' => 'Satu baris adalah satu training yang wajib dipelajari. Level menunjukkan kelompok training, bukan tahapan di dalam training.',
                 'headings' => ['kode_training', 'departemen', 'level', 'judul', 'deskripsi', 'nilai_lulus', 'batas_percobaan'],
-                'samples' => [['BOX-BATTERY', 'PRODUKSI PLASTIK', 1, 'BOX BATTERY', 'Pelatihan produk BOX BATTERY.', 80, 3]],
+                'samples' => [['BOX-BATTERY', 'PRODUKSI PLASTIK', 1, 'BOX BATTERY', 'Training BOX BATTERY.', 80, 3]],
                 'notes' => ['Departemen harus sama dengan penamaan dari HaRis.', 'Balok 1 diperoleh setelah post-test lulus, Balok 2 setelah OJT disetujui.'],
             ],
             'materials' => [
@@ -104,6 +121,13 @@ class ImportController extends Controller
                 'headings' => ['kode_training', 'tahap', 'judul_evaluasi', 'durasi_menit', 'nilai_lulus', 'batas_percobaan', 'masa_tunggu_jam', 'pertanyaan', 'opsi_a', 'opsi_b', 'opsi_c', 'opsi_d', 'kunci_jawaban'],
                 'samples' => [['SE-L1-01', 'pre_test', 'Pre-test Dasar Pemrograman dan Git', 10, 80, 3, 24, 'Apa fungsi Git?', 'Mengelola versi source code', 'Membuat database', 'Mengirim email', 'Menghapus server', 'a']],
                 'notes' => ['Tahap hanya boleh: pre_test atau post_test.', 'Kunci jawaban hanya boleh: a, b, c, atau d.', 'Pengaturan evaluasi cukup diisi konsisten pada setiap tahap.'],
+            ],
+            'assignments' => [
+                'label' => 'penugasan training',
+                'description' => 'Tugaskan banyak manpower sekaligus menggunakan kode training dan NPK dari HaRis.',
+                'headings' => ['kode_training', 'npk'],
+                'samples' => [['BOX-BATTERY-L1', '4067.260721.CKR']],
+                'notes' => ['NPK harus sama dengan data HaRis yang telah disinkronkan.', 'Manpower harus aktif dan berada pada departemen training yang sama.', 'Impor ulang tidak membuat penugasan ganda.'],
             ],
         ];
     }
@@ -149,6 +173,7 @@ class ImportController extends Controller
                 'trainings' => ['kode_training', 'departemen', 'level', 'judul'],
                 'materials' => ['kode_training', 'urutan', 'judul_materi', 'tipe_media'],
                 'questions' => ['kode_training', 'tahap', 'pertanyaan', 'opsi_a', 'opsi_b', 'opsi_c', 'opsi_d', 'kunci_jawaban'],
+                'assignments' => ['kode_training', 'npk'],
             };
             foreach ($required as $field) {
                 if (! isset($row[$field]) || $row[$field] === '') {
@@ -174,6 +199,24 @@ class ImportController extends Controller
                     $errors[] = 'Baris ' . $rowNumber . ': kunci_jawaban harus a, b, c, atau d.';
                 }
             }
+            if ($type === 'assignments') {
+                $training = Training::where('kode_training', strtoupper((string) ($row['kode_training'] ?? '')))->first();
+                $manpower = MManpower::query()
+                    ->where('mp_id', (string) ($row['npk'] ?? ''))
+                    ->where('status', true)
+                    ->whereNotNull('haris_synced_at')
+                    ->first();
+
+                if (! $training) {
+                    $errors[] = 'Baris ' . $rowNumber . ': kode_training tidak ditemukan.';
+                }
+                if (! $manpower) {
+                    $errors[] = 'Baris ' . $rowNumber . ': NPK tidak ditemukan, tidak aktif, atau belum tersinkron dari HaRis.';
+                }
+                if ($training && $manpower && $training->departemen !== $manpower->departemen) {
+                    $errors[] = 'Baris ' . $rowNumber . ': departemen manpower harus sama dengan departemen training.';
+                }
+            }
         }
 
         return array_slice($errors, 0, 12);
@@ -187,6 +230,7 @@ class ImportController extends Controller
             'trainings' => $this->saveTraining($row),
             'materials' => $this->saveMaterial($row),
             'questions' => $this->saveQuestion($row),
+            'assignments' => $this->saveAssignment($row),
         };
     }
 
@@ -234,6 +278,21 @@ class ImportController extends Controller
         QuizQuestion::create([
             'quiz_id' => $quiz->id, 'pertanyaan' => $row['pertanyaan'], 'tipe_media' => 'none', 'opsi_a' => $row['opsi_a'], 'opsi_b' => $row['opsi_b'],
             'opsi_c' => $row['opsi_c'], 'opsi_d' => $row['opsi_d'], 'kunci_jawaban' => strtolower((string) $row['kunci_jawaban']),
+        ]);
+    }
+
+    /** @param array<string, string|int> $row */
+    private function saveAssignment(array $row): void
+    {
+        $training = Training::where('kode_training', strtoupper((string) $row['kode_training']))->firstOrFail();
+        $manpower = MManpower::where('mp_id', (string) $row['npk'])->firstOrFail();
+
+        TrainingEnrollment::firstOrCreate([
+            'training_id' => $training->id,
+            'manpower_id' => $manpower->id,
+        ], [
+            'status' => 'enrolled',
+            'ojt_status' => 'not_started',
         ]);
     }
 }

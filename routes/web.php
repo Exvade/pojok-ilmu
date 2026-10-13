@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\ImportController;
+use App\Http\Controllers\Admin\OjtController;
 use App\Http\Controllers\Admin\ProductAssignmentController;
 use App\Http\Controllers\Admin\QuizController as AdminQuizController;
 use App\Http\Controllers\Admin\RoleController;
@@ -39,11 +40,17 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 // Admin & Management Routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [SkillMatrixController::class, 'index'])->name('dashboard');
+    Route::get('/imports/assignments', [ImportController::class, 'createAssignments'])->middleware('management-permission:competency')->name('assignments.import');
+    Route::get('/imports/assignments/template', [ImportController::class, 'assignmentTemplate'])->middleware('management-permission:competency')->name('assignments.template');
+    Route::post('/imports/assignments', [ImportController::class, 'storeAssignments'])->middleware('management-permission:competency')->name('assignments.import.store');
     Route::get('/imports/{type}', [ImportController::class, 'create'])->middleware('management-permission:curriculum')->name('imports.create');
     Route::get('/imports/{type}/template', [ImportController::class, 'template'])->middleware('management-permission:curriculum')->name('imports.template');
     Route::post('/imports/{type}', [ImportController::class, 'store'])->middleware('management-permission:curriculum')->name('imports.store');
     Route::get('/product-assignments', [ProductAssignmentController::class, 'index'])->middleware('management-permission:competency')->name('product-assignments.index');
     Route::post('/product-assignments', [ProductAssignmentController::class, 'store'])->middleware('management-permission:competency')->name('product-assignments.store');
+    Route::get('/ojt', [OjtController::class, 'index'])->middleware('management-permission:ojt')->name('ojt.index');
+    Route::get('/ojt/{enrollment}', [OjtController::class, 'show'])->middleware('management-permission:ojt')->name('ojt.show');
+    Route::post('/ojt/{enrollment}', [OjtController::class, 'store'])->middleware('management-permission:ojt')->name('ojt.store');
 
     // Skills & Target Levels
     Route::get('/skills', [SkillController::class, 'index'])->middleware('management-permission:competency')->name('skills.index');
@@ -54,6 +61,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Trainings & Materials
     Route::get('/trainings', [TrainingController::class, 'index'])->middleware('management-permission:curriculum')->name('trainings.index');
     Route::post('/trainings', [TrainingController::class, 'store'])->middleware('management-permission:curriculum')->name('trainings.store');
+    Route::put('/trainings/{id}', [TrainingController::class, 'update'])->middleware('management-permission:curriculum')->name('trainings.update');
     Route::get('/trainings/{id}', [TrainingController::class, 'show'])->middleware('management-permission:curriculum')->name('trainings.show');
     Route::post('/trainings/{id}/materials', [TrainingController::class, 'storeMaterial'])->middleware('management-permission:curriculum')->name('trainings.materials.store');
     Route::delete('/materials/{id}', [TrainingController::class, 'destroyMaterial'])->middleware('management-permission:curriculum')->name('materials.destroy');

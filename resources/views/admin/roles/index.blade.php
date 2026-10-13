@@ -10,15 +10,15 @@
             <h1 class="page-title mt-1">Kelola role pengelola</h1>
             <p class="page-description">Berikan akses Kompetensi & Target, Kurikulum & Modul, atau keduanya kepada karyawan aktif dari HaRis.</p>
         </div>
-        <x-button :href="route('admin.dashboard')" variant="outline">Kembali ke matriks</x-button>
+        <x-button :href="route('admin.dashboard')" variant="outline"><x-icon name="back" class="h-4 w-4" />Kembali ke matriks</x-button>
     </div>
 
     <x-card>
         <form method="GET" class="flex flex-col gap-3 sm:flex-row">
             <label class="sr-only" for="role-search">Cari karyawan</label>
             <x-input id="role-search" name="search" :value="$search" placeholder="Cari nama, NIK, atau departemen" class="sm:max-w-md" />
-            <x-button type="submit">Cari</x-button>
-            @if($search)<x-button :href="route('admin.roles.index')" variant="outline">Reset</x-button>@endif
+            <x-button type="submit"><x-icon name="search" class="h-4 w-4" />Cari</x-button>
+            @if($search)<x-button :href="route('admin.roles.index')" variant="outline"><x-icon name="reset" class="h-4 w-4" />Reset</x-button>@endif
         </form>
     </x-card>
 
@@ -32,10 +32,11 @@
                     <td>
                         @if($person->user?->is_superadmin)
                             <span class="inline-flex rounded-md bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800">Superadmin</span>
-                        @elseif($person->user?->can_manage_competency || $person->user?->can_manage_curriculum)
+                        @elseif($person->user?->can_manage_competency || $person->user?->can_manage_curriculum || $person->user?->can_assess_ojt)
                             <div class="flex flex-wrap gap-1">
                                 @if($person->user->can_manage_competency)<span class="rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">Kompetensi</span>@endif
                                 @if($person->user->can_manage_curriculum)<span class="rounded-md bg-green-100 px-2 py-1 text-xs font-medium text-green-800">Kurikulum</span>@endif
+                                @if($person->user->can_assess_ojt)<span class="rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">Penilai OJT</span>@endif
                             </div>
                         @else
                             <span class="text-sm text-gray-500">Karyawan</span>
@@ -45,7 +46,7 @@
                         @if($person->user?->is_superadmin)
                             <span class="text-xs text-gray-400">Terkunci</span>
                         @else
-                            <x-button :href="route('admin.roles.edit', $person)" size="sm" variant="outline">Atur akses</x-button>
+                            <x-button :href="route('admin.roles.edit', $person)" size="sm" variant="outline"><x-icon name="user" class="h-4 w-4" />Atur akses</x-button>
                         @endif
                     </td>
                 </tr>

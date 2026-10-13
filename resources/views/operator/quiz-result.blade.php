@@ -50,7 +50,7 @@
 
         <!-- Action Buttons -->
         <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <x-button :href="route('operator.dashboard')" variant="outline">Kembali ke pelatihan</x-button>
+            <x-button :href="route('operator.dashboard')" variant="outline"><x-icon name="back" class="h-4 w-4" />Kembali ke pelatihan</x-button>
 
             @if($quiz->tipe === 'pre_test')
                 <x-button :href="route('operator.materials.show', $quiz->training->id)">Lanjut ke materi <x-icon name="arrow" /></x-button>

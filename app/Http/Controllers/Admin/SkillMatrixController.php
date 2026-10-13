@@ -4,71 +4,74 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\MManpower;
-use App\Models\MSkill;
 use App\Models\OperatorSkillMatrix;
+use App\Models\Training;
 use App\Models\TrainingEnrollment;
+use App\Services\ProductTrainingProgressService;
 use App\Services\TrainingNeedAnalysisService;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 class SkillMatrixController extends Controller
 {
-    /**
-     * Dashboard Utama Admin & Visualisasi 4-Block Skill Matrix
-     */
-    public function index(Request $request)
+    public function index(Request $request, ProductTrainingProgressService $progress): View
     {
-        $departemenFilter = $request->get('departemen');
-        $search = $request->get('search');
+        $departemenFilter = trim($request->string('departemen')->toString());
+        $search = trim($request->string('search')->toString());
 
-        // Stat Widgets
-        $totalOperator = MManpower::where('status', true)->whereNotNull('haris_synced_at')->count();
-        $totalSkill = MSkill::count();
-        $totalTerakreditasi = OperatorSkillMatrix::where('status_gap', 'Lulus / Sesuai Target')->count();
-        $totalEscalated = TrainingEnrollment::where('status', 'failed_escalated')->count();
+        if ($departemenFilter === '' && ! $request->has('departemen')) {
+            $departemenFilter = $request->user()?->manpower?->departemen ?? '';
+        }
 
-        // Skill Matrix Grid
-        $queryManpowers = MManpower::where('status', true)
+        $manpowerQuery = MManpower::query()
+            ->where('status', true)
             ->whereNotNull('haris_synced_at')
-            ->with(['skillMatrices.skill']);
-
-        if ($departemenFilter) {
-            $queryManpowers->where('departemen', $departemenFilter);
-        }
-
-        if ($search) {
-            $queryManpowers->where(function ($q) use ($search) {
-                $q->where('nama', 'LIKE', "%{$search}%")
-                    ->orWhere('mp_id', 'LIKE', "%{$search}%")
-                    ->orWhere('nik', 'LIKE', "%{$search}%");
+            ->when($departemenFilter !== '', fn ($query) => $query->where('departemen', $departemenFilter))
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->where(function ($nestedQuery) use ($search): void {
+                    $nestedQuery->where('nama', 'like', "%{$search}%")
+                        ->orWhere('mp_id', 'like', "%{$search}%")
+                        ->orWhere('nik', 'like', "%{$search}%");
+                });
             });
-        }
 
-        $manpowers = $queryManpowers->orderBy('nama')->paginate(10)->withQueryString();
-        $skills = MSkill::all();
-
-        // Escalated TNA List
-        $escalatedEnrollments = TrainingEnrollment::with(['manpower', 'training.skill', 'attempts'])
-            ->where('status', 'failed_escalated')
-            ->latest()
+        $manpowerIds = (clone $manpowerQuery)->pluck('id');
+        $products = Training::query()
+            ->whereHas('enrollments', fn ($query) => $query->whereIn('manpower_id', $manpowerIds))
+            ->when($departemenFilter !== '', fn ($query) => $query->where('departemen', $departemenFilter))
+            ->orderBy('level')
+            ->orderBy('judul')
             ->get();
+        $productIds = $products->pluck('id');
+        $enrollments = TrainingEnrollment::query()
+            ->whereIn('manpower_id', $manpowerIds)
+            ->whereIn('training_id', $productIds)
+            ->get();
+
+        $manpowers = $manpowerQuery
+            ->with(['enrollments' => fn ($query) => $query->whereIn('training_id', $productIds)])
+            ->orderBy('nama')
+            ->paginate(10)
+            ->withQueryString();
+        $manpowers->getCollection()->each(function (MManpower $manpower) use ($progress): void {
+            $manpower->enrollments->each(function (TrainingEnrollment $enrollment) use ($progress): void {
+                $enrollment->setAttribute('block', $progress->blockFor($enrollment));
+            });
+        });
 
         $departemens = MManpower::query()
             ->where('status', true)
             ->whereNotNull('haris_synced_at')
+            ->whereNotNull('departemen')
             ->distinct()
             ->orderBy('departemen')
-            ->pluck('departemen')
-            ->filter()
-            ->values();
+            ->pluck('departemen');
 
-        return view('admin.skill-matrix.index', compact(
-            'totalOperator',
-            'totalSkill',
-            'totalTerakreditasi',
-            'totalEscalated',
+        return view('admin.product-matrix', compact(
+            'manpowerIds',
             'manpowers',
-            'skills',
-            'escalatedEnrollments',
+            'products',
+            'enrollments',
             'departemens',
             'departemenFilter',
             'search'

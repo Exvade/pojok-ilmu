@@ -27,6 +27,7 @@ class User extends Authenticatable
             'is_superadmin' => 'boolean',
             'can_manage_competency' => 'boolean',
             'can_manage_curriculum' => 'boolean',
+            'can_assess_ojt' => 'boolean',
             'role' => 'integer',
         ];
     }
@@ -54,7 +55,7 @@ class User extends Authenticatable
 
     public function isManagement(): bool
     {
-        return $this->is_superadmin || $this->can_manage_competency || $this->can_manage_curriculum;
+        return $this->is_superadmin || $this->can_manage_competency || $this->can_manage_curriculum || $this->can_assess_ojt;
     }
 
     public function isOperator(): bool
@@ -72,12 +73,18 @@ class User extends Authenticatable
         return $this->is_superadmin || $this->can_manage_curriculum;
     }
 
+    public function canAssessOjt(): bool
+    {
+        return $this->is_superadmin || $this->can_assess_ojt;
+    }
+
     public function hasManagementPermission(string $permission): bool
     {
         return match ($permission) {
             'superadmin' => $this->is_superadmin,
             'competency' => $this->canManageCompetency(),
             'curriculum' => $this->canManageCurriculum(),
+            'ojt' => $this->canAssessOjt(),
             default => false,
         };
     }

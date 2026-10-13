@@ -26,7 +26,7 @@
             </span>
         </div>
         <h1 class="page-title">{{ $training->judul }}</h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400">Produk Level {{ $training->level }} &middot; Selesaikan setiap materi sebelum mengambil post-test.</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Training Level {{ $training->level }} &middot; Selesaikan setiap materi sebelum mengambil post-test.</p>
     </div>
 
     <x-card bodyClass="p-5" data-learning-progress data-current-completed="{{ $completedMaterials }}" data-total-materials="{{ $totalMaterials }}">

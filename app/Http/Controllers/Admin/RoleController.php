@@ -48,12 +48,14 @@ class RoleController extends Controller
         $data = $request->validate([
             'can_manage_competency' => 'nullable|boolean',
             'can_manage_curriculum' => 'nullable|boolean',
+            'can_assess_ojt' => 'nullable|boolean',
             'password' => 'nullable|string|min:8|max:255',
         ]);
 
         $competency = $request->boolean('can_manage_competency');
         $curriculum = $request->boolean('can_manage_curriculum');
-        $hasAccess = $competency || $curriculum;
+        $ojtAssessor = $request->boolean('can_assess_ojt');
+        $hasAccess = $competency || $curriculum || $ojtAssessor;
         $user = User::withTrashed()->firstOrNew(['user_id' => $manpower->mp_id]);
 
         if ($hasAccess && blank($user->password) && blank($data['password'] ?? null)) {
@@ -70,6 +72,7 @@ class RoleController extends Controller
         $user->is_superadmin = false;
         $user->can_manage_competency = $competency;
         $user->can_manage_curriculum = $curriculum;
+        $user->can_assess_ojt = $ojtAssessor;
 
         if (filled($data['password'] ?? null)) {
             $user->password = Hash::make($data['password']);

@@ -13,102 +13,50 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Akun berasal dari HaRis. Jalankan haris:sync-manpower lalu
-        // pojok-ilmu:bootstrap-superadmin untuk menetapkan superadmin.
-
-        // 1. Seed Skills
-        $skill1 = MSkill::create([
-            'kode_skill' => 'SKILL-KZN-01',
-            'nama_skill' => 'Pengenalan Kaizen',
-            'kategori' => 'Continues Improvement (CI)',
-            'deskripsi' => 'Dasar-dasar filosofi Kaizen dan pemahaman budaya 5S di lingkungan kerja.',
+        $skill = MSkill::create([
+            'kode_skill' => 'PRD-BOX-BATTERY',
+            'nama_skill' => 'BOX BATTERY',
+            'kategori' => 'PRODUKSI PLASTIK',
+            'deskripsi' => 'Pengetahuan dasar training BOX BATTERY, standar kerja, kualitas, dan keselamatan kerja.',
         ]);
-
-        $skill2 = MSkill::create([
-            'kode_skill' => 'SKILL-KZN-02',
-            'nama_skill' => 'Tata Cara Kaizen',
-            'kategori' => 'Continues Improvement (CI)',
-            'deskripsi' => 'Penerapan ide perbaikan mandiri di stasiun kerja.',
-        ]);
-
-        $skill3 = MSkill::create([
-            'kode_skill' => 'SKILL-PRT-01',
-            'nama_skill' => 'Kualifikasi Part COVER FUEL TANK (Product Knowledge)',
-            'kategori' => 'Kualifikasi Part & Mesin',
-            'deskripsi' => 'Pemahaman standar mutu, penanganan part COVER FUEL TANK, dan deteksi cacat visual.',
-        ]);
-
-        // 3. Seed Training Programs & Materials
-        $training1 = Training::create([
-            'kode_training' => 'TRN-KZN-L1',
-            'skill_id' => $skill1->id,
+        $training = Training::create([
+            'kode_training' => 'BOX-BATTERY-L1',
+            'skill_id' => $skill->id,
+            'departemen' => 'PRODUKSI PLASTIK',
             'level' => 1,
-            'judul' => 'Modul 1: Konsep Dasar Kaizen & Eliminasi 7 Waste',
-            'deskripsi' => 'Modul pembelajaran mandiri pengenalan budaya Kaizen dan eliminasi pemborosan di area produksi.',
+            'judul' => 'BOX BATTERY',
+            'deskripsi' => 'Training BOX BATTERY untuk manpower Produksi Plastik.',
             'max_retries' => 3,
             'passing_grade' => 80,
+            'requires_ojt' => true,
         ]);
+        foreach ([
+            ['Pengenalan BOX BATTERY', 'Kenali nama training, fungsi, standar visual, dan identitas BOX BATTERY sebelum memulai pekerjaan.'],
+            ['Standar proses dan keselamatan', 'Ikuti SOP/WI yang berlaku, gunakan APD lengkap, jaga area kerja tetap rapi, dan laporkan kondisi tidak normal kepada Leader.'],
+        ] as $index => [$title, $content]) {
+            TrainingMaterial::create(['training_id' => $training->id, 'urutan' => $index + 1, 'judul' => $title, 'tipe_media' => 'text', 'konten_teks' => $content]);
+        }
+        $preTest = Quiz::create(['training_id' => $training->id, 'tipe' => 'pre_test', 'judul' => 'Pre-test BOX BATTERY', 'durasi_menit' => 10, 'passing_grade' => 80, 'max_retries' => 3, 'cooldown_hours' => 24]);
+        $postTest = Quiz::create(['training_id' => $training->id, 'tipe' => 'post_test', 'judul' => 'Post-test BOX BATTERY', 'durasi_menit' => 15, 'passing_grade' => 80, 'max_retries' => 3, 'cooldown_hours' => 24]);
+        $this->seedQuestions($preTest, [
+            ['Apa yang perlu diperiksa sebelum memulai proses BOX BATTERY?', 'SOP/WI, APD, dan kondisi area kerja', 'Langsung menyalakan mesin', 'Menunggu kondisi tidak sesuai', 'Melewati pemeriksaan awal', 'a'],
+            ['Kepada siapa kondisi tidak normal pada proses harus dilaporkan?', 'Leader atau atasan terkait', 'Pelanggan', 'Petugas keamanan', 'Tidak perlu dilaporkan', 'a'],
+            ['Apa tujuan menggunakan APD?', 'Melindungi keselamatan saat bekerja', 'Mempercepat cycle time', 'Menggantikan SOP', 'Menambah jumlah produksi', 'a'],
+        ]);
+        $this->seedQuestions($postTest, [
+            ['Dokumen apa yang menjadi acuan utama saat menjalankan proses BOX BATTERY?', 'SOP/WI yang berlaku', 'Ingatan pribadi saja', 'Catatan training lain', 'Instruksi lisan tanpa acuan', 'a'],
+            ['Jika menemukan hasil proses NG, tindakan yang tepat adalah?', 'Pisahkan dan laporkan sesuai prosedur', 'Campurkan dengan hasil proses OK', 'Kirim langsung ke proses berikutnya', 'Simpan tanpa penandaan', 'a'],
+            ['Mengapa area kerja perlu menerapkan 5R?', 'Agar kerja aman, rapi, dan mudah dikendalikan', 'Agar waktu istirahat lebih lama', 'Agar tidak perlu inspeksi', 'Agar SOP tidak diperlukan', 'a'],
+            ['Sebelum hasil proses diteruskan ke proses berikutnya, apa yang harus dipastikan?', 'Hasil proses memenuhi standar pemeriksaan', 'Jumlah hasil proses sebanyak mungkin', 'Kemasan sudah penuh', 'Mesin sudah dimatikan', 'a'],
+            ['Bila instruksi kerja tidak jelas, apa yang dilakukan?', 'Bertanya kepada Leader sebelum melanjutkan', 'Melanjutkan berdasarkan perkiraan', 'Mengabaikan instruksi', 'Mengubah standar sendiri', 'a'],
+        ]);
+    }
 
-        // Materials for Training 1 (Text, Image, Video GDrive)
-        TrainingMaterial::create([
-            'training_id' => $training1->id,
-            'urutan' => 1,
-            'judul' => 'Pengantar Kaizen & Budaya Kerja MWT',
-            'tipe_media' => 'text',
-            'konten_teks' => 'Kaizen berarti perbaikan berkesinambungan yang melibatkan seluruh karyawan dari manajemen hingga operator. Di PT MWT, Kaizen merupakan pilar utama keberhasilan produksi.',
-        ]);
-
-        TrainingMaterial::create([
-            'training_id' => $training1->id,
-            'urutan' => 2,
-            'judul' => 'Video Demonstrasi: Penerapan Kaizen di Line Assembly',
-            'tipe_media' => 'video_gdrive',
-            'konten_teks' => 'Simak video berdurasi singkat berikut mengenai contoh riil perbaikan metode kerja di line assembly.',
-            'media_url' => 'https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs/view', // Sample GDrive ID link
-        ]);
-
-        // Quiz for Training 1
-        $quiz1 = Quiz::create([
-            'training_id' => $training1->id,
-            'judul' => 'Assessment Level 1: Pengenalan Kaizen',
-            'durasi_menit' => 10,
-            'passing_grade' => 80,
-            'max_retries' => 3,
-        ]);
-
-        // Quiz Questions
-        QuizQuestion::create([
-            'quiz_id' => $quiz1->id,
-            'pertanyaan' => 'Apa arti kata "Kaizen" secara harfiah dalam sistem manajemen mutu MWT?',
-            'tipe_media' => 'none',
-            'opsi_a' => 'Perubahan yang drastis dan mahal',
-            'opsi_b' => 'Perbaikan berkesinambungan untuk menjadi lebih baik',
-            'opsi_c' => 'Pengantian mesin lama dengan mesin baru',
-            'opsi_d' => 'Penambahan jam kerja lembur',
-            'kunci_jawaban' => 'b',
-        ]);
-
-        QuizQuestion::create([
-            'quiz_id' => $quiz1->id,
-            'pertanyaan' => 'Manakah di bawah ini yang BUKAN merupakan jenis pemborosan (Waste) di area produksi?',
-            'tipe_media' => 'none',
-            'opsi_a' => 'Overproduction (Produksi Berlebih)',
-            'opsi_b' => 'Waiting (Waktu Menunggu)',
-            'opsi_c' => 'Standardization (Standardisasi Proses)',
-            'opsi_d' => 'Defect (Produk Cacat)',
-            'kunci_jawaban' => 'c',
-        ]);
-
-        QuizQuestion::create([
-            'quiz_id' => $quiz1->id,
-            'pertanyaan' => 'Berdasarkan video pembelajaran Kaizen yang telah disimak, apa langkah awal sebelum melakukan perbaikan stasiun kerja?',
-            'tipe_media' => 'video_gdrive',
-            'media_url' => 'https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs/view',
-            'opsi_a' => 'Mengidentifikasi masalah dan memotret area kerja',
-            'opsi_b' => 'Membuang seluruh perkakas lama',
-            'opsi_c' => 'Menghentikan seluruh line produksi selama seminggu',
-            'opsi_d' => 'Menunggu instruksi langsung dari direksi',
-            'kunci_jawaban' => 'a',
-        ]);
+    /** @param array<int, array{string, string, string, string, string, string}> $questions */
+    private function seedQuestions(Quiz $quiz, array $questions): void
+    {
+        foreach ($questions as [$question, $optionA, $optionB, $optionC, $optionD, $answer]) {
+            QuizQuestion::create(['quiz_id' => $quiz->id, 'pertanyaan' => $question, 'tipe_media' => 'none', 'opsi_a' => $optionA, 'opsi_b' => $optionB, 'opsi_c' => $optionC, 'opsi_d' => $optionD, 'kunci_jawaban' => $answer]);
+        }
     }
 }

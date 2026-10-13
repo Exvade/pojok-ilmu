@@ -39,7 +39,7 @@ class ProductTrainingProgressService
     public function labelFor(TrainingEnrollment $enrollment): string
     {
         return match ($this->blockFor($enrollment)) {
-            2 => 'Balok 2 - Mampu menjalankan produk',
+            2 => 'Balok 2 - Training disetujui OJT',
             1 => 'Balok 1 - Post-test lulus, menunggu OJT',
             default => 'Belum mencapai balok',
         };

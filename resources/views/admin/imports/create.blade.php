@@ -4,10 +4,18 @@
 
 @section('content')
     <div class="page-shell max-w-4xl">
+        @php
+            $templateRoute = $type === 'assignments'
+                ? route('admin.assignments.template')
+                : route('admin.imports.template', $type);
+            $storeRoute = $type === 'assignments'
+                ? route('admin.assignments.import.store')
+                : route('admin.imports.store', $type);
+        @endphp
         <a href="{{ url()->previous() }}" class="mb-3 inline-flex items-center gap-1 text-xs font-bold text-gray-500 hover:text-brand-dark">&larr; Kembali</a>
         <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div><h1 class="page-title">Impor {{ $definition['label'] }}</h1><p class="page-description">{{ $definition['description'] }}</p></div>
-            <x-button :href="route('admin.imports.template', $type)" variant="secondary">Unduh template Excel</x-button>
+            <x-button :href="$templateRoute" variant="secondary"><x-icon name="download" class="h-4 w-4" />Unduh template Excel</x-button>
         </div>
 
         <x-card>
@@ -23,10 +31,10 @@
 
         <x-card>
             <x-slot name="header"><div><h2 class="font-heading text-lg font-bold">Unggah file</h2><p class="mt-1 text-xs text-gray-500">Maksimal 5 MB. Impor aman dilakukan berulang; kode yang sama akan diperbarui kecuali bank soal.</p></div></x-slot>
-            <form action="{{ route('admin.imports.store', $type) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+            <form action="{{ $storeRoute }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                 @csrf
                 <div><label class="mb-1 block text-sm font-medium" for="import-file">File Excel</label><x-input id="import-file" type="file" name="file" accept=".xlsx,.xls,.csv" required />@error('file')<p class="mt-2 text-xs font-medium text-red-600 dark:text-red-400">{{ $message }}</p>@enderror</div>
-                <div class="flex justify-end"><x-button type="submit">Validasi dan impor data <x-icon name="arrow" class="h-4 w-4" /></x-button></div>
+                <div class="flex justify-end"><x-button type="submit"><x-icon name="upload" class="h-4 w-4" />Validasi dan impor data</x-button></div>
             </form>
         </x-card>
     </div>

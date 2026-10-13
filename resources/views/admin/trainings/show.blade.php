@@ -23,17 +23,17 @@
                     </span>
                 </div>
                 <h1 class="page-title mt-2">{{ $training->judul }}</h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $training->departemen ?: 'Departemen belum diatur' }} &bull; Produk Level {{ $training->level }} &bull; Nilai lulus post-test {{ $training->passing_grade }}%</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $training->departemen ?: 'Departemen belum diatur' }} &bull; Training Level {{ $training->level }} &bull; Nilai lulus post-test {{ $training->passing_grade }}%</p>
             </div>
             <div class="flex items-center gap-2 flex-wrap">
                 <x-button @click="$dispatch('open-modal', 'add-material-modal')" variant="primary" size="md">
-                    Tambah materi
+                    <x-icon name="plus" class="h-4 w-4" />Tambah materi
                 </x-button>
-                <x-button :href="route('admin.imports.create', 'questions')" variant="outline" size="md">Impor soal</x-button>
+                <x-button :href="route('admin.imports.create', 'questions')" variant="outline" size="md"><x-icon name="download" class="h-4 w-4" />Impor soal</x-button>
                 @if(!$training->preTest || !$training->postTest)
                     <form action="{{ route('admin.trainings.evaluation-set.prepare', $training->id) }}" method="POST">
                         @csrf
-                        <x-button type="submit" variant="secondary" size="md">Siapkan pre-test & post-test</x-button>
+                        <x-button type="submit" variant="secondary" size="md"><x-icon name="document" class="h-4 w-4" />Siapkan pre-test & post-test</x-button>
                     </form>
                 @endif
             </div>
@@ -100,7 +100,7 @@
                     @endif
                 </div>
             @empty
-            <x-empty-state title="Belum Ada Materi" description="Tambahkan materi teks, gambar, dokumen, atau video untuk produk ini." />
+            <x-empty-state title="Belum Ada Materi" description="Tambahkan materi teks, gambar, dokumen, atau video untuk training ini." />
             @endforelse
         </div>
     </x-card>
@@ -113,7 +113,7 @@
             <div class="flex items-center justify-between w-full">
                 <h3 class="font-bold font-heading text-lg">Pre-test diagnostik</h3>
                 @if($training->preTest)
-                    <x-button @click="openQuestion('{{ $training->preTest->id }}', 'Pre-test')" variant="primary" size="sm">Tambah soal</x-button>
+                    <x-button @click="openQuestion('{{ $training->preTest->id }}', 'Pre-test')" variant="primary" size="sm"><x-icon name="plus" class="h-4 w-4" />Tambah soal</x-button>
                 @endif
             </div>
         </x-slot>
@@ -145,7 +145,7 @@
             <div class="flex items-center justify-between w-full">
                 <h3 class="font-bold font-heading text-lg">Post-test &amp; Bank Soal</h3>
                 @if($training->postTest)
-                    <x-button @click="openQuestion('{{ $training->postTest->id }}', 'Post-test')" variant="primary" size="sm">
+                    <x-button @click="openQuestion('{{ $training->postTest->id }}', 'Post-test')" variant="primary" size="sm"><x-icon name="plus" class="h-4 w-4" />
                         Tambah Soal Kuis
                     </x-button>
                 @endif
@@ -264,8 +264,8 @@
                 <x-input type="file" name="file_upload" accept="image/*,.pdf" id="add-material-modal-file_upload" />
             </div>
             <div class="flex justify-end gap-2 pt-4">
-                <x-button type="button" @click="$dispatch('close-modal', 'add-material-modal')" variant="outline">Batal</x-button>
-                <x-button type="submit" variant="primary">Simpan Materi</x-button>
+                <x-button type="button" @click="$dispatch('close-modal', 'add-material-modal')" variant="outline"><x-icon name="close" class="h-4 w-4" />Batal</x-button>
+                <x-button type="submit" variant="primary"><x-icon name="save" class="h-4 w-4" />Simpan Materi</x-button>
             </div>
         </form>
     </x-modal>
@@ -313,8 +313,8 @@
                     </div>
                 </div>
                 <div class="flex justify-end gap-2 pt-4">
-                    <x-button type="button" @click="$dispatch('close-modal', 'add-quiz-modal')" variant="outline">Batal</x-button>
-                    <x-button type="submit" variant="primary">Tambah evaluasi</x-button>
+                    <x-button type="button" @click="$dispatch('close-modal', 'add-quiz-modal')" variant="outline"><x-icon name="close" class="h-4 w-4" />Batal</x-button>
+                    <x-button type="submit" variant="primary"><x-icon name="plus" class="h-4 w-4" />Tambah evaluasi</x-button>
                 </div>
             </form>
         </x-modal>
@@ -371,8 +371,8 @@
                     <x-select-menu name="kunci_jawaban" id="add-question-modal-kunci_jawaban" :options="['a' => 'Jawaban A', 'b' => 'Jawaban B', 'c' => 'Jawaban C', 'd' => 'Jawaban D']" selected="a" />
                 </div>
                 <div class="flex justify-end gap-2 pt-4">
-                    <x-button type="button" @click="$dispatch('close-modal', 'add-question-modal')" variant="outline">Batal</x-button>
-                    <x-button type="submit" variant="primary">Simpan Soal</x-button>
+                    <x-button type="button" @click="$dispatch('close-modal', 'add-question-modal')" variant="outline"><x-icon name="close" class="h-4 w-4" />Batal</x-button>
+                    <x-button type="submit" variant="primary"><x-icon name="save" class="h-4 w-4" />Simpan Soal</x-button>
                 </div>
             </form>
         </x-modal>

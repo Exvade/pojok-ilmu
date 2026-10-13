@@ -8,6 +8,7 @@ use App\Models\Training;
 use App\Models\TrainingEnrollment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 
 uses(RefreshDatabase::class);
 
@@ -82,4 +83,78 @@ test('pengelola dapat menugaskan produk ke manpower dari departemen yang sama', 
         'manpower_id' => $manpower->id,
         'status' => 'enrolled',
     ]);
+});
+
+test('pengelola dapat mengubah data training yang sudah dibuat', function () {
+    $admin = User::create([
+        'user_id' => 'TRN-EDITOR',
+        'name' => 'Pengelola Training',
+        'role' => 1,
+        'can_manage_curriculum' => true,
+    ]);
+    $skill = MSkill::create(['kode_skill' => 'TRN-EDIT', 'nama_skill' => 'Box Battery', 'kategori' => 'PRODUKSI']);
+    $training = Training::create([
+        'kode_training' => 'TRN-EDIT-01',
+        'skill_id' => $skill->id,
+        'departemen' => 'PRODUKSI',
+        'level' => 1,
+        'judul' => 'BOX BATTERY',
+        'passing_grade' => 80,
+        'max_retries' => 3,
+    ]);
+
+    $this->actingAs($admin)->put('/admin/trainings/' . $training->id, [
+        'kode_training' => 'TRN-EDIT-01',
+        'departemen' => 'PRODUKSI',
+        'level' => 2,
+        'judul' => 'BOX BATTERY REVISI',
+        'deskripsi' => 'Training revisi untuk BOX BATTERY.',
+        'passing_grade' => 85,
+        'max_retries' => 2,
+    ])->assertSessionHas('success');
+
+    $this->assertDatabaseHas('trainings', [
+        'id' => $training->id,
+        'level' => 2,
+        'judul' => 'BOX BATTERY REVISI',
+        'passing_grade' => 85,
+        'max_retries' => 2,
+    ]);
+});
+
+test('pengelola dapat mengimpor penugasan training tanpa membuat data ganda', function () {
+    $admin = User::create([
+        'user_id' => 'TRN-IMPORTER',
+        'name' => 'Pengelola Penugasan',
+        'role' => 1,
+        'can_manage_competency' => true,
+    ]);
+    $manpower = MManpower::create([
+        'mp_id' => 'TRN-MP-01',
+        'nik' => 'TRN-MP-01',
+        'nama' => 'Operator Impor',
+        'departemen' => 'PRODUKSI',
+        'bagian' => 'OPERATOR',
+        'status' => true,
+        'haris_synced_at' => now(),
+    ]);
+    $skill = MSkill::create(['kode_skill' => 'TRN-IMPORT', 'nama_skill' => 'Box Battery', 'kategori' => 'PRODUKSI']);
+    $training = Training::create([
+        'kode_training' => 'TRN-IMPORT-01',
+        'skill_id' => $skill->id,
+        'departemen' => 'PRODUKSI',
+        'level' => 1,
+        'judul' => 'BOX BATTERY',
+    ]);
+    $file = UploadedFile::fake()->createWithContent('penugasan.csv', "kode_training,npk\nTRN-IMPORT-01,TRN-MP-01\n");
+
+    $this->actingAs($admin)->post('/admin/imports/assignments', ['file' => $file])->assertSessionHas('success');
+    $this->actingAs($admin)->post('/admin/imports/assignments', ['file' => $file])->assertSessionHas('success');
+
+    $this->assertDatabaseHas('training_enrollments', [
+        'training_id' => $training->id,
+        'manpower_id' => $manpower->id,
+        'status' => 'enrolled',
+    ]);
+    $this->assertDatabaseCount('training_enrollments', 1);
 });

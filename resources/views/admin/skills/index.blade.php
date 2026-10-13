@@ -14,9 +14,9 @@
             <p class="text-sm text-gray-500 dark:text-gray-400">Daftar kompetensi yang dapat digunakan dalam materi dan struktur leveling.</p>
         </div>
         <div class="flex items-center gap-3 flex-wrap">
-            <x-button :href="route('admin.imports.create', 'skills')" variant="secondary" size="md">Impor Excel</x-button>
+            <x-button :href="route('admin.imports.create', 'skills')" variant="secondary" size="md"><x-icon name="download" class="h-4 w-4" />Impor Excel</x-button>
             <x-button @click="$dispatch('open-modal', 'add-skill-modal')" variant="primary" size="md">
-                Tambah kompetensi
+                <x-icon name="plus" class="h-4 w-4" />Tambah kompetensi
             </x-button>
         </div>
     </div>
@@ -25,7 +25,7 @@
     <x-card>
         <x-slot name="header">
             <h3 class="font-bold font-heading text-lg">Daftar kompetensi</h3>
-            <p class="mt-1 text-xs text-gray-500">Kompetensi adalah topik atau kemampuan yang menjadi dasar product/training.</p>
+            <p class="mt-1 text-xs text-gray-500">Kompetensi adalah topik atau kemampuan yang menjadi dasar penyusunan training.</p>
         </x-slot>
 
         <div class="overflow-x-auto">
@@ -88,8 +88,8 @@
                 <x-textarea name="deskripsi" rows="3" placeholder="Penjelasan singkat kompetensi..." id="add-skill-modal-deskripsi"></x-textarea>
             </div>
             <div class="flex justify-end gap-2 pt-4">
-                <x-button type="button" @click="$dispatch('close-modal', 'add-skill-modal')" variant="outline">Batal</x-button>
-                <x-button type="submit" variant="primary">Simpan kompetensi</x-button>
+                <x-button type="button" @click="$dispatch('close-modal', 'add-skill-modal')" variant="outline"><x-icon name="close" class="h-4 w-4" />Batal</x-button>
+                <x-button type="submit" variant="primary"><x-icon name="save" class="h-4 w-4" />Simpan kompetensi</x-button>
             </div>
         </form>
     </x-modal>

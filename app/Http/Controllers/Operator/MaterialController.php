@@ -29,7 +29,7 @@ class MaterialController extends Controller
 
         $allEnrollments = TrainingEnrollment::with('training')->where('manpower_id', $manpower->id)->get();
         if (! $progress->isUnlocked($enrollment, $allEnrollments)) {
-            return redirect()->route('operator.dashboard')->with('error', 'Selesaikan OJT produk pada level sebelumnya sebelum membuka training ini.');
+            return redirect()->route('operator.dashboard')->with('error', 'Selesaikan OJT seluruh training pada level sebelumnya sebelum membuka training ini.');
         }
 
         if ($enrollment->status === 'failed_escalated') {

@@ -58,7 +58,7 @@
         ]) }}
     >
         <span class="min-w-0 truncate" x-text="label"></span>
-        <x-icon name="arrow" class="h-4 w-4 shrink-0 text-gray-400 transition-transform duration-150" x-bind:class="open ? 'rotate-90' : '-rotate-90'" />
+        <x-icon name="chevron-down" class="h-4 w-4 shrink-0 text-gray-400 transition-transform duration-150" x-bind:class="open ? 'rotate-180' : ''" />
     </button>
 
     <div

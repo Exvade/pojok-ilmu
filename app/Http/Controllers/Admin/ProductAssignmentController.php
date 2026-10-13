@@ -59,7 +59,7 @@ class ProductAssignmentController extends Controller
             ->all();
 
         if (count($validManpowerIds) !== count(array_unique($data['manpower_ids']))) {
-            return back()->with('error', 'Penugasan hanya dapat diberikan kepada manpower aktif dari departemen produk yang sama.');
+            return back()->with('error', 'Penugasan hanya dapat diberikan kepada manpower aktif dari departemen training yang sama.');
         }
 
         try {
@@ -75,9 +75,9 @@ class ProductAssignmentController extends Controller
             DB::rollBack();
             report($exception);
 
-            return back()->with('error', 'Penugasan product belum dapat disimpan. Silakan coba kembali.');
+            return back()->with('error', 'Penugasan training belum dapat disimpan. Silakan coba kembali.');
         }
 
-        return back()->with('success', 'Product berhasil ditugaskan ke manpower terpilih.');
+        return back()->with('success', 'Training berhasil ditugaskan ke manpower terpilih.');
     }
 }
