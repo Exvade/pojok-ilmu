@@ -5,7 +5,7 @@
         <div class="my-16 max-w-lg">
             <p class="mb-6 text-xs font-semibold uppercase tracking-[0.2em] text-green-300">Learning & development</p>
             <h1 class="text-5xl font-semibold leading-tight tracking-tight">Kompetensi tumbuh.<br><span class="text-green-300">Masa depan maju.</span></h1>
-            <p class="mt-6 text-base leading-7 text-green-100">Ruang belajar karyawan MWT. Kembangkan kemampuan melalui materi terarah, evaluasi, dan target kompetensi yang jelas.</p>
+            <p class="mt-6 text-base leading-7 text-green-100">Ruang belajar karyawan MWT. Kembangkan kemampuan melalui materi terarah, evaluasi, dan capaian leveling yang jelas.</p>
             <div class="mt-10 grid grid-cols-3 gap-5 border-t border-white/20 pt-6">
                 @foreach(['01' => 'Pelajari materi', '02' => 'Uji pemahaman', '03' => 'Tingkatkan level'] as $number => $label)
                     <div><span class="text-sm text-green-300">{{ $number }}</span><p class="mt-2 text-sm font-medium">{{ $label }}</p></div>

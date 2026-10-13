@@ -13,17 +13,18 @@
         @php
             $user = auth()->user();
             $items = $user->isManagement() ? [['admin.dashboard', 'admin.dashboard', 'grid', 'Ringkasan']]
-                : [['operator.dashboard', 'operator.*', 'book', 'Pelatihan saya']];
-            if ($user->canManageCompetency()) $items[] = ['admin.skills.index', 'admin.skills.*', 'chart', 'Kompetensi & target'];
-            if ($user->canManageCurriculum()) $items[] = ['admin.trainings.index', 'admin.trainings.*', 'book', 'Kurikulum & modul'];
+                : [['operator.dashboard', 'operator.*', 'book', 'Training saya']];
+            if ($user->isManagement()) $items[] = ['operator.dashboard', 'operator.*', 'book', 'Pratinjau training'];
+            if ($user->canManageCompetency()) $items[] = ['admin.product-assignments.index', 'admin.product-assignments.*', 'user', 'Penugasan product'];
+            if ($user->canManageCurriculum()) $items[] = ['admin.trainings.index', 'admin.trainings.*', 'book', 'Produk & training'];
             if ($user->is_superadmin) $items[] = ['admin.roles.index', 'admin.roles.*', 'user', 'Kelola role'];
         @endphp
         @foreach($items as [$route, $pattern, $icon, $label])
             <a href="{{ route($route) }}" @if(request()->routeIs($pattern)) aria-current="page" @endif class="flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium transition-colors {{ request()->routeIs($pattern) ? 'bg-brand-dark text-white' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800' }}"><x-icon :name="$icon" />{{ $label }}</a>
         @endforeach
         <div class="mx-3 mt-7 border-t border-gray-100 pt-5 dark:border-gray-800">
-            <p class="text-xs font-semibold text-gray-700 dark:text-gray-300">Dari target ke kompetensi</p>
-            <p class="mt-2 text-xs leading-5 text-gray-500">Materi, evaluasi, dan perkembangan karyawan dalam satu ruang.</p>
+            <p class="text-xs font-semibold text-gray-700 dark:text-gray-300">Dari pembelajaran ke leveling</p>
+            <p class="mt-2 text-xs leading-5 text-gray-500">Materi, evaluasi, dan capaian level dalam satu ruang.</p>
         </div>
     </nav>
     <div class="shrink-0 border-t border-gray-200 p-4 dark:border-gray-800">

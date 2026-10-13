@@ -13,28 +13,28 @@ use Illuminate\Support\Facades\File;
 
 uses(RefreshDatabase::class);
 
-test('management pages render shared sidebar and training forms with and without an assessment', function () {
+test('management pages render shared sidebar and product training forms', function () {
     $admin = User::create(['user_id' => 'UI-ADMIN', 'name' => 'UI Admin', 'role' => 1, 'is_superadmin' => true, 'can_manage_competency' => true, 'can_manage_curriculum' => true]);
     $skill = MSkill::create(['kode_skill' => 'UI-SK', 'nama_skill' => 'Keselamatan kerja', 'kategori' => 'Safety']);
     $training = Training::create(['kode_training' => 'UI-TR', 'skill_id' => $skill->id, 'level' => 1, 'judul' => 'Dasar keselamatan', 'passing_grade' => 80, 'max_retries' => 3]);
     $this->actingAs($admin);
     foreach (['/admin/dashboard', '/admin/skills', '/admin/trainings'] as $url) {
-        $this->get($url)->assertOk()->assertSee('id="app-sidebar"', false)->assertSee('Kurikulum &amp; modul', false);
+        $this->get($url)->assertOk()->assertSee('id="app-sidebar"', false)->assertSee('Produk &amp; training', false);
     }
-    $this->get('/admin/trainings/' . $training->id)->assertOk()->assertSee('Buat Modul Kuis Assessment')->assertSee('add-quiz-modal-judul')->assertSee('x-teleport="body"', false);
-    $quiz = Quiz::create(['training_id' => $training->id, 'judul' => 'Evaluasi keselamatan', 'durasi_menit' => 15, 'passing_grade' => 80]);
+    $this->get('/admin/trainings/' . $training->id)->assertOk()->assertSee('Siapkan pre-test & post-test', false)->assertSee('activeSection', false)->assertSee('x-teleport="body"', false);
+    $quiz = Quiz::create(['training_id' => $training->id, 'tipe' => 'post_test', 'judul' => 'Evaluasi keselamatan', 'durasi_menit' => 15, 'passing_grade' => 80]);
     QuizQuestion::create(['quiz_id' => $quiz->id, 'pertanyaan' => 'Apa langkah pertama?', 'opsi_a' => 'Periksa alat', 'opsi_b' => 'Mulai bekerja', 'opsi_c' => 'Abaikan', 'opsi_d' => 'Pulang', 'kunci_jawaban' => 'a']);
     $this->get('/admin/trainings/' . $training->id)->assertOk()->assertSee('Tambah Soal Kuis')->assertSee('Apa langkah pertama?');
     $skill->delete();
-    $this->get('/admin/trainings/' . $training->id)->assertOk()->assertSee('Kompetensi diarsipkan');
-    $this->get('/admin/trainings')->assertOk()->assertSee('Kompetensi diarsipkan');
+    $this->get('/admin/trainings/' . $training->id)->assertOk()->assertSee('Produk Level 1');
+    $this->get('/admin/trainings')->assertOk()->assertSee('Produk &amp; training', false);
 });
 
 test('invalid form preserves user input and reopens the correct modal', function () {
     $admin = User::create(['user_id' => 'UI-ADMIN', 'name' => 'UI Admin', 'role' => 1, 'is_superadmin' => true, 'can_manage_competency' => true, 'can_manage_curriculum' => true]);
     $this->actingAs($admin)->from('/admin/trainings')->post('/admin/trainings', [
-        '_modal' => 'add-training-modal', 'judul' => 'Judul yang dipertahankan', 'passing_grade' => 91,
-    ])->assertSessionHasErrors('skill_id')->assertRedirect('/admin/trainings');
+        '_modal' => 'add-product-modal', 'judul' => 'Judul yang dipertahankan', 'passing_grade' => 91,
+    ])->assertSessionHasErrors('kode_training')->assertRedirect('/admin/trainings');
     $this->get('/admin/trainings')->assertOk()->assertSee('Judul yang dipertahankan')->assertSee('value="91"', false)->assertSee(', true)', false);
 });
 

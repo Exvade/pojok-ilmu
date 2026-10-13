@@ -14,12 +14,9 @@ class SkillController extends Controller
 {
     public function index()
     {
-        $skills = MSkill::with('targetLevels')->latest()->get();
-        $targetLevels = MSkillTargetLevel::with('skill')->get();
-        $departments = MManpower::query()->where('status', true)->whereNotNull('haris_synced_at')->distinct()->orderBy('departemen')->pluck('departemen');
-        $jobTitles = MManpower::query()->where('status', true)->whereNotNull('haris_synced_at')->distinct()->orderBy('jabatan')->pluck('jabatan')->filter();
+        $skills = MSkill::latest()->get();
 
-        return view('admin.skills.index', compact('skills', 'targetLevels', 'departments', 'jobTitles'));
+        return view('admin.skills.index', compact('skills'));
     }
 
     public function store(Request $request)

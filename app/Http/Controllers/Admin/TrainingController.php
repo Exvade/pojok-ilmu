@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\MManpower;
 use App\Models\MSkill;
 use App\Models\Training;
 use App\Models\TrainingMaterial;
@@ -13,17 +14,28 @@ class TrainingController extends Controller
 {
     public function index()
     {
-        $trainings = Training::with(['skill', 'materials', 'preTest', 'postTest'])->latest()->get();
-        $skills = MSkill::all();
+        $trainings = Training::with(['materials', 'preTest', 'postTest'])
+            ->withCount('enrollments')
+            ->orderBy('departemen')
+            ->orderBy('level')
+            ->orderBy('judul')
+            ->get();
+        $departments = MManpower::query()
+            ->where('status', true)
+            ->whereNotNull('haris_synced_at')
+            ->whereNotNull('departemen')
+            ->distinct()
+            ->orderBy('departemen')
+            ->pluck('departemen');
 
-        return view('admin.trainings.index', compact('trainings', 'skills'));
+        return view('admin.trainings.index', compact('trainings', 'departments'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'kode_training' => 'required|string|unique:trainings,kode_training',
-            'skill_id' => 'required|exists:m_skills,id',
+            'departemen' => 'required|string|max:255',
             'level' => 'required|integer|min:1|max:4',
             'judul' => 'required|string',
             'deskripsi' => 'nullable|string',
@@ -31,17 +43,28 @@ class TrainingController extends Controller
             'passing_grade' => 'required|integer|min:50|max:100',
         ]);
 
+        $skill = MSkill::firstOrCreate(
+            ['kode_skill' => strtoupper($request->kode_training)],
+            [
+                'nama_skill' => $request->judul,
+                'kategori' => $request->departemen,
+                'deskripsi' => $request->deskripsi,
+            ]
+        );
+
         Training::create([
             'kode_training' => strtoupper($request->kode_training),
-            'skill_id' => $request->skill_id,
+            'skill_id' => $skill->id,
+            'departemen' => $request->departemen,
             'level' => $request->level,
             'judul' => $request->judul,
             'deskripsi' => $request->deskripsi,
             'max_retries' => $request->max_retries,
             'passing_grade' => $request->passing_grade,
+            'requires_ojt' => true,
         ]);
 
-        return back()->with('success', 'Program Training berhasil dibuat.');
+        return back()->with('success', 'Produk dan training berhasil dibuat.');
     }
 
     public function show(string $id)

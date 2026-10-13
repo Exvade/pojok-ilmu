@@ -12,7 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-test('operator accessing dashboard auto generates TNA and skill matrix based on target levels', function () {
+test('operator dashboard does not create automatic enrollment from legacy target data', function () {
     $operator = MManpower::create([
         'mp_id' => 'OP100',
         'nik' => '100100',
@@ -52,24 +52,17 @@ test('operator accessing dashboard auto generates TNA and skill matrix based on 
     $response = $this->actingAs($user)->get('/operator/dashboard');
     $response->assertStatus(200);
 
-    // Verify Skill Matrix generated
-    $this->assertDatabaseHas('operator_skill_matrices', [
+    $this->assertDatabaseMissing('operator_skill_matrices', [
         'manpower_id' => $operator->id,
         'skill_id' => $skill->id,
-        'current_level' => 0,
-        'target_level' => 2,
-        'status_gap' => 'Gap -2 Level',
     ]);
-
-    // Verify Auto-TNA enrollment created
-    $this->assertDatabaseHas('training_enrollments', [
+    $this->assertDatabaseMissing('training_enrollments', [
         'manpower_id' => $operator->id,
         'training_id' => $training->id,
-        'status' => 'enrolled',
     ]);
 });
 
-test('operator passing quiz automatically upgrades skill matrix current level and updates gap status', function () {
+test('general module completion does not change department leveling progress', function () {
     $operator = MManpower::create([
         'mp_id' => 'OP101',
         'nik' => '100101',
@@ -134,16 +127,15 @@ test('operator passing quiz automatically upgrades skill matrix current level an
 
     $response->assertStatus(200);
 
-    // Verify enrollment status is passed
+    // Post-test yang lulus menghasilkan Balok 1 dan menunggu OJT.
     $this->assertDatabaseHas('training_enrollments', [
         'id' => $enrollment->id,
-        'status' => 'passed',
+        'status' => 'in_progress',
+        'ojt_status' => 'pending',
     ]);
 
-    // Verify Skill Matrix current level upgraded to 1
-    $this->assertDatabaseHas('operator_skill_matrices', [
+    $this->assertDatabaseMissing('operator_skill_matrices', [
         'manpower_id' => $operator->id,
         'skill_id' => $skill->id,
-        'current_level' => 1,
     ]);
 });

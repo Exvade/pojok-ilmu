@@ -13,7 +13,3 @@ if (filled(config('services.haris.url')) && filled(config('services.haris.token'
         ->dailyAt((string) config('services.haris.sync_at'))
         ->withoutOverlapping();
 }
-
-Schedule::command('pojok-ilmu:generate-tna')
-    ->dailyAt('02:30')
-    ->withoutOverlapping();

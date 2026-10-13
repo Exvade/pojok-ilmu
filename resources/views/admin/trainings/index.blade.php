@@ -6,20 +6,19 @@
 
 
 <div class="page-shell" x-data>
+    {{-- Legacy framework form retained temporarily for historical references.
     
     <!-- Page Header -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
             <h1 class="page-title">Kurikulum & modul</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Daftar program pelatihan mandiri untuk memenuhi target level skill operator</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Susun pelatihan mandiri sebagai syarat kelulusan pada level framework.</p>
         </div>
-        <x-button @click="$dispatch('open-modal', 'add-training-modal')" variant="primary" size="md">
-            Tambah pelatihan
-        </x-button>
+        <div class="flex flex-wrap gap-2"><x-button :href="route('admin.imports.create', 'materials')" variant="outline" size="md">Impor materi</x-button><x-button :href="route('admin.imports.create', 'trainings')" variant="secondary" size="md">Impor sub-course</x-button><x-button @click="$dispatch('open-modal', 'add-training-modal')" variant="primary" size="md">Tambah pelatihan</x-button></div>
     </div>
 
     <div class="grid gap-4 rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800 md:grid-cols-3">
-        @foreach(['Tentukan pelatihan' => 'Pilih kompetensi dan level yang dituju.', 'Isi materi pembelajaran' => 'Tambahkan teks, video, gambar, atau PDF.', 'Siapkan evaluasi' => 'Susun soal dan tetapkan nilai kelulusan.'] as $label => $hint)
+        @foreach(['Masukkan ke level framework' => 'Training menjadi salah satu syarat lulus pada level tersebut.', 'Isi materi pembelajaran' => 'Tambahkan teks, video, gambar, atau PDF.', 'Siapkan evaluasi' => 'Susun pre-test, post-test, assessment, dan OJT bila diperlukan.'] as $label => $hint)
             <div class="flex gap-3"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-green-50 text-xs font-semibold text-brand-dark dark:bg-green-950 dark:text-green-300">{{ $loop->iteration }}</span><div><p class="text-sm font-semibold">{{ $label }}</p><p class="mt-1 text-xs leading-5 text-gray-500">{{ $hint }}</p></div></div>
         @endforeach
     </div>
@@ -33,7 +32,7 @@
                             {{ $tr->kode_training }}
                         </span>
                         <span class="px-2.5 py-1 text-xs font-bold rounded-lg bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300">
-                            Level {{ $tr->level }}
+                            Syarat Level {{ $tr->level }}
                         </span>
                     </div>
                 </x-slot>
@@ -47,6 +46,8 @@
                             <span class="text-gray-400">Skill:</span> {{ $tr->skill?->nama_skill ?? 'Kompetensi diarsipkan' }}
                         </div>
                     </div>
+                    @if($tr->framework)<p class="text-xs text-gray-500">Masuk struktur: <strong>{{ $tr->framework->nama }}</strong></p>@else<p class="text-xs text-amber-700 dark:text-amber-300">Belum dimasukkan ke struktur leveling.</p>@endif
+                    @if($tr->requires_ojt)<span class="inline-flex rounded-md bg-purple-50 px-2 py-1 text-xs font-semibold text-purple-700 dark:bg-purple-950 dark:text-purple-300">Memerlukan OJT</span>@endif
 
                     <div class="flex items-center justify-between text-xs text-gray-500 pt-1">
                         <div>Materi: <strong>{{ $tr->materials->count() }} Modul</strong></div>
@@ -84,7 +85,14 @@
                 <x-input type="text" name="kode_training" placeholder="MISAL: TRN-KZN-L1" required class="uppercase" id="add-training-modal-kode_training" />
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-training-modal-skill_id">Pilih Relasi Skill</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-training-modal-framework_id">Masuk ke jalur kompetensi</label>
+                <x-select name="framework_id" id="add-training-modal-framework_id">
+                    <option value="">-- Pelatihan mandiri, belum masuk struktur --</option>
+                    @foreach($frameworks as $framework)<option value="{{ $framework->id }}">{{ $framework->departemen }} — {{ $framework->nama }}</option>@endforeach
+                </x-select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-training-modal-skill_id">Kompetensi terkait</label>
                 <x-select name="skill_id" required id="add-training-modal-skill_id">
                     <option value="">-- Pilih Skill --</option>
                     @foreach($skills as $sk)
@@ -93,7 +101,7 @@
                 </x-select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-training-modal-level">Level Kompetensi</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-training-modal-level">Syarat kelulusan untuk level</label>
                 <x-select name="level" required id="add-training-modal-level">
                     <option value="1">Level 1 (Trainee / Pemula)</option>
                     <option value="2">Level 2 (Operator)</option>
@@ -119,10 +127,69 @@
                     <x-input type="number" name="max_retries" value="3" min="1" required id="add-training-modal-max_retries" />
                 </div>
             </div>
+            <label class="flex items-start gap-3 rounded-md border border-purple-200 bg-purple-50 p-3 text-sm text-purple-900 dark:border-purple-900 dark:bg-purple-950/30 dark:text-purple-100">
+                <input type="checkbox" name="requires_ojt" value="1" class="mt-0.5">
+                <span><strong>Wajib OJT setelah assessment.</strong><br><span class="text-xs">Level baru hanya tercapai setelah assessor menyetujui praktik kerja.</span></span>
+            </label>
             <div class="flex justify-end gap-2 pt-4">
                 <x-button type="button" @click="$dispatch('close-modal', 'add-training-modal')" variant="outline">Batal</x-button>
                 <x-button type="submit" variant="primary">Simpan pelatihan</x-button>
             </div>
+        </form>
+    </x-modal>
+    --}}
+
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-brand-dark dark:text-green-400">Pengaturan training</p>
+            <h1 class="page-title">Produk & training</h1>
+            <p class="page-description">Satu produk adalah satu training. Atur level produk, isi training, lalu tugaskan manpower yang perlu mempelajarinya.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <x-button :href="route('admin.imports.create', 'materials')" variant="outline">Impor materi</x-button>
+            <x-button :href="route('admin.imports.create', 'trainings')" variant="secondary">Impor produk</x-button>
+            <x-button @click="$dispatch('open-modal', 'add-product-modal')">Tambah produk</x-button>
+        </div>
+    </div>
+
+    <x-card bodyClass="p-5">
+        <div class="grid gap-5 md:grid-cols-3">
+            <div class="flex gap-3"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-green-100 text-xs font-bold text-brand-dark dark:bg-green-950 dark:text-green-300">1</span><div><p class="text-sm font-semibold">Buat produk</p><p class="mt-1 text-xs leading-5 text-gray-500">Contoh: Box Battery berada pada Level 1 Produksi.</p></div></div>
+            <div class="flex gap-3"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-green-100 text-xs font-bold text-brand-dark dark:bg-green-950 dark:text-green-300">2</span><div><p class="text-sm font-semibold">Siapkan training</p><p class="mt-1 text-xs leading-5 text-gray-500">Isi pre-test, materi, dan post-test untuk produk tersebut.</p></div></div>
+            <div class="flex gap-3"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-green-100 text-xs font-bold text-brand-dark dark:bg-green-950 dark:text-green-300">3</span><div><p class="text-sm font-semibold">Tugaskan manpower</p><p class="mt-1 text-xs leading-5 text-gray-500">Tentukan siapa yang perlu belajar pada menu Penugasan product.</p></div></div>
+        </div>
+    </x-card>
+
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        @forelse($trainings as $training)
+            <x-card class="flex flex-col">
+                <div class="flex items-start justify-between gap-3">
+                    <div><p class="font-mono text-xs font-semibold text-brand-dark dark:text-green-400">{{ $training->kode_training }}</p><h2 class="mt-2 text-lg font-semibold leading-snug">{{ $training->judul }}</h2></div>
+                    <span class="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-brand-dark dark:bg-green-950 dark:text-green-300">Level {{ $training->level }}</span>
+                </div>
+                <p class="mt-3 text-sm text-gray-600 dark:text-gray-300">{{ $training->deskripsi ?: 'Training produk belum memiliki keterangan.' }}</p>
+                <dl class="mt-5 grid gap-3 border-t border-gray-100 pt-4 text-xs dark:border-gray-700">
+                    <div class="flex justify-between gap-3"><dt class="text-gray-500">Departemen</dt><dd class="text-right font-semibold">{{ $training->departemen ?: 'Belum diatur' }}</dd></div>
+                    <div class="flex justify-between gap-3"><dt class="text-gray-500">Isi training</dt><dd class="font-semibold">{{ $training->materials->count() }} materi · {{ $training->preTest ? 'Pre-test' : 'Tanpa pre-test' }} · {{ $training->postTest ? 'Post-test' : 'Post-test belum ada' }}</dd></div>
+                    <div class="flex justify-between gap-3"><dt class="text-gray-500">Ditugaskan</dt><dd class="font-semibold">{{ $training->enrollments_count }} manpower</dd></div>
+                </dl>
+                <x-slot name="footer"><div class="flex items-center justify-between gap-3"><x-button :href="route('admin.trainings.show', $training->id)" variant="secondary" size="sm">Atur isi training <x-icon name="arrow" class="h-4 w-4" /></x-button><form action="{{ route('admin.trainings.destroy', $training->id) }}" method="POST" data-confirm="Hapus produk dan training ini?">@csrf @method('DELETE')<x-button type="submit" variant="ghost" size="sm" class="text-red-600" aria-label="Hapus produk" title="Hapus produk"><x-icon name="trash" class="h-4 w-4" /></x-button></form></div></x-slot>
+            </x-card>
+        @empty
+            <div class="md:col-span-2 xl:col-span-3"><x-empty-state title="Belum ada produk" description="Tambahkan produk pertama untuk memulai penyusunan training." /></div>
+        @endforelse
+    </div>
+
+    <x-modal name="add-product-modal" :show="$errors->any() && old('_modal') === 'add-product-modal'" title="Tambah produk" maxWidth="xl">
+        <form action="{{ route('admin.trainings.store') }}" method="POST" class="space-y-4">
+            @csrf
+            <input type="hidden" name="_modal" value="add-product-modal">
+            <div class="grid gap-4 sm:grid-cols-2"><div><label class="mb-1 block text-sm font-medium" for="kode_training">Kode produk</label><x-input id="kode_training" name="kode_training" placeholder="Contoh: PRD-BOX-01" required class="uppercase" /></div><div><label class="mb-1 block text-sm font-medium" for="departemen">Departemen</label><x-select id="departemen" name="departemen" required><option value="">Pilih departemen</option>@foreach($departments as $department)<option value="{{ $department }}">{{ $department }}</option>@endforeach</x-select></div></div>
+            <div class="grid gap-4 sm:grid-cols-2"><div><label class="mb-1 block text-sm font-medium" for="judul">Nama produk</label><x-input id="judul" name="judul" placeholder="Contoh: Box Battery" required /></div><div><label class="mb-1 block text-sm font-medium" for="level">Level produk</label><x-select id="level" name="level" required><option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option><option value="4">Level 4</option></x-select></div></div>
+            <div><label class="mb-1 block text-sm font-medium" for="deskripsi">Keterangan produk</label><x-textarea id="deskripsi" name="deskripsi" rows="3" placeholder="Contoh: Produk box battery untuk lini produksi A."></x-textarea></div>
+            <div class="grid gap-4 sm:grid-cols-2"><div><label class="mb-1 block text-sm font-medium" for="passing_grade">Nilai lulus post-test</label><x-input id="passing_grade" type="number" name="passing_grade" value="80" min="50" max="100" required /></div><div><label class="mb-1 block text-sm font-medium" for="max_retries">Batas percobaan</label><x-input id="max_retries" type="number" name="max_retries" value="3" min="1" required /></div></div>
+            <div class="rounded-md border border-green-200 bg-green-50 p-3 text-xs leading-5 text-gray-700 dark:border-green-900 dark:bg-green-950/30 dark:text-gray-300">Alur yang dipakai: pre-test, materi, post-test (Balok 1), lalu OJT (Balok 2). Assessment dan Balok 3–4 belum digunakan.</div>
+            <div class="flex justify-end gap-2 pt-2"><x-button type="button" variant="outline" @click="$dispatch('close-modal', 'add-product-modal')">Batal</x-button><x-button type="submit">Simpan produk</x-button></div>
         </form>
     </x-modal>
 </div>

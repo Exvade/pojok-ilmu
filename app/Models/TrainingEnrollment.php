@@ -22,6 +22,12 @@ class TrainingEnrollment extends BaseModel
             'next_attempt_at' => 'datetime',
             'assessment_started_at' => 'datetime',
             'assessment_expires_at' => 'datetime',
+            'post_test_completed_at' => 'datetime',
+            'assessment_completed_at' => 'datetime',
+            'ojt_assessed_at' => 'datetime',
+            'escalated_at' => 'datetime',
+            'last_follow_up_at' => 'datetime',
+            'escalation_resolved_at' => 'datetime',
         ];
     }
 
@@ -40,8 +46,23 @@ class TrainingEnrollment extends BaseModel
         return $this->hasMany(QuizAttempt::class, 'enrollment_id', 'id')->orderBy('attempt_number', 'desc');
     }
 
+    public function materialProgresses(): HasMany
+    {
+        return $this->hasMany(TrainingMaterialProgress::class, 'enrollment_id', 'id');
+    }
+
     public function activeQuiz(): BelongsTo
     {
         return $this->belongsTo(Quiz::class, 'active_quiz_id', 'id');
+    }
+
+    public function assignedTo(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_to_user_id', 'id');
+    }
+
+    public function escalationLogs(): HasMany
+    {
+        return $this->hasMany(TrainingEscalationLog::class, 'enrollment_id', 'id')->latest();
     }
 }

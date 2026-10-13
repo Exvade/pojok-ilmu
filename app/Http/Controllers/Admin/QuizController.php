@@ -5,11 +5,45 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Quiz;
 use App\Models\QuizQuestion;
+use App\Models\Training;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class QuizController extends Controller
 {
+    public function prepareEvaluationSet(string $trainingId)
+    {
+        try {
+            DB::transaction(function () use ($trainingId): void {
+                $training = Training::findOrFail($trainingId);
+
+                foreach ([
+                    'pre_test' => ['Pre-test ' . $training->judul, 10, 80],
+                    'post_test' => ['Post-test ' . $training->judul, 15, $training->passing_grade],
+                ] as $type => [$title, $duration, $passingGrade]) {
+                    Quiz::firstOrCreate([
+                        'training_id' => $training->id,
+                        'tipe' => $type,
+                    ], [
+                        'judul' => $title,
+                        'durasi_menit' => $duration,
+                        'passing_grade' => $passingGrade,
+                        'max_retries' => $training->max_retries,
+                        'cooldown_hours' => 24,
+                    ]);
+                }
+            });
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return back()->with('error', 'Tahap evaluasi belum dapat disiapkan. Silakan coba kembali.');
+        }
+
+        return back()->with('success', 'Pre-test dan post-test telah disiapkan. Isi soal pada bagian evaluasi.');
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -27,7 +61,7 @@ class QuizController extends Controller
             ->exists();
 
         if ($alreadyExists) {
-            return back()->withInput()->withErrors(['tipe' => 'Jenis assessment ini sudah dibuat untuk training tersebut.']);
+            return back()->withInput()->withErrors(['tipe' => 'Jenis evaluasi ini sudah dibuat untuk training tersebut.']);
         }
 
         Quiz::create([
@@ -40,7 +74,10 @@ class QuizController extends Controller
             'cooldown_hours' => $request->cooldown_hours,
         ]);
 
-        return back()->with('success', $request->tipe === 'pre_test' ? 'Modul pre-test berhasil dibuat.' : 'Modul post-test berhasil dibuat.');
+        return back()->with('success', match ($request->tipe) {
+            'pre_test' => 'Modul pre-test berhasil dibuat.',
+            default => 'Modul post-test berhasil dibuat.',
+        });
     }
 
     public function storeQuestion(Request $request, string $quizId)

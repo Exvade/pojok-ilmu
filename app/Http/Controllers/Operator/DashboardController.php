@@ -3,14 +3,13 @@
 namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
-use App\Models\OperatorSkillMatrix;
 use App\Models\TrainingEnrollment;
-use App\Services\TrainingNeedAnalysisService;
+use App\Services\ProductTrainingProgressService;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
-    public function index(TrainingNeedAnalysisService $tna)
+    public function index(ProductTrainingProgressService $progress)
     {
         $user = Auth::user();
         $manpower = $user->manpower;
@@ -19,23 +18,21 @@ class DashboardController extends Controller
             return view('operator.dashboard', [
                 'manpower' => null,
                 'enrollments' => collect(),
-                'matrices' => collect(),
+                'currentLevel' => 0,
             ]);
         }
 
-        // A fallback for newly synced employees; the scheduled command does this in batch.
-        $tna->synchronizeFor($manpower);
-
-        // Fetch operator enrollments & skill matrices
-        $enrollments = TrainingEnrollment::with(['training.skill', 'training.preTest', 'training.postTest', 'attempts'])
+        $enrollments = TrainingEnrollment::with(['training.materials', 'training.preTest', 'training.postTest'])
             ->where('manpower_id', $manpower->id)
-            ->latest()
+            ->orderBy('created_at')
             ->get();
+        $enrollments->each(function (TrainingEnrollment $enrollment) use ($enrollments, $progress): void {
+            $enrollment->setAttribute('block', $progress->blockFor($enrollment));
+            $enrollment->setAttribute('is_unlocked', $progress->isUnlocked($enrollment, $enrollments));
+            $enrollment->setAttribute('block_label', $progress->labelFor($enrollment));
+        });
+        $currentLevel = $progress->currentLevel($enrollments);
 
-        $matrices = OperatorSkillMatrix::with('skill')
-            ->where('manpower_id', $manpower->id)
-            ->get();
-
-        return view('operator.dashboard', compact('manpower', 'enrollments', 'matrices'));
+        return view('operator.dashboard', compact('manpower', 'enrollments', 'currentLevel'));
     }
 }

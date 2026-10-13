@@ -1,6 +1,6 @@
 @props(['name', 'show' => false, 'title' => 'Formulir', 'maxWidth' => '2xl'])
 @php($width = ['sm' => 'max-w-sm', 'md' => 'max-w-md', 'lg' => 'max-w-lg', 'xl' => 'max-w-xl', '2xl' => 'max-w-2xl'][$maxWidth] ?? 'max-w-2xl')
-<div x-data="modalDialog(@js($name), @js((bool) $show))"
+<div {{ $attributes->class('contents') }} x-data="modalDialog(@js($name), @js((bool) $show))"
      @open-modal.window="if ($event.detail === name) openDialog()"
      @close-modal.window="if ($event.detail === name) closeDialog()"
      @keydown.escape.window="if (open) closeDialog()" x-cloak>

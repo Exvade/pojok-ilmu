@@ -11,7 +11,7 @@ return new class extends Migration
     {
         if (! Schema::hasColumn('quizzes', 'tipe')) {
             Schema::table('quizzes', function (Blueprint $table) {
-                $table->enum('tipe', ['pre_test', 'post_test'])->default('post_test')->after('training_id');
+                $table->enum('tipe', ['pre_test', 'post_test', 'assessment'])->default('post_test')->after('training_id');
             });
         }
         if (! Schema::hasColumn('quizzes', 'cooldown_hours')) {

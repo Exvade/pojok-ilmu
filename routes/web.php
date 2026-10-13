@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\ImportController;
+use App\Http\Controllers\Admin\ProductAssignmentController;
 use App\Http\Controllers\Admin\QuizController as AdminQuizController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SkillController;
@@ -37,8 +39,11 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 // Admin & Management Routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [SkillMatrixController::class, 'index'])->name('dashboard');
-    Route::post('/reset-remedi/{enrollmentId}', [SkillMatrixController::class, 'resetRemedi'])->middleware('management-permission:competency')->name('reset-remedi');
-    Route::post('/matrix/{matrixId}/initial-level', [SkillMatrixController::class, 'setInitialLevel'])->middleware('management-permission:competency')->name('matrix.initial-level');
+    Route::get('/imports/{type}', [ImportController::class, 'create'])->middleware('management-permission:curriculum')->name('imports.create');
+    Route::get('/imports/{type}/template', [ImportController::class, 'template'])->middleware('management-permission:curriculum')->name('imports.template');
+    Route::post('/imports/{type}', [ImportController::class, 'store'])->middleware('management-permission:curriculum')->name('imports.store');
+    Route::get('/product-assignments', [ProductAssignmentController::class, 'index'])->middleware('management-permission:competency')->name('product-assignments.index');
+    Route::post('/product-assignments', [ProductAssignmentController::class, 'store'])->middleware('management-permission:competency')->name('product-assignments.store');
 
     // Skills & Target Levels
     Route::get('/skills', [SkillController::class, 'index'])->middleware('management-permission:competency')->name('skills.index');
@@ -56,6 +61,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Quizzes & Questions
     Route::post('/quizzes', [AdminQuizController::class, 'store'])->middleware('management-permission:curriculum')->name('quizzes.store');
+    Route::post('/trainings/{trainingId}/evaluation-set', [AdminQuizController::class, 'prepareEvaluationSet'])->middleware('management-permission:curriculum')->name('trainings.evaluation-set.prepare');
     Route::post('/quizzes/{id}/questions', [AdminQuizController::class, 'storeQuestion'])->middleware('management-permission:curriculum')->name('quizzes.questions.store');
     Route::post('/questions', [AdminQuizController::class, 'storeQuestionGeneric'])->middleware('management-permission:curriculum')->name('questions.store');
     Route::delete('/questions/{id}', [AdminQuizController::class, 'destroy'])->middleware('management-permission:curriculum')->name('questions.destroy');
@@ -69,6 +75,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 Route::middleware(['auth', 'active-operator'])->prefix('operator')->name('operator.')->group(function () {
     Route::get('/dashboard', [OperatorDashboardController::class, 'index'])->name('dashboard');
     Route::get('/materials/{trainingId}', [OperatorMaterialController::class, 'show'])->name('materials.show');
+    Route::post('/materials/{trainingId}/{materialId}/complete', [OperatorMaterialController::class, 'completeMaterial'])->name('materials.item.complete');
     Route::post('/materials/{trainingId}/complete', [OperatorMaterialController::class, 'complete'])->name('materials.complete');
     Route::get('/quizzes/{quizId}', [OperatorQuizController::class, 'show'])->name('quizzes.show');
     Route::post('/quizzes/{quizId}/submit', [OperatorQuizController::class, 'submit'])->name('quizzes.submit');
