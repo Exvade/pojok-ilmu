@@ -54,6 +54,7 @@
                             <tr class="bg-gray-100 text-xs font-bold uppercase tracking-wider text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                                 <th class="rounded-tl-xl px-4 py-3.5">Manpower / NPK</th>
                                 <th class="px-4 py-3.5">Departemen / Jabatan</th>
+                                <th class="px-4 py-3.5 text-center">Profil</th>
                                 @foreach($products as $product)
                                     <th class="min-w-48 border-l border-gray-200 px-4 py-3.5 text-center dark:border-gray-700"><span class="block text-[10px] font-semibold text-brand-dark dark:text-green-400">Level {{ $product->level }}</span><span class="mt-1 block">{{ $product->judul }}</span></th>
                                 @endforeach
@@ -63,6 +64,7 @@
                             <tr class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
                                 <td class="whitespace-nowrap px-4 py-4 font-semibold text-gray-900 dark:text-gray-100"><div>{{ $manpower->nama }}</div><span class="font-mono text-xs text-gray-400">NPK: {{ $manpower->mp_id }}</span></td>
                                 <td class="whitespace-nowrap px-4 py-4 text-xs text-gray-600 dark:text-gray-400"><div>{{ $manpower->departemen }}</div><span class="text-gray-400">{{ $manpower->bagian }}</span></td>
+                                <td class="px-4 py-4 text-center"><x-button :href="route('admin.manpower.training-profile', $manpower->id)" variant="ghost" size="sm" aria-label="Lihat profil training {{ $manpower->nama }}" title="Lihat profil training"><x-icon name="eye" class="h-4 w-4" /></x-button></td>
                                 @foreach($products as $product)
                                     @php($enrollment = $manpower->enrollments->firstWhere('training_id', $product->id))
                                     <td class="border-l border-gray-200 px-4 py-4 text-center dark:border-gray-700">
@@ -79,7 +81,7 @@
                                 @endforeach
                             </tr>
                         @empty
-                            <tr><td colspan="{{ 2 + $products->count() }}" class="px-4 py-8 text-center"><x-empty-state title="Manpower tidak ditemukan" description="Ubah filter departemen atau pencarian, lalu coba kembali." /></td></tr>
+                            <tr><td colspan="{{ 3 + $products->count() }}" class="px-4 py-8 text-center"><x-empty-state title="Manpower tidak ditemukan" description="Ubah filter departemen atau pencarian, lalu coba kembali." /></td></tr>
                         @endforelse
                     </x-table>
                 </div>

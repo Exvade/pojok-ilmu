@@ -78,6 +78,38 @@ class SkillMatrixController extends Controller
         ));
     }
 
+    public function showManpower(string $id, ProductTrainingProgressService $progress): View
+    {
+        $manpower = MManpower::with([
+            'enrollments.training',
+            'enrollments.attempts.quiz',
+            'enrollments.ojtAssessment.assessor',
+        ])->findOrFail($id);
+        $enrollments = $manpower->enrollments
+            ->sortBy([
+                fn (TrainingEnrollment $enrollment): int => $enrollment->training?->level ?? 0,
+                fn (TrainingEnrollment $enrollment): string => $enrollment->training?->judul ?? '',
+            ])
+            ->values();
+
+        $enrollments->each(function (TrainingEnrollment $enrollment) use ($progress): void {
+            $enrollment->setAttribute('block', $progress->blockFor($enrollment));
+            $enrollment->setAttribute('block_label', $progress->labelFor($enrollment));
+        });
+
+        $currentLevel = $progress->currentLevel($enrollments);
+        $totalBalokSatu = $enrollments->where('block', 1)->count();
+        $totalBalokDua = $enrollments->where('block', 2)->count();
+
+        return view('admin.manpower-training-profile', compact(
+            'manpower',
+            'enrollments',
+            'currentLevel',
+            'totalBalokSatu',
+            'totalBalokDua'
+        ));
+    }
+
     /**
      * Reset Kuota Remedi Operator (Eskalasi Handled)
      */

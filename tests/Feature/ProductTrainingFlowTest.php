@@ -158,3 +158,58 @@ test('pengelola dapat mengimpor penugasan training tanpa membuat data ganda', fu
     ]);
     $this->assertDatabaseCount('training_enrollments', 1);
 });
+
+test('pengelola dapat membatalkan penugasan yang belum dimulai tanpa menghapus riwayat training', function () {
+    $admin = User::create([
+        'user_id' => 'TRN-ASSIGNMENT-MANAGER',
+        'name' => 'Pengelola Penugasan',
+        'role' => 1,
+        'can_manage_competency' => true,
+    ]);
+    $unstartedManpower = MManpower::create([
+        'mp_id' => 'TRN-UNSTARTED', 'nik' => 'TRN-UNSTARTED', 'nama' => 'Belum Mulai', 'departemen' => 'PRODUKSI', 'bagian' => 'OPERATOR', 'status' => true, 'haris_synced_at' => now(),
+    ]);
+    $inProgressManpower = MManpower::create([
+        'mp_id' => 'TRN-IN-PROGRESS', 'nik' => 'TRN-IN-PROGRESS', 'nama' => 'Sudah Mulai', 'departemen' => 'PRODUKSI', 'bagian' => 'OPERATOR', 'status' => true, 'haris_synced_at' => now(),
+    ]);
+    $skill = MSkill::create(['kode_skill' => 'TRN-CANCEL', 'nama_skill' => 'Box Battery', 'kategori' => 'PRODUKSI']);
+    $training = Training::create(['kode_training' => 'TRN-CANCEL-01', 'skill_id' => $skill->id, 'departemen' => 'PRODUKSI', 'level' => 1, 'judul' => 'BOX BATTERY']);
+    $unstartedEnrollment = TrainingEnrollment::create(['training_id' => $training->id, 'manpower_id' => $unstartedManpower->id, 'status' => 'enrolled']);
+    $inProgressEnrollment = TrainingEnrollment::create(['training_id' => $training->id, 'manpower_id' => $inProgressManpower->id, 'status' => 'in_progress']);
+
+    $this->actingAs($admin)->post('/admin/product-assignments', [
+        'training_id' => $training->id,
+        'manpower_ids' => [],
+    ])->assertSessionHas('success');
+
+    $this->assertSoftDeleted('training_enrollments', ['id' => $unstartedEnrollment->id]);
+    $this->assertDatabaseHas('training_enrollments', ['id' => $inProgressEnrollment->id, 'status' => 'in_progress', 'deleted_at' => null]);
+});
+
+test('pengelola dapat melihat profil dan riwayat training per manpower', function () {
+    $admin = User::create([
+        'user_id' => 'TRN-PROFILE-MANAGER',
+        'name' => 'Pengelola Kompetensi',
+        'role' => 1,
+        'can_manage_competency' => true,
+    ]);
+    $manpower = MManpower::create([
+        'mp_id' => 'TRN-PROFILE-01', 'nik' => 'TRN-PROFILE-01', 'nama' => 'Operator Profil', 'departemen' => 'PRODUKSI', 'bagian' => 'OPERATOR', 'status' => true, 'haris_synced_at' => now(),
+    ]);
+    $skill = MSkill::create(['kode_skill' => 'TRN-PROFILE', 'nama_skill' => 'Box Battery', 'kategori' => 'PRODUKSI']);
+    $training = Training::create(['kode_training' => 'TRN-PROFILE-01', 'skill_id' => $skill->id, 'departemen' => 'PRODUKSI', 'level' => 1, 'judul' => 'BOX BATTERY']);
+    TrainingEnrollment::create([
+        'training_id' => $training->id,
+        'manpower_id' => $manpower->id,
+        'status' => 'passed',
+        'ojt_status' => 'approved',
+        'post_test_completed_at' => now(),
+    ]);
+
+    $this->actingAs($admin)->get('/admin/manpower/' . $manpower->id . '/training-profile')
+        ->assertOk()
+        ->assertSee('Operator Profil')
+        ->assertSee('BOX BATTERY')
+        ->assertSee('Balok 2')
+        ->assertSee('Disetujui');
+});

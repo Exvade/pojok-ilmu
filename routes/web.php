@@ -40,6 +40,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 // Admin & Management Routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [SkillMatrixController::class, 'index'])->name('dashboard');
+    Route::get('/manpower/{id}/training-profile', [SkillMatrixController::class, 'showManpower'])->middleware('management-permission:competency')->name('manpower.training-profile');
     Route::get('/imports/assignments', [ImportController::class, 'createAssignments'])->middleware('management-permission:competency')->name('assignments.import');
     Route::get('/imports/assignments/template', [ImportController::class, 'assignmentTemplate'])->middleware('management-permission:competency')->name('assignments.template');
     Route::post('/imports/assignments', [ImportController::class, 'storeAssignments'])->middleware('management-permission:competency')->name('assignments.import.store');

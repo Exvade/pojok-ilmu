@@ -17,7 +17,7 @@ class ProductAssignmentController extends Controller
     public function index(Request $request): View
     {
         $department = $request->string('departemen')->toString();
-        $products = Training::with('enrollments:id,training_id,manpower_id')
+        $products = Training::with('enrollments:id,training_id,manpower_id,status')
             ->withCount('enrollments')
             ->when($department !== '', fn ($query) => $query->where('departemen', $department))
             ->orderBy('departemen')
@@ -45,25 +45,32 @@ class ProductAssignmentController extends Controller
     {
         $data = $request->validate([
             'training_id' => 'required|exists:trainings,id',
-            'manpower_ids' => 'required|array|min:1',
+            'manpower_ids' => 'nullable|array',
             'manpower_ids.*' => 'exists:m_manpower,id',
         ]);
 
         $training = Training::findOrFail($data['training_id']);
+        $requestedManpowerIds = $data['manpower_ids'] ?? [];
         $validManpowerIds = MManpower::query()
-            ->whereIn('id', $data['manpower_ids'])
+            ->whereIn('id', $requestedManpowerIds)
             ->where('status', true)
             ->whereNotNull('haris_synced_at')
             ->where('departemen', $training->departemen)
             ->pluck('id')
             ->all();
 
-        if (count($validManpowerIds) !== count(array_unique($data['manpower_ids']))) {
+        if (count($validManpowerIds) !== count(array_unique($requestedManpowerIds))) {
             return back()->with('error', 'Penugasan hanya dapat diberikan kepada manpower aktif dari departemen training yang sama.');
         }
 
         try {
             DB::beginTransaction();
+            TrainingEnrollment::query()
+                ->where('training_id', $training->id)
+                ->where('status', 'enrolled')
+                ->when($validManpowerIds !== [], fn ($query) => $query->whereNotIn('manpower_id', $validManpowerIds))
+                ->delete();
+
             foreach ($validManpowerIds as $manpowerId) {
                 TrainingEnrollment::firstOrCreate([
                     'training_id' => $data['training_id'],
@@ -78,6 +85,6 @@ class ProductAssignmentController extends Controller
             return back()->with('error', 'Penugasan training belum dapat disimpan. Silakan coba kembali.');
         }
 
-        return back()->with('success', 'Training berhasil ditugaskan ke manpower terpilih.');
+        return back()->with('success', 'Penugasan training berhasil diperbarui.');
     }
 }
