@@ -65,7 +65,7 @@
         @endforeach
 
         <div class="flex flex-wrap items-center justify-between gap-4 border-t border-gray-200 pt-4 dark:border-gray-700"><p class="text-sm text-gray-500" aria-live="polite"><span x-text="answered"></span> / {{ $quiz->questions->count() }} soal dijawab</p>
-            <x-button type="submit" variant="primary" size="lg" ::disabled="submitting || total === 0" class="w-full sm:w-auto shadow-none shadow-green-900/30">
+            <x-button type="submit" variant="primary" size="lg" x-ref="submitButton" ::disabled="submitting || total === 0" class="w-full sm:w-auto shadow-none shadow-green-900/30">
                 <span x-text="submitting ? 'Mengirim jawaban…' : 'Kirim jawaban'"></span>
             </x-button>
         </div>

@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\TrainingController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Operator\DashboardController as OperatorDashboardController;
 use App\Http\Controllers\Operator\MaterialController as OperatorMaterialController;
+use App\Http\Controllers\Operator\ProfileController as OperatorProfileController;
 use App\Http\Controllers\Operator\QuizController as OperatorQuizController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -83,6 +84,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 // Operator Portal Routes
 Route::middleware(['auth', 'active-operator'])->prefix('operator')->name('operator.')->group(function () {
     Route::get('/dashboard', [OperatorDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/profile', [OperatorProfileController::class, 'show'])->name('profile');
+    Route::get('/training/{enrollment}/ojt-result', [OperatorProfileController::class, 'ojtResult'])->name('ojt-result');
     Route::get('/materials/{trainingId}', [OperatorMaterialController::class, 'show'])->name('materials.show');
     Route::post('/materials/{trainingId}/{materialId}/complete', [OperatorMaterialController::class, 'completeMaterial'])->name('materials.item.complete');
     Route::post('/materials/{trainingId}/complete', [OperatorMaterialController::class, 'complete'])->name('materials.complete');

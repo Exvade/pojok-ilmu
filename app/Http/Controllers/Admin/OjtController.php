@@ -50,7 +50,7 @@ class OjtController extends Controller
             $departemen = $request->user()->manpower?->departemen ?? $departemen;
         }
 
-        $query->when($departemen !== '', fn ($enrollment) => $enrollment->whereHas('training', fn ($training) => $training->where('departemen', $departemen)))
+        $query->when($departemen !== '', fn ($enrollment) => $enrollment->whereHas('training', fn ($training) => $training->forDepartment($departemen)))
             ->when($search !== '', function ($enrollment) use ($search): void {
                 $enrollment->whereHas('manpower', function ($manpower) use ($search): void {
                     $manpower->where('nama', 'like', "%{$search}%")->orWhere('mp_id', 'like', "%{$search}%");
@@ -77,7 +77,7 @@ class OjtController extends Controller
         $enrollment = $this->eligibleEnrollment($request, $enrollment);
         $assessment = $enrollment->ojtAssessment;
 
-        return view('admin.ojt.form', [
+        return view('admin.ojt.form-clean', [
             'enrollment' => $enrollment,
             'assessment' => $assessment,
             'theoryQuestions' => self::THEORY_QUESTIONS,
@@ -162,7 +162,7 @@ class OjtController extends Controller
             ->whereHas('training', fn ($training) => $training->where('requires_ojt', true))
             ->firstOrFail();
 
-        if (! $request->user()->is_superadmin && $request->user()->manpower?->departemen !== $enrollment->training->departemen) {
+        if (! $request->user()->is_superadmin && ! $enrollment->training->appliesToDepartment($request->user()->manpower?->departemen)) {
             abort(403, 'OJT hanya dapat dinilai pada departemen Anda.');
         }
 

@@ -19,7 +19,7 @@ class ProductAssignmentController extends Controller
         $department = $request->string('departemen')->toString();
         $products = Training::with('enrollments:id,training_id,manpower_id,status')
             ->withCount('enrollments')
-            ->when($department !== '', fn ($query) => $query->where('departemen', $department))
+            ->when($department !== '', fn ($query) => $query->forDepartment($department))
             ->orderBy('departemen')
             ->orderBy('level')
             ->orderBy('judul')
@@ -38,7 +38,7 @@ class ProductAssignmentController extends Controller
             ->orderBy('departemen')
             ->pluck('departemen');
 
-        return view('admin.product-assignments.index', compact('products', 'manpowers', 'departments', 'department'));
+        return view('admin.product-assignments.index-clean', compact('products', 'manpowers', 'departments', 'department'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -55,12 +55,13 @@ class ProductAssignmentController extends Controller
             ->whereIn('id', $requestedManpowerIds)
             ->where('status', true)
             ->whereNotNull('haris_synced_at')
-            ->where('departemen', $training->departemen)
+            ->get()
+            ->filter(fn (MManpower $manpower): bool => $training->appliesToDepartment($manpower->departemen))
             ->pluck('id')
             ->all();
 
         if (count($validManpowerIds) !== count(array_unique($requestedManpowerIds))) {
-            return back()->with('error', 'Penugasan hanya dapat diberikan kepada manpower aktif dari departemen training yang sama.');
+            return back()->with('error', 'Penugasan hanya dapat diberikan kepada manpower aktif dari departemen yang dipilih pada training.');
         }
 
         try {

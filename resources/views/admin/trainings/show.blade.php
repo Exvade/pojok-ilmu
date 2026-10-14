@@ -5,7 +5,7 @@
 @section('content')
 
 
-<div class="page-shell" x-data="{ activeSection: 'materials', selectedQuizId: @js(old('quiz_id', '')), selectedQuizLabel: '', openQuestion(quizId, label) { this.selectedQuizId = quizId; this.selectedQuizLabel = label; this.$dispatch('open-modal', 'add-question-modal'); } }">
+<div class="page-shell" x-data="{ activeSection: 'materials', selectedQuizId: @js(old('quiz_id', '')), selectedQuizLabel: '', openQuestion(quizId, label) { this.selectedQuizId = @js($training->postTest?->id) || quizId; this.selectedQuizLabel = 'Pre-test & post-test'; this.$dispatch('open-modal', 'add-question-modal'); } }">
     
     <!-- Back & Header -->
     <div>
@@ -23,7 +23,7 @@
                     </span>
                 </div>
                 <h1 class="page-title mt-2">{{ $training->judul }}</h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $training->departemen ?: 'Departemen belum diatur' }} &bull; Training Level {{ $training->level }} &bull; Nilai lulus post-test {{ $training->passing_grade }}%</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $training->departmentLabel() }} &bull; Training Level {{ $training->level }} &bull; Nilai lulus post-test {{ $training->passing_grade }}%</p>
             </div>
             <div class="flex items-center gap-2 flex-wrap">
                 <x-button @click="$dispatch('open-modal', 'add-material-modal')" variant="primary" size="md">
@@ -327,7 +327,7 @@
                 @csrf
             <input type="hidden" name="_modal" value="add-question-modal">
                 <div class="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-brand-dark dark:border-green-900 dark:bg-green-950/30 dark:text-green-200">
-                    <span class="font-semibold">Tahap evaluasi:</span> <span x-text="selectedQuizLabel || 'Evaluasi yang dipilih'"></span>
+                    <span class="font-semibold">Bank soal bersama:</span> Satu soal otomatis digunakan untuk pre-test dan post-test.
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-question-modal-quiz_id">Jenis evaluasi</label>

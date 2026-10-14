@@ -15,7 +15,7 @@
         <a href="{{ url()->previous() }}" class="mb-3 inline-flex items-center gap-1 text-xs font-bold text-gray-500 hover:text-brand-dark">&larr; Kembali</a>
         <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div><h1 class="page-title">Impor {{ $definition['label'] }}</h1><p class="page-description">{{ $definition['description'] }}</p></div>
-            <x-button :href="$templateRoute" variant="secondary"><x-icon name="download" class="h-4 w-4" />Unduh template Excel</x-button>
+            <x-button :href="$templateRoute" data-no-loading variant="secondary"><x-icon name="download" class="h-4 w-4" />Unduh template Excel</x-button>
         </div>
 
         <x-card>

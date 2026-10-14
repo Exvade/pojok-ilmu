@@ -114,7 +114,7 @@
             <h1 class="page-title">Halo, {{ $manpower?->nama ?? auth()->user()->name }}</h1>
             <p class="page-description">Berikut adalah training yang ditugaskan kepada Anda. Selesaikan training sampai Balok 2 agar tercatat kompeten pada training tersebut.</p>
         </div>
-        <div class="rounded-md border border-gray-200 bg-white px-3 py-2 text-xs dark:border-gray-700 dark:bg-gray-800"><p class="font-semibold">{{ $manpower?->departemen ?? 'Departemen belum tersedia' }}</p><p class="mt-1 text-gray-500">{{ $manpower?->bagian ?? 'Jabatan belum tersedia' }}</p></div>
+        <div class="flex flex-wrap items-center gap-2"><x-button :href="route('operator.profile')" variant="outline" size="sm"><x-icon name="user" class="h-4 w-4" />Profil saya</x-button><div class="rounded-md border border-gray-200 bg-white px-3 py-2 text-xs dark:border-gray-700 dark:bg-gray-800"><p class="font-semibold">{{ $manpower?->departemen ?? 'Departemen belum tersedia' }}</p><p class="mt-1 text-gray-500">{{ $manpower?->bagian ?? 'Jabatan belum tersedia' }}</p></div></div>
     </div>
 
     <div class="grid gap-4 sm:grid-cols-3">
@@ -138,10 +138,10 @@
                 <x-card class="{{ $enrollment->is_unlocked ? '' : 'opacity-70' }}">
                     <div class="flex items-start justify-between gap-3">
                         <div><p class="font-mono text-xs font-semibold text-brand-dark dark:text-green-400">{{ $enrollment->training->kode_training }}</p><h3 class="mt-1 text-lg font-semibold">{{ $enrollment->training->judul }}</h3><p class="mt-2 text-xs text-gray-500">{{ $enrollment->training->departemen }} · Training Level {{ $enrollment->training->level }}</p></div>
-                        <span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $enrollment->block === 2 ? 'bg-green-100 text-brand-dark dark:bg-green-950 dark:text-green-300' : ($enrollment->block === 1 ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200') }}">{{ $enrollment->block === 2 ? 'Balok 2' : ($enrollment->block === 1 ? 'Balok 1' : 'Belum mulai') }}</span>
+                        <x-competency-blocks :value="$enrollment->block" :show-label="false" />
                     </div>
                     <p class="mt-4 text-sm text-gray-600 dark:text-gray-300">{{ $enrollment->block_label }}</p>
-                    <div class="mt-4 h-2 overflow-hidden rounded-sm bg-gray-100 dark:bg-gray-700"><div class="h-full rounded-sm bg-brand-dark" style="width: {{ $enrollment->block * 50 }}%"></div></div>
+                    <x-competency-blocks :value="$enrollment->block" class="mt-4" />
                     <x-slot name="footer">
                         <div class="flex flex-wrap items-center justify-between gap-3">
                             @if(! $enrollment->is_unlocked)
@@ -150,7 +150,12 @@
                                 <span class="text-xs font-semibold text-brand-dark dark:text-green-300">Anda telah mencapai Balok 2 pada training ini.</span>
                                 <x-button :href="route('operator.materials.show', $enrollment->training_id)" variant="outline" size="sm"><x-icon name="eye" class="h-4 w-4" />Lihat training</x-button>
                             @elseif($enrollment->block === 1)
-                                <span class="text-xs text-amber-800 dark:text-amber-200">Post-test lulus. Menunggu OJT dari penilai.</span>
+                                @if($enrollment->ojtAssessment)
+                                    <span class="text-xs text-amber-800 dark:text-amber-200">Hasil OJT sudah tersedia.</span>
+                                    <x-button :href="route('operator.ojt-result', $enrollment->id)" variant="outline" size="sm"><x-icon name="eye" class="h-4 w-4" />Lihat hasil OJT</x-button>
+                                @else
+                                    <span class="text-xs text-amber-800 dark:text-amber-200">Post-test lulus. Menunggu OJT dari penilai.</span>
+                                @endif
                             @elseif($enrollment->training->preTest && ! $enrollment->pre_test_completed_at)
                                 <x-button :href="route('operator.quizzes.show', $enrollment->training->preTest->id)" size="sm">Mulai pre-test <x-icon name="arrow" class="h-4 w-4" /></x-button>
                             @elseif($enrollment->next_attempt_at?->isFuture())

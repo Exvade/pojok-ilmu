@@ -5,8 +5,9 @@ namespace App\Imports;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class SpreadsheetRowsImport implements ToCollection, WithHeadingRow
+class SpreadsheetRowsImport implements ToCollection, WithHeadingRow, WithMultipleSheets
 {
     /** @var Collection<int, Collection<string, mixed>> */
     public Collection $rows;
@@ -20,5 +21,10 @@ class SpreadsheetRowsImport implements ToCollection, WithHeadingRow
     public function collection(Collection $rows): void
     {
         $this->rows = $rows;
+    }
+
+    public function sheets(): array
+    {
+        return [0 => $this];
     }
 }

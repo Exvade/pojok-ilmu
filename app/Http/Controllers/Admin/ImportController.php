@@ -44,7 +44,7 @@ class ImportController extends Controller
         $definition = $this->definition($type);
 
         return Excel::download(
-            new SpreadsheetTemplateExport($definition['headings'], $definition['samples']),
+            new SpreadsheetTemplateExport($definition),
             'template-' . $type . '.xlsx'
         );
     }
@@ -105,8 +105,8 @@ class ImportController extends Controller
                 'label' => 'training',
                 'description' => 'Satu baris adalah satu training yang wajib dipelajari. Level menunjukkan kelompok training, bukan tahapan di dalam training.',
                 'headings' => ['kode_training', 'departemen', 'level', 'judul', 'deskripsi', 'nilai_lulus', 'batas_percobaan'],
-                'samples' => [['BOX-BATTERY', 'PRODUKSI PLASTIK', 1, 'BOX BATTERY', 'Training BOX BATTERY.', 80, 3]],
-                'notes' => ['Departemen harus sama dengan penamaan dari HaRis.', 'Balok 1 diperoleh setelah post-test lulus, Balok 2 setelah OJT disetujui.'],
+                'samples' => [['BOX-BATTERY', 'PRODUKSI PLASTIK A; PRODUKSI PLASTIK B', 1, 'BOX BATTERY', 'Training BOX BATTERY.', 80, 3]],
+                'notes' => ['Departemen harus sama dengan penamaan dari HaRis. Pisahkan beberapa departemen dengan tanda titik koma (;).', 'Gunakan SEMUA pada kolom departemen untuk training umum.', 'Balok 1 diperoleh setelah post-test lulus, Balok 2 setelah OJT disetujui.'],
             ],
             'materials' => [
                 'label' => 'materi pembelajaran',
@@ -117,10 +117,10 @@ class ImportController extends Controller
             ],
             'questions' => [
                 'label' => 'bank soal',
-                'description' => 'Satu baris adalah satu soal. Sistem akan membuat tahap evaluasi yang belum tersedia.',
-                'headings' => ['kode_training', 'tahap', 'judul_evaluasi', 'durasi_menit', 'nilai_lulus', 'batas_percobaan', 'masa_tunggu_jam', 'pertanyaan', 'opsi_a', 'opsi_b', 'opsi_c', 'opsi_d', 'kunci_jawaban'],
-                'samples' => [['SE-L1-01', 'pre_test', 'Pre-test Dasar Pemrograman dan Git', 10, 80, 3, 24, 'Apa fungsi Git?', 'Mengelola versi source code', 'Membuat database', 'Mengirim email', 'Menghapus server', 'a']],
-                'notes' => ['Tahap hanya boleh: pre_test atau post_test.', 'Kunci jawaban hanya boleh: a, b, c, atau d.', 'Pengaturan evaluasi cukup diisi konsisten pada setiap tahap.'],
+                'description' => 'Satu baris adalah satu soal. Soal yang diimpor otomatis digunakan pada pre-test dan post-test.',
+                'headings' => ['kode_training', 'judul_evaluasi', 'durasi_menit', 'nilai_lulus', 'batas_percobaan', 'masa_tunggu_jam', 'pertanyaan', 'opsi_a', 'opsi_b', 'opsi_c', 'opsi_d', 'kunci_jawaban'],
+                'samples' => [['SE-L1-01', 'Evaluasi Dasar Pemrograman dan Git', 15, 80, 3, 24, 'Apa fungsi Git?', 'Mengelola versi source code', 'Membuat database', 'Mengirim email', 'Menghapus server', 'a']],
+                'notes' => ['Satu soal otomatis tersedia pada pre-test dan post-test.', 'Kunci jawaban hanya boleh: a, b, c, atau d.'],
             ],
             'assignments' => [
                 'label' => 'penugasan training',
@@ -172,7 +172,7 @@ class ImportController extends Controller
                 'skills' => ['kode_skill', 'nama_skill', 'kategori'],
                 'trainings' => ['kode_training', 'departemen', 'level', 'judul'],
                 'materials' => ['kode_training', 'urutan', 'judul_materi', 'tipe_media'],
-                'questions' => ['kode_training', 'tahap', 'pertanyaan', 'opsi_a', 'opsi_b', 'opsi_c', 'opsi_d', 'kunci_jawaban'],
+                'questions' => ['kode_training', 'pertanyaan', 'opsi_a', 'opsi_b', 'opsi_c', 'opsi_d', 'kunci_jawaban'],
                 'assignments' => ['kode_training', 'npk'],
             };
             foreach ($required as $field) {
@@ -192,9 +192,6 @@ class ImportController extends Controller
                 $errors[] = 'Baris ' . $rowNumber . ': tipe_media tidak valid.';
             }
             if ($type === 'questions') {
-                if (! in_array($row['tahap'] ?? '', ['pre_test', 'post_test'], true)) {
-                    $errors[] = 'Baris ' . $rowNumber . ': tahap tidak valid.';
-                }
                 if (! in_array(strtolower((string) ($row['kunci_jawaban'] ?? '')), ['a', 'b', 'c', 'd'], true)) {
                     $errors[] = 'Baris ' . $rowNumber . ': kunci_jawaban harus a, b, c, atau d.';
                 }
@@ -213,8 +210,8 @@ class ImportController extends Controller
                 if (! $manpower) {
                     $errors[] = 'Baris ' . $rowNumber . ': NPK tidak ditemukan, tidak aktif, atau belum tersinkron dari HaRis.';
                 }
-                if ($training && $manpower && $training->departemen !== $manpower->departemen) {
-                    $errors[] = 'Baris ' . $rowNumber . ': departemen manpower harus sama dengan departemen training.';
+                if ($training && $manpower && ! $training->appliesToDepartment($manpower->departemen)) {
+                    $errors[] = 'Baris ' . $rowNumber . ': departemen manpower tidak termasuk dalam departemen training.';
                 }
             }
         }
@@ -250,8 +247,15 @@ class ImportController extends Controller
             'kategori' => $row['departemen'],
             'deskripsi' => $row['deskripsi'] ?? null,
         ]);
+        $departments = collect(explode(';', (string) $row['departemen']))
+            ->map(fn (string $department): string => trim($department))
+            ->reject(fn (string $department): bool => $department === '')
+            ->values()
+            ->all();
+        $isGeneralTraining = count($departments) === 1 && strtoupper($departments[0]) === 'SEMUA';
+
         Training::updateOrCreate(['kode_training' => strtoupper((string) $row['kode_training'])], [
-            'skill_id' => $skill->id, 'departemen' => $row['departemen'], 'level' => (int) $row['level'], 'judul' => $row['judul'],
+            'skill_id' => $skill->id, 'departemen' => $isGeneralTraining || count($departments) !== 1 ? null : $departments[0], 'departemens' => $isGeneralTraining ? [] : $departments, 'level' => (int) $row['level'], 'judul' => $row['judul'],
             'deskripsi' => $row['deskripsi'] ?? null, 'passing_grade' => (int) ($row['nilai_lulus'] ?: 80),
             'max_retries' => (int) ($row['batas_percobaan'] ?: 3), 'requires_ojt' => true,
         ]);
@@ -270,15 +274,17 @@ class ImportController extends Controller
     private function saveQuestion(array $row): void
     {
         $training = Training::where('kode_training', $row['kode_training'])->firstOrFail();
-        $quiz = Quiz::firstOrCreate(['training_id' => $training->id, 'tipe' => $row['tahap']], [
-            'judul' => $row['judul_evaluasi'] ?: ucfirst(str_replace('_', '-', (string) $row['tahap'])) . ' ' . $training->judul,
-            'durasi_menit' => (int) ($row['durasi_menit'] ?: 15), 'passing_grade' => (int) ($row['nilai_lulus'] ?: $training->passing_grade),
-            'max_retries' => (int) ($row['batas_percobaan'] ?: $training->max_retries), 'cooldown_hours' => (int) ($row['masa_tunggu_jam'] ?: 24),
-        ]);
-        QuizQuestion::create([
-            'quiz_id' => $quiz->id, 'pertanyaan' => $row['pertanyaan'], 'tipe_media' => 'none', 'opsi_a' => $row['opsi_a'], 'opsi_b' => $row['opsi_b'],
-            'opsi_c' => $row['opsi_c'], 'opsi_d' => $row['opsi_d'], 'kunci_jawaban' => strtolower((string) $row['kunci_jawaban']),
-        ]);
+        foreach (['pre_test', 'post_test'] as $type) {
+            $quiz = Quiz::firstOrCreate(['training_id' => $training->id, 'tipe' => $type], [
+                'judul' => ($row['judul_evaluasi'] ?: 'Evaluasi') . ' ' . $training->judul,
+                'durasi_menit' => (int) ($row['durasi_menit'] ?: 15), 'passing_grade' => $type === 'post_test' ? (int) ($row['nilai_lulus'] ?: $training->passing_grade) : 80,
+                'max_retries' => (int) ($row['batas_percobaan'] ?: $training->max_retries), 'cooldown_hours' => (int) ($row['masa_tunggu_jam'] ?: 24),
+            ]);
+            QuizQuestion::create([
+                'quiz_id' => $quiz->id, 'pertanyaan' => $row['pertanyaan'], 'tipe_media' => 'none', 'opsi_a' => $row['opsi_a'], 'opsi_b' => $row['opsi_b'],
+                'opsi_c' => $row['opsi_c'], 'opsi_d' => $row['opsi_d'], 'kunci_jawaban' => strtolower((string) $row['kunci_jawaban']),
+            ]);
+        }
     }
 
     /** @param array<string, string|int> $row */

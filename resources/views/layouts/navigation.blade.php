@@ -13,7 +13,7 @@
         @php
             $user = auth()->user();
             $items = $user->isManagement() ? [['admin.dashboard', 'admin.dashboard', 'grid', 'Ringkasan']]
-                : [['operator.dashboard', 'operator.*', 'book', 'Training saya']];
+                : [['operator.dashboard', 'operator.dashboard', 'book', 'Training saya'], ['operator.profile', 'operator.profile', 'user', 'Profil saya']];
             if ($user->isManagement()) $items[] = ['operator.dashboard', 'operator.*', 'book', 'Pratinjau training'];
             if ($user->canManageCompetency()) $items[] = ['admin.product-assignments.index', 'admin.product-assignments.*', 'user', 'Penugasan training'];
             if ($user->canManageCurriculum()) $items[] = ['admin.trainings.index', 'admin.trainings.*', 'book', 'Training'];

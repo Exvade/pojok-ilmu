@@ -22,7 +22,7 @@ class DashboardController extends Controller
             ]);
         }
 
-        $enrollments = TrainingEnrollment::with(['training.materials', 'training.preTest', 'training.postTest'])
+        $enrollments = TrainingEnrollment::with(['training.materials', 'training.preTest', 'training.postTest', 'ojtAssessment'])
             ->where('manpower_id', $manpower->id)
             ->orderBy('created_at')
             ->get();

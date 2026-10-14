@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,8 +19,42 @@ class Training extends BaseModel
     protected function casts(): array
     {
         return [
+            'departemens' => 'array',
             'requires_ojt' => 'boolean',
         ];
+    }
+
+    /** @return array<int, string> */
+    public function departmentList(): array
+    {
+        return filled($this->departemens) ? $this->departemens : array_filter([$this->departemen]);
+    }
+
+    public function departmentLabel(): string
+    {
+        $departments = $this->departmentList();
+
+        if ($departments === []) {
+            return 'Semua departemen';
+        }
+
+        return implode(', ', $departments);
+    }
+
+    public function appliesToDepartment(?string $department): bool
+    {
+        return $this->departmentList() === [] || in_array($department, $this->departmentList(), true);
+    }
+
+    public function scopeForDepartment(Builder $query, string $department): Builder
+    {
+        return $query->where(function (Builder $query) use ($department): void {
+            $query->whereJsonContains('departemens', $department)
+                ->orWhereJsonLength('departemens', 0)
+                ->orWhere(function (Builder $legacyQuery) use ($department): void {
+                    $legacyQuery->whereNull('departemens')->where('departemen', $department);
+                });
+        });
     }
 
     public function skill(): BelongsTo

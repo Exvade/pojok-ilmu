@@ -38,7 +38,8 @@ class TrainingController extends Controller
     {
         $request->validate([
             'kode_training' => 'required|string|unique:trainings,kode_training',
-            'departemen' => 'required|string|max:255',
+            'departemens' => ['required', 'array', 'min:1'],
+            'departemens.*' => ['string', 'max:255'],
             'level' => 'required|integer|min:1|max:4',
             'judul' => 'required|string',
             'deskripsi' => 'nullable|string',
@@ -50,7 +51,7 @@ class TrainingController extends Controller
             ['kode_skill' => strtoupper($request->kode_training)],
             [
                 'nama_skill' => $request->judul,
-                'kategori' => $request->departemen,
+                'kategori' => $this->departmentLabel($request->input('departemens')),
                 'deskripsi' => $request->deskripsi,
             ]
         );
@@ -58,7 +59,7 @@ class TrainingController extends Controller
         Training::create([
             'kode_training' => strtoupper($request->kode_training),
             'skill_id' => $skill->id,
-            'departemen' => $request->departemen,
+            ...$this->departmentAttributes($request->input('departemens')),
             'level' => $request->level,
             'judul' => $request->judul,
             'deskripsi' => $request->deskripsi,
@@ -82,7 +83,8 @@ class TrainingController extends Controller
         $training = Training::findOrFail($id);
         $data = $request->validate([
             'kode_training' => 'required|string|unique:trainings,kode_training,' . $training->id,
-            'departemen' => 'required|string|max:255',
+            'departemens' => ['required', 'array', 'min:1'],
+            'departemens.*' => ['string', 'max:255'],
             'level' => 'required|integer|min:1|max:4',
             'judul' => 'required|string',
             'deskripsi' => 'nullable|string',
@@ -94,7 +96,7 @@ class TrainingController extends Controller
             DB::transaction(function () use ($training, $data): void {
                 $training->update([
                     'kode_training' => strtoupper($data['kode_training']),
-                    'departemen' => $data['departemen'],
+                    ...$this->departmentAttributes($data['departemens']),
                     'level' => $data['level'],
                     'judul' => $data['judul'],
                     'deskripsi' => $data['deskripsi'] ?? null,
@@ -166,5 +168,28 @@ class TrainingController extends Controller
         $training->delete();
 
         return redirect()->route('admin.trainings.index')->with('success', 'Program training berhasil dihapus.');
+    }
+
+    /** @param array<int, string> $departmentValues @return array{departemen: ?string, departemens: array<int, string>} */
+    private function departmentAttributes(array $departmentValues): array
+    {
+        $departments = collect($departmentValues)
+            ->reject(fn (string $department): bool => $department === '__all__')
+            ->unique()
+            ->values()
+            ->all();
+
+        return [
+            'departemen' => count($departments) === 1 ? $departments[0] : null,
+            'departemens' => $departments,
+        ];
+    }
+
+    /** @param array<int, string> $departmentValues */
+    private function departmentLabel(array $departmentValues): string
+    {
+        $departments = $this->departmentAttributes($departmentValues)['departemens'];
+
+        return $departments === [] ? 'Semua departemen' : implode(', ', $departments);
     }
 }

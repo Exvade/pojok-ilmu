@@ -49,7 +49,7 @@ class SkillMatrixController extends Controller
             ->get();
 
         $manpowers = $manpowerQuery
-            ->with(['enrollments' => fn ($query) => $query->whereIn('training_id', $productIds)])
+            ->with(['enrollments' => fn ($query) => $query->whereIn('training_id', $productIds)->with('training')])
             ->orderBy('nama')
             ->paginate(10)
             ->withQueryString();
@@ -67,7 +67,7 @@ class SkillMatrixController extends Controller
             ->orderBy('departemen')
             ->pluck('departemen');
 
-        return view('admin.product-matrix', compact(
+        return view('admin.product-matrix-clean', compact(
             'manpowerIds',
             'manpowers',
             'products',

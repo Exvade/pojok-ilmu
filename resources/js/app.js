@@ -28,6 +28,68 @@ document.addEventListener('submit', async event => {
     if (result.isConfirmed) { form.dataset.confirmed = 'true'; form.requestSubmit(); }
 });
 
+const interactionLock = document.getElementById('interaction-lock');
+const pageSkeleton = document.getElementById('page-skeleton');
+let previousOverflow = '';
+const lockPageInteraction = () => {
+    previousOverflow ||= document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    interactionLock?.classList.replace('hidden', 'block');
+};
+const unlockPageInteraction = () => {
+    interactionLock?.classList.replace('block', 'hidden');
+    pageSkeleton?.classList.replace('block', 'hidden');
+    document.body.style.overflow = previousOverflow;
+    previousOverflow = '';
+};
+const setSkeletonScreen = href => {
+    if (!pageSkeleton) return;
+    const path = new URL(href, window.location.origin).pathname;
+    const screen = path === '/admin/dashboard' || path.includes('/product-matrix')
+        ? 'matrix'
+        : path.includes('/product-assignments')
+            ? 'assignment'
+            : path.includes('/trainings/') || path.includes('/ojt/') || path.includes('/operator/training/')
+                ? 'form'
+                : 'cards';
+    pageSkeleton.querySelectorAll('[data-skeleton-screen]').forEach(element => element.classList.toggle('hidden', element.dataset.skeletonScreen !== screen));
+};
+const showPageSkeleton = href => {
+    lockPageInteraction();
+    setSkeletonScreen(href);
+    pageSkeleton?.classList.replace('hidden', 'block');
+};
+const showButtonLoading = button => {
+    if (!button || button.dataset.loading === 'true') return;
+    button.dataset.loading = 'true';
+    button.disabled = true;
+    button.setAttribute('aria-busy', 'true');
+    const loader = document.createElement('span');
+    loader.dataset.buttonLoader = 'true';
+    loader.className = 'h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent';
+    loader.setAttribute('aria-hidden', 'true');
+    button.prepend(loader);
+};
+window.lockPageInteraction = lockPageInteraction;
+window.showFormLoading = form => {
+    showButtonLoading(form?.querySelector('[type="submit"]'));
+    lockPageInteraction();
+};
+document.addEventListener('submit', event => {
+    const form = event.target;
+    if (event.defaultPrevented) return;
+    if (form.dataset.confirm && form.dataset.confirmed !== 'true') return;
+    if (!form.checkValidity()) return;
+    showButtonLoading(event.submitter || form.querySelector('[type="submit"]'));
+    lockPageInteraction();
+});
+document.addEventListener('click', event => {
+    const link = event.target.closest('a[href]');
+    if (event.defaultPrevented || event.button !== 0 || !link || link.target === '_blank' || link.hasAttribute('download') || link.dataset.noLoading !== undefined || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    if (link.href.startsWith(window.location.origin) && link.getAttribute('href') !== '#') showPageSkeleton(link.href);
+});
+window.addEventListener('pageshow', unlockPageInteraction);
+
 Alpine.data('appShell', () => ({
     sidebarOpen: false, desktop: window.innerWidth >= 1024, darkMode: document.documentElement.classList.contains('dark'), opener: null,
     toggleTheme() { this.darkMode = !this.darkMode; document.documentElement.classList.toggle('dark', this.darkMode); try { localStorage.setItem('theme', this.darkMode ? 'dark' : 'light'); } catch {} },
@@ -51,6 +113,7 @@ Alpine.data('scanLogin', url => ({
     async submitScan() {
         if (this.loading || !this.token.trim()) return;
         this.loading = true; this.error = '';
+        window.lockPageInteraction();
         try {
             const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }, body: JSON.stringify({ token: this.token.trim() }) });
             const data = await response.json();
@@ -58,6 +121,7 @@ Alpine.data('scanLogin', url => ({
             this.error = response.status === 419 ? 'Sesi kedaluwarsa. Muat ulang halaman dan coba kembali.' : (data.message || 'Kode belum dapat digunakan untuk masuk.');
         } catch { this.error = 'Koneksi terputus. Periksa jaringan lalu coba kembali.'; }
         this.loading = false;
+        unlockPageInteraction();
         this.$nextTick(() => this.$refs.barcodeInput.focus());
     }
 }));
@@ -74,7 +138,7 @@ Alpine.data('quizEngine', (expiresAt, total) => ({
             if (this.timeLeft === 0 && !this.submitting) {
                 this.submitting = true; clearInterval(this.timer);
                 Swal.close();
-                this.$refs.quizForm.submit();
+                this.sendQuiz();
             }
         }, 1000);
     },
@@ -82,8 +146,9 @@ Alpine.data('quizEngine', (expiresAt, total) => ({
     async confirmSubmit() {
         if (this.submitting || !this.total || !this.$refs.quizForm.reportValidity()) return;
         const result = await popup({ icon: 'question', title: 'Kirim jawaban evaluasi?', text: 'Pastikan jawaban Anda sudah sesuai sebelum dikirim.', showCancelButton: true, confirmButtonText: 'Kirim jawaban', cancelButtonText: 'Periksa kembali' });
-        if (result.isConfirmed && !this.submitting) { this.submitting = true; clearInterval(this.timer); this.$refs.quizForm.submit(); }
+        if (result.isConfirmed && !this.submitting) { this.submitting = true; clearInterval(this.timer); this.sendQuiz(); }
     },
+    sendQuiz() { window.showFormLoading(this.$refs.quizForm); HTMLFormElement.prototype.submit.call(this.$refs.quizForm); },
     formatTime(seconds) { return String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + String(seconds % 60).padStart(2, '0'); },
     destroy() { clearInterval(this.timer); }
 }));

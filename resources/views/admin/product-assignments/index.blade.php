@@ -28,7 +28,65 @@
                 </x-card>
                 <x-modal name="assign-{{ $product->id }}" title="Tugaskan {{ $product->judul }}" maxWidth="xl">
                     @php($productManpowers = $manpowers->where('departemen', $product->departemen))
+                    {{-- Legacy markup retained temporarily for comparison; it is intentionally not rendered. --}}
+                    {{--
                     <form action="{{ route('admin.product-assignments.store') }}" method="POST" class="space-y-4">@csrf<input type="hidden" name="training_id" value="{{ $product->id }}"><p class="text-sm text-gray-600 dark:text-gray-300">Pilih manpower aktif dari departemen <strong>{{ $product->departemen }}</strong> yang wajib mengikuti training ini.</p><p class="rounded-md bg-gray-50 px-3 py-2 text-xs leading-5 text-gray-500 dark:bg-gray-800">Hapus centang untuk membatalkan penugasan yang belum dimulai. Training yang sudah dipelajari atau masuk OJT tetap dipertahankan sebagai riwayat kompetensi.</p><div class="max-h-80 space-y-2 overflow-y-auto rounded-lg border border-gray-200 p-3 dark:border-gray-700">@forelse($productManpowers as $manpower)@php($assignment = $product->enrollments->firstWhere('manpower_id', $manpower->id))<label @class(['flex items-center gap-3 rounded-md px-2 py-2', 'hover:bg-gray-50 dark:hover:bg-gray-800' => ! $assignment || $assignment->status === 'enrolled', 'bg-gray-50/70 dark:bg-gray-800/50' => $assignment && $assignment->status !== 'enrolled'])><input type="checkbox" name="manpower_ids[]" value="{{ $manpower->id }}" @checked($assignment) @disabled($assignment && $assignment->status !== 'enrolled') class="rounded border-gray-300 text-brand-dark focus:ring-brand-light"><span><span class="block text-sm font-semibold">{{ $manpower->nama }}</span><span class="text-xs text-gray-500">{{ $manpower->mp_id }} · {{ $manpower->bagian }}@if($assignment && $assignment->status !== 'enrolled') · Riwayat dipertahankan@endif</span></span></label>@empty<p class="p-3 text-sm text-gray-500">Tidak ada manpower aktif dari departemen ini.</p>@endforelse</div><div class="flex justify-end gap-2"><x-button type="button" variant="outline" @click="$dispatch('close-modal', 'assign-{{ $product->id }}')"><x-icon name="close" class="h-4 w-4" />Batal</x-button><x-button type="submit"><x-icon name="save" class="h-4 w-4" />Simpan penugasan</x-button></div></form>
+                    --}}
+                    <form action="{{ route('admin.product-assignments.store') }}" method="POST" class="space-y-4">
+                        @csrf
+                        <input type="hidden" name="training_id" value="{{ $product->id }}">
+
+                        <p class="text-sm text-gray-600 dark:text-gray-300">
+                            Pilih manpower aktif dari departemen <strong>{{ $product->departemen }}</strong> yang wajib mengikuti training ini.
+                        </p>
+                        <p class="rounded-md bg-gray-50 px-3 py-2 text-xs leading-5 text-gray-500 dark:bg-gray-800">
+                            Hapus centang untuk membatalkan penugasan yang belum dimulai. Training yang sudah dipelajari atau masuk OJT tetap dipertahankan sebagai riwayat kompetensi.
+                        </p>
+
+                        <div class="max-h-80 space-y-2 overflow-y-auto rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                            @forelse ($productManpowers as $manpower)
+                                @php
+                                    $assignment = $product->enrollments->firstWhere('manpower_id', $manpower->id);
+                                    $canCancelAssignment = ! $assignment || $assignment->status === 'enrolled';
+                                @endphp
+
+                                <label @class([
+                                    'flex items-center gap-3 rounded-md px-2 py-2',
+                                    'hover:bg-gray-50 dark:hover:bg-gray-800' => $canCancelAssignment,
+                                    'bg-gray-50/70 dark:bg-gray-800/50' => ! $canCancelAssignment,
+                                ])>
+                                    <input
+                                        type="checkbox"
+                                        name="manpower_ids[]"
+                                        value="{{ $manpower->id }}"
+                                        @checked($assignment !== null)
+                                        @disabled(! $canCancelAssignment)
+                                        class="rounded border-gray-300 text-brand-dark focus:ring-brand-light"
+                                    >
+                                    <span>
+                                        <span class="block text-sm font-semibold">{{ $manpower->nama }}</span>
+                                        <span class="text-xs text-gray-500">
+                                            {{ $manpower->mp_id }} · {{ $manpower->bagian }}
+                                            @unless ($canCancelAssignment)
+                                                · Riwayat dipertahankan
+                                            @endunless
+                                        </span>
+                                    </span>
+                                </label>
+                            @empty
+                                <p class="p-3 text-sm text-gray-500">Tidak ada manpower aktif dari departemen ini.</p>
+                            @endforelse
+                        </div>
+
+                        <div class="flex justify-end gap-2">
+                            <x-button type="button" variant="outline" @click="$dispatch('close-modal', 'assign-{{ $product->id }}')">
+                                <x-icon name="close" class="h-4 w-4" />Batal
+                            </x-button>
+                            <x-button type="submit">
+                                <x-icon name="save" class="h-4 w-4" />Simpan penugasan
+                            </x-button>
+                        </div>
+                    </form>
                 </x-modal>
             @empty
                 <x-card class="xl:col-span-2"><x-empty-state title="Belum ada training" description="Tambahkan training pada menu Training terlebih dahulu." /></x-card>

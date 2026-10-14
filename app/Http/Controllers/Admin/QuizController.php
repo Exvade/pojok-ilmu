@@ -115,26 +115,49 @@ class QuizController extends Controller
             $mediaUrl = Storage::url($path);
         }
 
-        QuizQuestion::create([
-            'quiz_id' => $quiz->id,
-            'pertanyaan' => $request->pertanyaan,
-            'tipe_media' => $request->tipe_media,
-            'media_url' => $mediaUrl,
-            'opsi_a' => $request->opsi_a,
-            'opsi_b' => $request->opsi_b,
-            'opsi_c' => $request->opsi_c,
-            'opsi_d' => $request->opsi_d,
-            'kunci_jawaban' => strtolower($request->kunci_jawaban),
-        ]);
+        $quiz->loadMissing('training.quizzes');
+        $evaluationQuizzes = $quiz->training->quizzes->whereIn('tipe', ['pre_test', 'post_test']);
 
-        return back()->with('success', 'Soal kuis berhasil ditambahkan.');
+        DB::transaction(function () use ($evaluationQuizzes, $quiz, $request, $mediaUrl): void {
+            foreach ($evaluationQuizzes->isNotEmpty() ? $evaluationQuizzes : collect([$quiz]) as $evaluationQuiz) {
+                QuizQuestion::create([
+                    'quiz_id' => $evaluationQuiz->id,
+                    'pertanyaan' => $request->pertanyaan,
+                    'tipe_media' => $request->tipe_media,
+                    'media_url' => $mediaUrl,
+                    'opsi_a' => $request->opsi_a,
+                    'opsi_b' => $request->opsi_b,
+                    'opsi_c' => $request->opsi_c,
+                    'opsi_d' => $request->opsi_d,
+                    'kunci_jawaban' => strtolower($request->kunci_jawaban),
+                ]);
+            }
+        });
+
+        return back()->with('success', 'Soal berhasil ditambahkan untuk pre-test dan post-test.');
     }
 
     public function destroyQuestion(string $id)
     {
         $question = QuizQuestion::findOrFail($id);
-        $question->delete();
+        $question->load('quiz.training.quizzes');
 
-        return back()->with('success', 'Soal kuis berhasil dihapus.');
+        DB::transaction(function () use ($question): void {
+            $question->delete();
+            $siblingQuizIds = $question->quiz->training->quizzes
+                ->whereIn('tipe', ['pre_test', 'post_test'])
+                ->where('id', '!=', $question->quiz_id)
+                ->pluck('id');
+            QuizQuestion::query()
+                ->whereIn('quiz_id', $siblingQuizIds)
+                ->where('pertanyaan', $question->pertanyaan)
+                ->where('opsi_a', $question->opsi_a)
+                ->where('opsi_b', $question->opsi_b)
+                ->where('opsi_c', $question->opsi_c)
+                ->where('opsi_d', $question->opsi_d)
+                ->delete();
+        });
+
+        return back()->with('success', 'Soal berhasil dihapus dari pre-test dan post-test.');
     }
 }

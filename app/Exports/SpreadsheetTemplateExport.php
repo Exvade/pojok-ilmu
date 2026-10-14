@@ -2,22 +2,20 @@
 
 namespace App\Exports;
 
-use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\Export;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class SpreadsheetTemplateExport implements FromCollection, WithHeadings
+class SpreadsheetTemplateExport implements Export, WithMultipleSheets
 {
-    /** @param array<int, string> $headings @param array<int, array<int, string|int|null>> $rows */
-    public function __construct(private readonly array $headings, private readonly array $rows) {}
+    /** @param array{label: string, description: string, headings: array<int, string>, samples: array<int, array<int, string|int>>, notes: array<int, string>} $definition */
+    public function __construct(private readonly array $definition) {}
 
-    public function collection(): Collection
+    /** @return array<int, object> */
+    public function sheets(): array
     {
-        return collect($this->rows);
-    }
-
-    public function headings(): array
-    {
-        return $this->headings;
+        return [
+            new SpreadsheetTemplateDataSheet($this->definition),
+            new SpreadsheetTemplateGuideSheet($this->definition),
+        ];
     }
 }
