@@ -40,7 +40,7 @@
     <!-- Materials Content List -->
     <div class="space-y-6">
         @forelse($training->materials as $mat)
-            <x-card class="shadow-none border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden" data-material-progress data-progress-recorded="{{ $completedMaterialIds->contains($mat->id) ? 'true' : 'false' }}" data-progress-url="{{ route('operator.materials.item.complete', [$training->id, $mat->id]) }}">
+            <x-card class="shadow-none border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden" data-material-progress data-progress-recorded="{{ $completedMaterialIds->contains($mat->id) ? 'true' : 'false' }}" data-progress-url="{{ route('operator.materials.item.complete', [$training->id, $mat->id]) }}" data-reading-seconds="{{ $mat->tipe_media === 'text' ? 5 : 12 }}">
                 <x-slot name="header">
                     <div class="flex items-center justify-between gap-3 flex-wrap">
                         <div class="flex items-center gap-3">
@@ -62,6 +62,9 @@
                         <div class="prose dark:prose-invert max-w-none text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                             {!! nl2br(e($mat->konten_teks)) !!}
                         </div>
+                        @if($mat->tipe_media === 'text' && ! $completedMaterialIds->contains($mat->id))
+                            <p class="text-xs text-gray-500">Materi teks akan dicatat otomatis setelah dibaca beberapa saat.</p>
+                        @endif
                     @endif
 
                     <!-- Embedded Video Player (Google Drive / YouTube) -->
@@ -142,6 +145,7 @@
             if (!response.ok) return;
 
             element.dataset.progressRecorded = 'true';
+            timers.delete(element);
             completedMaterials++;
             updateProgress();
             const status = element.querySelector('[data-material-status]');
@@ -157,13 +161,16 @@
                 if (element.dataset.progressRecorded === 'true') return;
 
                 if (entry.isIntersecting) {
-                    timers.set(element, window.setTimeout(() => recordProgress(element), 12000));
+                    if (!timers.has(element)) {
+                        const readingSeconds = Number(element.dataset.readingSeconds || 12);
+                        timers.set(element, window.setTimeout(() => recordProgress(element), readingSeconds * 1000));
+                    }
                 } else if (timers.has(element)) {
                     window.clearTimeout(timers.get(element));
                     timers.delete(element);
                 }
             });
-        }, { threshold: 0.6 });
+        }, { threshold: 0.1 });
 
         watchedMaterials.forEach((material) => {
             if (material.dataset.progressRecorded !== 'true') observer.observe(material);

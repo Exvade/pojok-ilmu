@@ -11,11 +11,20 @@
             $storeRoute = $type === 'assignments'
                 ? route('admin.assignments.import.store')
                 : route('admin.imports.store', $type);
+            $confirmRoute = $type === 'assignments'
+                ? route('admin.assignments.import.confirm')
+                : route('admin.imports.confirm', $type);
+            $preview = $preview ?? null;
         @endphp
         <a href="{{ url()->previous() }}" class="mb-3 inline-flex items-center gap-1 text-xs font-bold text-gray-500 hover:text-brand-dark">&larr; Kembali</a>
         <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div><h1 class="page-title">Impor {{ $definition['label'] }}</h1><p class="page-description">{{ $definition['description'] }}</p></div>
-            <x-button :href="$templateRoute" data-no-loading variant="secondary"><x-icon name="download" class="h-4 w-4" />Unduh template Excel</x-button>
+            <div class="flex flex-wrap gap-2">
+                @if ($type === 'trainings')
+                    <x-button :href="route('admin.department-aliases.index')" variant="outline"><x-icon name="pencil" class="h-4 w-4" />Kelola alias departemen</x-button>
+                @endif
+                <x-button :href="$templateRoute" data-no-loading variant="secondary"><x-icon name="download" class="h-4 w-4" />Unduh template Excel</x-button>
+            </div>
         </div>
 
         <x-card>
@@ -30,12 +39,97 @@
         </x-card>
 
         <x-card>
-            <x-slot name="header"><div><h2 class="font-heading text-lg font-bold">Unggah file</h2><p class="mt-1 text-xs text-gray-500">Maksimal 5 MB. Impor aman dilakukan berulang; kode yang sama akan diperbarui kecuali bank soal.</p></div></x-slot>
-            <form action="{{ $storeRoute }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+            <x-slot name="header"><div><h2 class="font-heading text-lg font-bold">Unggah file</h2><p class="mt-1 text-xs text-gray-500">Maksimal 5 MB. Begitu file dipilih, sistem langsung menampilkan pratinjau. Data belum disimpan pada tahap ini.</p></div></x-slot>
+            <form x-data="importUploader"
+                x-ref="importForm"
+                @submit.prevent="upload()"
+                action="{{ $storeRoute }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                <div><label class="mb-1 block text-sm font-medium" for="import-file">File Excel</label><x-input id="import-file" type="file" name="file" accept=".xlsx,.xls,.csv" required />@error('file')<p class="mt-2 text-xs font-medium text-red-600 dark:text-red-400">{{ $message }}</p>@enderror</div>
-                <div class="flex justify-end"><x-button type="submit"><x-icon name="upload" class="h-4 w-4" />Validasi dan impor data</x-button></div>
+                <x-input x-ref="importFile" id="import-file" type="file" name="file" accept=".xlsx,.xls,.csv" class="sr-only" required @change="submitFile($event.target.files)" />
+                <div
+                    role="button"
+                    tabindex="0"
+                    @click="$refs.importFile.click()"
+                    @keydown.enter.prevent="$refs.importFile.click()"
+                    @keydown.space.prevent="$refs.importFile.click()"
+                    @dragenter.prevent="dragging = true"
+                    @dragover.prevent="dragging = true"
+                    @dragleave.prevent="dragging = false"
+                    @drop.prevent="dragging = false; submitFile($event.dataTransfer.files)"
+                    :class="dragging ? 'border-brand-light bg-green-50 dark:bg-green-950/30' : 'border-dashed border-gray-300 bg-gray-50 hover:border-brand-light hover:bg-green-50/60 dark:border-gray-600 dark:bg-gray-900 dark:hover:bg-green-950/20'"
+                    class="relative flex min-h-48 cursor-pointer flex-col items-center justify-center rounded-xl border-2 px-6 py-8 text-center transition focus:outline-none focus:ring-2 focus:ring-brand-light/30"
+                    aria-label="Pilih atau seret file Excel untuk pratinjau impor"
+                >
+                    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-brand-dark dark:bg-green-950 dark:text-green-300"><x-icon name="upload" class="h-6 w-6" /></span>
+                    <p class="mt-4 text-sm font-semibold text-gray-800 dark:text-gray-100">Seret file Excel ke sini</p>
+                    <p class="mt-1 text-xs text-gray-500">atau klik untuk memilih file .xlsx, .xls, atau .csv</p>
+                    <p x-show="fileName" x-text="fileName" class="mt-4 max-w-full truncate rounded-full bg-white px-3 py-1 text-xs font-semibold text-brand-dark shadow-sm dark:bg-gray-800 dark:text-green-300"></p>
+                    <div x-show="loading" x-cloak class="absolute inset-0 flex flex-col items-center justify-center rounded-xl bg-white/90 text-sm font-semibold text-brand-dark dark:bg-gray-900/90 dark:text-green-300"><span class="h-7 w-7 animate-spin rounded-full border-2 border-current border-t-transparent"></span><span class="mt-3">Membaca file dan menyiapkan pratinjau</span></div>
+                </div>
+                @error('file')<p class="mt-2 text-xs font-medium text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
             </form>
         </x-card>
+
+        @if ($preview)
+            @php($invalidCount = count($preview['rows']) - $preview['valid_count'])
+            <x-card data-import-preview>
+                <x-slot name="header">
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h2 class="font-heading text-lg font-bold">Pratinjau impor</h2>
+                            <p class="mt-1 text-xs text-gray-500">Data belum disimpan. Periksa hasil validasi sebelum melanjutkan.</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2 text-xs font-semibold">
+                            <span class="rounded-full bg-green-100 px-3 py-1 text-brand-dark dark:bg-green-950 dark:text-green-200">{{ $preview['valid_count'] }} siap diimpor</span>
+                            @if ($invalidCount > 0)
+                                <span class="rounded-full bg-red-100 px-3 py-1 text-red-700 dark:bg-red-950 dark:text-red-200">{{ $invalidCount }} perlu diperbaiki</span>
+                            @endif
+                        </div>
+                    </div>
+                </x-slot>
+
+                <x-table class="max-h-[32rem]" :headers="array_merge(['Baris', 'Status'], $definition['headings'], ['Keterangan'])">
+                    @foreach ($preview['rows'] as $row)
+                        <tr class="{{ $row['is_valid'] ? '' : 'bg-red-50/70 dark:bg-red-950/20' }}">
+                            <td class="whitespace-nowrap font-medium">{{ $row['row'] ?: '-' }}</td>
+                            <td class="whitespace-nowrap">
+                                @if ($row['is_valid'])
+                                    <span class="rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-brand-dark dark:bg-green-950 dark:text-green-200">Siap diimpor</span>
+                                @else
+                                    <span class="rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-700 dark:bg-red-950 dark:text-red-200">Perlu diperbaiki</span>
+                                @endif
+                            </td>
+                            @foreach ($definition['headings'] as $heading)
+                                <td class="min-w-36 align-top">{{ $row['data'][$heading] ?? '-' }}</td>
+                            @endforeach
+                            <td class="min-w-64 align-top text-xs leading-5 {{ $row['is_valid'] ? 'text-gray-500' : 'font-medium text-red-700 dark:text-red-300' }}">
+                                @if ($row['is_valid'])
+                                    @if ($row['inherited_training'] ?? false)
+                                        Mengikuti kode training: {{ $row['resolved_training_code'] }}.
+                                    @elseif (! empty($row['department_resolution']))
+                                        Akan disimpan dengan departemen: {{ $row['department_resolution'] }}.
+                                    @else
+                                        Data sesuai dan siap disimpan.
+                                    @endif
+                                @else
+                                    {{ implode(' ', $row['errors']) }}
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </x-table>
+
+                <div class="mt-5 flex flex-col-reverse gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:items-center sm:justify-between dark:border-gray-700">
+                    <p class="text-xs leading-5 text-gray-500">Baris yang perlu diperbaiki tidak akan disimpan. Unggah file baru bila ingin memperbaiki data tersebut.</p>
+                    @if ($preview['valid_count'] > 0)
+                        <form action="{{ $confirmRoute }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="preview_token" value="{{ $preview['token'] }}">
+                            <x-button type="submit"><x-icon name="check" class="h-4 w-4" />Simpan {{ $preview['valid_count'] }} baris</x-button>
+                        </form>
+                    @endif
+                </div>
+            </x-card>
+        @endif
     </div>
 @endsection

@@ -12,9 +12,12 @@ use App\Models\QuizQuestion;
 use App\Models\Training;
 use App\Models\TrainingEnrollment;
 use App\Models\TrainingMaterial;
+use App\Services\DepartmentAliasResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -22,6 +25,8 @@ use Throwable;
 
 class ImportController extends Controller
 {
+    public function __construct(private readonly DepartmentAliasResolver $departmentAliases) {}
+
     public function create(string $type): View
     {
         $types = $this->types();
@@ -54,7 +59,7 @@ class ImportController extends Controller
         return $this->template('assignments');
     }
 
-    public function store(Request $request, string $type): RedirectResponse
+    public function store(Request $request, string $type): View|RedirectResponse
     {
         $definition = $this->definition($type);
         $request->validate(['file' => 'required|file|mimes:xlsx,xls,csv|max:5120']);
@@ -63,31 +68,61 @@ class ImportController extends Controller
             $reader = new SpreadsheetRowsImport;
             Excel::import($reader, $request->file('file'));
             $rows = $this->normalizedRows($reader);
-            $errors = $this->validateRows($type, $rows);
+            $previewRows = $this->previewRows($type, $rows);
+            $validRows = collect($previewRows)->where('is_valid', true)->pluck('data')->all();
+            $token = (string) Str::uuid();
 
-            if ($errors !== []) {
-                return back()->withErrors(['file' => implode(' ', $errors)])->withInput();
-            }
+            Cache::put('import-preview:' . $token, ['type' => $type, 'rows' => $validRows], now()->addMinutes(30));
 
-            DB::transaction(function () use ($type, $rows): void {
-                foreach ($rows as $row) {
+            return view('admin.imports.create', [
+                'type' => $type,
+                'definition' => $definition,
+                'preview' => ['token' => $token, 'rows' => $previewRows, 'valid_count' => count($validRows)],
+            ]);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return back()->withErrors(['file' => 'File belum dapat diimpor. Pastikan format template tidak diubah dan coba kembali.']);
+        }
+    }
+
+    public function storeAssignments(Request $request): View|RedirectResponse
+    {
+        return $this->store($request, 'assignments');
+    }
+
+    public function confirm(Request $request, string $type): RedirectResponse
+    {
+        $definition = $this->definition($type);
+        $data = $request->validate(['preview_token' => 'required|uuid']);
+        $preview = Cache::pull('import-preview:' . $data['preview_token']);
+
+        if (! is_array($preview) || ($preview['type'] ?? null) !== $type || empty($preview['rows'])) {
+            return redirect()
+                ->route($type === 'assignments' ? 'admin.assignments.import' : 'admin.imports.create', $type === 'assignments' ? [] : ['type' => $type])
+                ->withErrors(['file' => 'Pratinjau impor sudah tidak tersedia. Unggah file kembali untuk divalidasi.']);
+        }
+
+        try {
+            DB::transaction(function () use ($type, $preview): void {
+                foreach ($preview['rows'] as $row) {
                     $this->saveRow($type, $row);
                 }
             });
         } catch (Throwable $exception) {
             report($exception);
 
-            return back()->withErrors(['file' => 'File belum dapat diimpor. Pastikan format template tidak diubah dan coba kembali.']);
+            return back()->withErrors(['file' => 'Data belum dapat disimpan. Silakan ulangi proses impor.']);
         }
 
         return redirect()
             ->route($type === 'assignments' ? 'admin.assignments.import' : 'admin.imports.create', $type === 'assignments' ? [] : ['type' => $type])
-            ->with('success', count($rows) . ' baris ' . strtolower($definition['label']) . ' berhasil diimpor.');
+            ->with('success', count($preview['rows']) . ' baris ' . strtolower($definition['label']) . ' berhasil diimpor.');
     }
 
-    public function storeAssignments(Request $request): RedirectResponse
+    public function confirmAssignments(Request $request): RedirectResponse
     {
-        return $this->store($request, 'assignments');
+        return $this->confirm($request, 'assignments');
     }
 
     /** @return array<string, array{label: string, description: string, headings: array<int, string>, samples: array<int, array<int, string|int>>, notes: array<int, string>}> */
@@ -106,7 +141,7 @@ class ImportController extends Controller
                 'description' => 'Satu baris adalah satu training yang wajib dipelajari. Level menunjukkan kelompok training, bukan tahapan di dalam training.',
                 'headings' => ['kode_training', 'departemen', 'level', 'judul', 'deskripsi', 'nilai_lulus', 'batas_percobaan'],
                 'samples' => [['BOX-BATTERY', 'PRODUKSI PLASTIK A; PRODUKSI PLASTIK B', 1, 'BOX BATTERY', 'Training BOX BATTERY.', 80, 3]],
-                'notes' => ['Departemen harus sama dengan penamaan dari HaRis. Pisahkan beberapa departemen dengan tanda titik koma (;).', 'Gunakan SEMUA pada kolom departemen untuk training umum.', 'Balok 1 berarti lulus post-test. Balok 2 berarti mampu mengerjakan dengan bimbingan dan dibuktikan melalui OJT lulus.'],
+                'notes' => ['Departemen harus memakai nama resmi HaRis atau alias yang terdaftar. Pisahkan beberapa departemen dengan tanda titik koma (;).', 'Gunakan SEMUA pada kolom departemen untuk training umum.', 'Balok 1 berarti lulus post-test. Balok 2 berarti mampu mengerjakan dengan bimbingan dan dibuktikan melalui OJT lulus.'],
             ],
             'materials' => [
                 'label' => 'materi pembelajaran',
@@ -127,7 +162,7 @@ class ImportController extends Controller
                 'description' => 'Tugaskan banyak manpower sekaligus menggunakan kode training dan NPK dari HaRis.',
                 'headings' => ['kode_training', 'npk'],
                 'samples' => [['BOX-BATTERY-L1', '4067.260721.CKR']],
-                'notes' => ['NPK harus sama dengan data HaRis yang telah disinkronkan.', 'Manpower harus aktif dan berada pada departemen training yang sama.', 'Impor ulang tidak membuat penugasan ganda.'],
+                'notes' => ['NPK harus sama dengan data HaRis yang telah disinkronkan.', 'Untuk banyak manpower pada satu training, kosongkan kode_training pada baris berikutnya agar mengikuti kode di atasnya.', 'Manpower harus aktif dan berada pada departemen training yang sama.', 'Impor ulang tidak membuat penugasan ganda.'],
             ],
         ];
     }
@@ -141,13 +176,13 @@ class ImportController extends Controller
         return $types[$type];
     }
 
-    /** @return array<int, array<string, string|int>> */
+    /** @return array<int, array<string, string|int|null>> */
     private function normalizedRows(SpreadsheetRowsImport $reader): array
     {
         return $reader->rows
             ->map(function ($row, int $index): array {
                 $values = collect($row)
-                    ->map(fn ($value): string|int => is_string($value) ? trim($value) : $value)
+                    ->map(fn ($value): string|int|null => is_string($value) ? trim($value) : $value)
                     ->all();
                 $values['_row'] = $index + 2;
 
@@ -158,65 +193,106 @@ class ImportController extends Controller
             ->all();
     }
 
-    /** @param array<int, array<string, string|int>> $rows @return array<int, string> */
-    private function validateRows(string $type, array $rows): array
+    /** @param array<int, array<string, string|int|null>> $rows @return array<int, array{row: int, data: array<string, string|int|null>, errors: array<int, string>, is_valid: bool}> */
+    private function previewRows(string $type, array $rows): array
     {
         if ($rows === []) {
-            return ['File tidak memiliki baris data. Gunakan template yang disediakan.'];
+            return [[
+                'row' => 0,
+                'data' => [],
+                'errors' => ['File tidak memiliki baris data. Gunakan template yang disediakan.'],
+                'is_valid' => false,
+            ]];
         }
 
-        $errors = [];
+        $preview = [];
+        $lastAssignmentTrainingCode = null;
         foreach ($rows as $row) {
+            $errors = [];
             $rowNumber = $row['_row'];
+            $inheritedTraining = false;
+
+            if ($type === 'assignments') {
+                $trainingCode = trim((string) ($row['kode_training'] ?? ''));
+                if ($trainingCode === '') {
+                    if ($lastAssignmentTrainingCode === null) {
+                        $errors[] = 'Kode training belum diisi pada baris sebelumnya.';
+                    } else {
+                        $row['_resolved_kode_training'] = $lastAssignmentTrainingCode;
+                        $inheritedTraining = true;
+                    }
+                } else {
+                    $lastAssignmentTrainingCode = strtoupper($trainingCode);
+                    $row['_resolved_kode_training'] = $lastAssignmentTrainingCode;
+                }
+            }
             $required = match ($type) {
                 'skills' => ['kode_skill', 'nama_skill', 'kategori'],
                 'trainings' => ['kode_training', 'departemen', 'level', 'judul'],
                 'materials' => ['kode_training', 'urutan', 'judul_materi', 'tipe_media'],
                 'questions' => ['kode_training', 'pertanyaan', 'opsi_a', 'opsi_b', 'opsi_c', 'opsi_d', 'kunci_jawaban'],
-                'assignments' => ['kode_training', 'npk'],
+                'assignments' => ['npk'],
             };
             foreach ($required as $field) {
                 if (! isset($row[$field]) || $row[$field] === '') {
-                    $errors[] = 'Baris ' . $rowNumber . ': kolom ' . $field . ' wajib diisi.';
+                    $errors[] = 'Kolom ' . $field . ' wajib diisi.';
                 }
             }
             if ($type === 'trainings') {
                 if (! is_numeric($row['level'] ?? null) || ! in_array((int) $row['level'], [1, 2, 3, 4], true)) {
-                    $errors[] = 'Baris ' . $rowNumber . ': level harus bernilai 1 sampai 4.';
+                    $errors[] = 'Level harus bernilai 1 sampai 4.';
+                }
+
+                $departmentResolution = $this->resolveDepartments($row['departemen'] ?? null);
+                if ($departmentResolution === null) {
+                    $errors[] = 'Departemen tidak ditemukan. Gunakan nama HaRis atau alias departemen yang terdaftar.';
+                } else {
+                    $row['_resolved_departemen'] = implode('; ', $departmentResolution);
                 }
             }
             if (in_array($type, ['materials', 'questions'], true) && ! Training::where('kode_training', $row['kode_training'] ?? '')->exists()) {
-                $errors[] = 'Baris ' . $rowNumber . ': kode_training tidak ditemukan.';
+                $errors[] = 'Kode training tidak ditemukan.';
             }
             if ($type === 'materials' && ! in_array($row['tipe_media'] ?? '', ['text', 'video_youtube', 'video_gdrive', 'image', 'pdf'], true)) {
-                $errors[] = 'Baris ' . $rowNumber . ': tipe_media tidak valid.';
+                $errors[] = 'Tipe media tidak valid.';
             }
             if ($type === 'questions') {
                 if (! in_array(strtolower((string) ($row['kunci_jawaban'] ?? '')), ['a', 'b', 'c', 'd'], true)) {
-                    $errors[] = 'Baris ' . $rowNumber . ': kunci_jawaban harus a, b, c, atau d.';
+                    $errors[] = 'Kunci jawaban harus a, b, c, atau d.';
                 }
             }
             if ($type === 'assignments') {
-                $training = Training::where('kode_training', strtoupper((string) ($row['kode_training'] ?? '')))->first();
+                $resolvedTrainingCode = $row['_resolved_kode_training'] ?? null;
+                $training = $resolvedTrainingCode ? Training::where('kode_training', $resolvedTrainingCode)->first() : null;
                 $manpower = MManpower::query()
                     ->where('mp_id', (string) ($row['npk'] ?? ''))
                     ->where('status', true)
                     ->whereNotNull('haris_synced_at')
                     ->first();
 
-                if (! $training) {
-                    $errors[] = 'Baris ' . $rowNumber . ': kode_training tidak ditemukan.';
+                if ($resolvedTrainingCode && ! $training) {
+                    $errors[] = 'Kode training tidak ditemukan.';
                 }
                 if (! $manpower) {
-                    $errors[] = 'Baris ' . $rowNumber . ': NPK tidak ditemukan, tidak aktif, atau belum tersinkron dari HaRis.';
+                    $errors[] = 'NPK tidak ditemukan, tidak aktif, atau belum tersinkron dari HaRis.';
                 }
                 if ($training && $manpower && ! $training->appliesToDepartment($manpower->departemen)) {
-                    $errors[] = 'Baris ' . $rowNumber . ': departemen manpower tidak termasuk dalam departemen training.';
+                    $errors[] = 'Departemen manpower tidak termasuk dalam departemen training.';
                 }
             }
+
+            $preview[] = [
+                'row' => $rowNumber,
+                'data' => $row,
+                'errors' => $errors,
+                'is_valid' => $errors === [],
+                'department_resolution' => $row['_resolved_departemen'] ?? null,
+                'inherited_training' => $inheritedTraining,
+                'resolved_training_code' => $row['_resolved_kode_training'] ?? null,
+            ];
         }
 
-        return array_slice($errors, 0, 12);
+        return $preview;
     }
 
     /** @param array<string, string|int> $row */
@@ -247,7 +323,7 @@ class ImportController extends Controller
             'kategori' => $row['departemen'],
             'deskripsi' => $row['deskripsi'] ?? null,
         ]);
-        $departments = collect(explode(';', (string) $row['departemen']))
+        $departments = collect(explode(';', (string) ($row['_resolved_departemen'] ?? $row['departemen'])))
             ->map(fn (string $department): string => trim($department))
             ->reject(fn (string $department): bool => $department === '')
             ->values()
@@ -259,6 +335,28 @@ class ImportController extends Controller
             'deskripsi' => $row['deskripsi'] ?? null, 'passing_grade' => (int) ($row['nilai_lulus'] ?: 80),
             'max_retries' => (int) ($row['batas_percobaan'] ?: 3), 'requires_ojt' => true,
         ]);
+    }
+
+    /** @return array<int, string>|null */
+    private function resolveDepartments(string|int|null $value): ?array
+    {
+        $departments = collect(explode(';', (string) $value))
+            ->map(fn (string $department): string => trim($department))
+            ->reject(fn (string $department): bool => $department === '')
+            ->values();
+
+        if ($departments->count() === 1 && $this->departmentAliases->key($departments->first()) === 'SEMUA') {
+            return [];
+        }
+
+        $resolved = $departments
+            ->map(fn (string $department): ?string => $this->departmentAliases->resolve($department));
+
+        if ($resolved->contains(null)) {
+            return null;
+        }
+
+        return $resolved->unique()->values()->all();
     }
 
     /** @param array<string, string|int> $row */
@@ -290,7 +388,7 @@ class ImportController extends Controller
     /** @param array<string, string|int> $row */
     private function saveAssignment(array $row): void
     {
-        $training = Training::where('kode_training', strtoupper((string) $row['kode_training']))->firstOrFail();
+        $training = Training::where('kode_training', $row['_resolved_kode_training'] ?? strtoupper((string) $row['kode_training']))->firstOrFail();
         $manpower = MManpower::where('mp_id', (string) $row['npk'])->firstOrFail();
 
         TrainingEnrollment::firstOrCreate([

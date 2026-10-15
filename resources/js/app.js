@@ -126,15 +126,51 @@ Alpine.data('scanLogin', url => ({
     }
 }));
 
-Alpine.data('quizEngine', (expiresAt, total) => ({
+Alpine.data('importUploader', () => ({
+    dragging: false, fileName: '', loading: false,
+    submitFile(files) {
+        if (!files || !files.length || this.loading) return;
+        this.fileName = files[0].name;
+        this.$refs.importFile.files = files;
+        this.$nextTick(() => this.upload());
+    },
+    async upload() {
+        if (this.loading || !this.$refs.importForm.reportValidity()) return;
+        this.loading = true;
+        try {
+            const response = await fetch(this.$refs.importForm.action, {
+                method: 'POST',
+                headers: { Accept: 'text/html', 'X-Requested-With': 'XMLHttpRequest' },
+                body: new FormData(this.$refs.importForm),
+            });
+            const documentResponse = new DOMParser().parseFromString(await response.text(), 'text/html');
+            const nextPage = documentResponse.querySelector('#main-content .page-shell');
+            const currentPage = document.querySelector('#main-content .page-shell');
+
+            if (!nextPage || !currentPage) {
+                window.location.assign(response.url);
+                return;
+            }
+
+            Alpine.destroyTree(currentPage);
+            currentPage.replaceWith(nextPage);
+            Alpine.initTree(nextPage);
+            nextPage.querySelector('[data-import-preview]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch {
+            this.loading = false;
+            window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'error', title: 'Unggahan belum berhasil', message: 'Koneksi terputus. Periksa jaringan lalu coba kembali.' } }));
+        }
+    },
+}));
+
+Alpine.data('quizEngine', (remainingSeconds, total) => ({
     timeLeft: 0, total, answered: 0, submitting: false, timer: null,
     init() {
         this.$nextTick(() => this.countAnswers());
         if (!total) return;
-        this.deadline = new Date(expiresAt).getTime();
-        this.timeLeft = Math.max(0, Math.ceil((this.deadline - Date.now()) / 1000));
+        this.timeLeft = Math.max(0, Number(remainingSeconds || 0));
         this.timer = setInterval(() => {
-            this.timeLeft = Math.max(0, Math.ceil((this.deadline - Date.now()) / 1000));
+            this.timeLeft = Math.max(0, this.timeLeft - 1);
             if (this.timeLeft === 0 && !this.submitting) {
                 this.submitting = true; clearInterval(this.timer);
                 Swal.close();

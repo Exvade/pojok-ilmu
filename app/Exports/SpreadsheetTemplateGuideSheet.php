@@ -23,10 +23,10 @@ class SpreadsheetTemplateGuideSheet implements FromArray, WithEvents, WithTitle
             [$this->definition['description']],
             [],
             ['Langkah pengisian'],
-            ['1. Isi hanya pada sheet Data impor mulai baris 2.'],
-            ['2. Jangan mengubah nama header pada baris pertama.'],
-            ['3. Kolom berwarna kuning adalah area yang dapat diisi.'],
-            ['4. Hapus baris kosong tidak diperlukan sebelum mengimpor.'],
+            ['1', 'Isi data hanya pada sheet Data impor, mulai baris 2.'],
+            ['2', 'Jangan mengubah nama header pada baris pertama.'],
+            ['3', 'Kolom kuning adalah area yang dapat diisi. Baris kosong akan diabaikan saat impor.'],
+            ['4', 'Simpan file sebagai .xlsx, lalu unggah untuk melihat pratinjau sebelum disimpan.'],
             [],
             ['Kolom', 'Wajib diisi', 'Cara pengisian', 'Contoh pengisian'],
         ];
@@ -58,10 +58,13 @@ class SpreadsheetTemplateGuideSheet implements FromArray, WithEvents, WithTitle
                 $sheet->setShowGridlines(false);
                 $sheet->mergeCells('A1:D1');
                 $sheet->mergeCells('A2:D2');
+                foreach (range(5, 8) as $row) {
+                    $sheet->mergeCells("B{$row}:D{$row}");
+                }
                 $sheet->getColumnDimension('A')->setWidth(28);
                 $sheet->getColumnDimension('B')->setWidth(16);
                 $sheet->getColumnDimension('C')->setWidth(42);
-                $sheet->getColumnDimension('D')->setWidth(52);
+                $sheet->getColumnDimension('D')->setWidth(36);
                 $sheet->getRowDimension(1)->setRowHeight(28);
                 $sheet->getStyle('A1:D1')->applyFromArray([
                     'fill' => ['fillType' => Fill::FILL_SOLID, 'color' => ['rgb' => '14532D']],
@@ -73,7 +76,18 @@ class SpreadsheetTemplateGuideSheet implements FromArray, WithEvents, WithTitle
                     'alignment' => ['vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
                 ]);
                 $sheet->getStyle('A4:D4')->applyFromArray([
+                    'fill' => ['fillType' => Fill::FILL_SOLID, 'color' => ['rgb' => 'DCFCE7']],
                     'font' => ['bold' => true, 'color' => ['rgb' => '14532D'], 'name' => 'Arial', 'size' => 11],
+                ]);
+                $sheet->getStyle('A5:D8')->applyFromArray([
+                    'font' => ['name' => 'Arial', 'size' => 10, 'color' => ['rgb' => '374151']],
+                    'alignment' => ['vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+                    'borders' => ['allBorders' => ['style' => 'thin', 'color' => ['rgb' => 'E5E7EB']]],
+                ]);
+                $sheet->getStyle('A5:A8')->applyFromArray([
+                    'fill' => ['fillType' => Fill::FILL_SOLID, 'color' => ['rgb' => 'DCFCE7']],
+                    'font' => ['bold' => true, 'color' => ['rgb' => '14532D']],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
                 ]);
                 $sheet->getStyle('A10:D10')->applyFromArray([
                     'fill' => ['fillType' => Fill::FILL_SOLID, 'color' => ['rgb' => '14532D']],
@@ -82,7 +96,7 @@ class SpreadsheetTemplateGuideSheet implements FromArray, WithEvents, WithTitle
                 ]);
                 $sheet->getStyle('A11:D' . (10 + count($this->definition['headings'])))->applyFromArray([
                     'font' => ['name' => 'Arial', 'size' => 10],
-                    'borders' => ['bottom' => ['style' => 'thin', 'color' => ['rgb' => 'E5E7EB']]],
+                    'borders' => ['allBorders' => ['style' => 'thin', 'color' => ['rgb' => 'E5E7EB']]],
                     'alignment' => ['vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
                 ]);
                 $notesRow = 12 + count($this->definition['headings']);
@@ -90,6 +104,17 @@ class SpreadsheetTemplateGuideSheet implements FromArray, WithEvents, WithTitle
                     'fill' => ['fillType' => Fill::FILL_SOLID, 'color' => ['rgb' => 'DCFCE7']],
                     'font' => ['bold' => true, 'color' => ['rgb' => '14532D'], 'name' => 'Arial', 'size' => 10],
                 ]);
+                $sheet->getStyle('A' . ($notesRow + 1) . ':D' . ($notesRow + count($this->definition['notes'])))->applyFromArray([
+                    'borders' => ['allBorders' => ['style' => 'thin', 'color' => ['rgb' => 'BBF7D0']]],
+                    'font' => ['name' => 'Arial', 'size' => 10, 'color' => ['rgb' => '374151']],
+                ]);
+                foreach (range(5, 8) as $row) {
+                    $sheet->getRowDimension($row)->setRowHeight(28);
+                }
+                $sheet->getRowDimension(10)->setRowHeight(26);
+                for ($row = 11; $row < $notesRow; $row++) {
+                    $sheet->getRowDimension($row)->setRowHeight(32);
+                }
                 $sheet->getStyle('A1:D' . ($notesRow + count($this->definition['notes'])))->getAlignment()->setWrapText(true);
             },
         ];
@@ -103,7 +128,10 @@ class SpreadsheetTemplateGuideSheet implements FromArray, WithEvents, WithTitle
     private function fieldGuidance(string $heading): string
     {
         return match ($heading) {
-            'departemen' => 'Gunakan nama HaRis. Pisahkan beberapa departemen dengan ; atau isi SEMUA untuk training umum.',
+            'kode_training' => $this->definition['label'] === 'penugasan training'
+                ? 'Isi pada baris pertama setiap kelompok. Kosongkan pada baris berikutnya untuk mengikuti kode training di atasnya.'
+                : 'Isi sesuai kode training yang ingin diimpor.',
+            'departemen' => 'Gunakan nama resmi HaRis atau alias terdaftar. Pisahkan beberapa departemen dengan ; atau isi SEMUA untuk training umum.',
             'level' => 'Pilih angka 1 sampai 4.',
             'nilai_lulus' => 'Masukkan angka 50 sampai 100.',
             'batas_percobaan', 'durasi_menit', 'masa_tunggu_jam', 'urutan' => 'Masukkan angka bulat positif.',

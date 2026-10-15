@@ -5,7 +5,8 @@
 @section('content')
 
 
-<div class="page-shell !max-w-4xl" x-data="quizEngine(@js($enrollment->assessment_expires_at?->toIso8601String()), {{ $quiz->questions->count() }})">
+@php($remainingQuizSeconds = (int) ceil(max(0, now()->diffInSeconds($enrollment->assessment_expires_at, false))))
+<div class="page-shell !max-w-4xl" x-data="quizEngine({{ $remainingQuizSeconds }}, {{ $quiz->questions->count() }})">
     
     <!-- Assessment Sticky Header with Timer -->
     <div class="sticky top-3 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md p-4 rounded-lg shadow-none border border-gray-200 dark:border-gray-700 flex flex-wrap items-center justify-between gap-3">

@@ -69,19 +69,24 @@ class SpreadsheetTemplateDataSheet implements FromArray, WithColumnWidths, WithE
                     'fill' => ['fillType' => Fill::FILL_SOLID, 'color' => ['rgb' => 'FFFBEB']],
                     'font' => ['name' => 'Arial', 'size' => 10, 'color' => ['rgb' => '1F2937']],
                     'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
-                    'borders' => ['bottom' => ['style' => 'thin', 'color' => ['rgb' => 'E5E7EB']]],
+                    'borders' => ['allBorders' => ['style' => 'thin', 'color' => ['rgb' => 'E5E7EB']]],
                 ]);
                 $sheet->getStyle("A1:{$lastColumn}{$lastRow}")->getAlignment()->setWrapText(true);
+                $sheet->getStyle($headerRange)->applyFromArray([
+                    'borders' => ['allBorders' => ['style' => 'thin', 'color' => ['rgb' => 'FFFFFF']]],
+                ]);
 
                 foreach ($this->definition['headings'] as $index => $heading) {
                     $column = Coordinate::stringFromColumnIndex($index + 1);
-                    $sheet->getRowDimension(2)->setRowHeight(22);
-
                     if (in_array($heading, ['npk', 'kode_training', 'kode_skill', 'kunci_jawaban'], true)) {
                         $sheet->getStyle("{$column}2:{$column}{$lastRow}")->getNumberFormat()->setFormatCode('@');
                     }
 
                     $this->applyValidation($sheet, $column, $heading, $lastRow);
+                }
+
+                for ($row = 2; $row <= $lastRow; $row++) {
+                    $sheet->getRowDimension($row)->setRowHeight(22);
                 }
             },
         ];

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\DepartmentAliasController;
 use App\Http\Controllers\Admin\ImportController;
 use App\Http\Controllers\Admin\OjtController;
 use App\Http\Controllers\Admin\ProductAssignmentController;
@@ -40,14 +41,19 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 
 // Admin & Management Routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/department-aliases', [DepartmentAliasController::class, 'index'])->middleware('management-permission:curriculum')->name('department-aliases.index');
+    Route::post('/department-aliases', [DepartmentAliasController::class, 'store'])->middleware('management-permission:curriculum')->name('department-aliases.store');
+    Route::delete('/department-aliases/{departmentAlias}', [DepartmentAliasController::class, 'destroy'])->middleware('management-permission:curriculum')->name('department-aliases.destroy');
     Route::get('/dashboard', [SkillMatrixController::class, 'index'])->name('dashboard');
     Route::get('/manpower/{id}/training-profile', [SkillMatrixController::class, 'showManpower'])->middleware('management-permission:competency')->name('manpower.training-profile');
     Route::get('/imports/assignments', [ImportController::class, 'createAssignments'])->middleware('management-permission:competency')->name('assignments.import');
     Route::get('/imports/assignments/template', [ImportController::class, 'assignmentTemplate'])->middleware('management-permission:competency')->name('assignments.template');
     Route::post('/imports/assignments', [ImportController::class, 'storeAssignments'])->middleware('management-permission:competency')->name('assignments.import.store');
+    Route::post('/imports/assignments/confirm', [ImportController::class, 'confirmAssignments'])->middleware('management-permission:competency')->name('assignments.import.confirm');
     Route::get('/imports/{type}', [ImportController::class, 'create'])->middleware('management-permission:curriculum')->name('imports.create');
     Route::get('/imports/{type}/template', [ImportController::class, 'template'])->middleware('management-permission:curriculum')->name('imports.template');
     Route::post('/imports/{type}', [ImportController::class, 'store'])->middleware('management-permission:curriculum')->name('imports.store');
+    Route::post('/imports/{type}/confirm', [ImportController::class, 'confirm'])->middleware('management-permission:curriculum')->name('imports.confirm');
     Route::get('/product-assignments', [ProductAssignmentController::class, 'index'])->middleware('management-permission:competency')->name('product-assignments.index');
     Route::post('/product-assignments', [ProductAssignmentController::class, 'store'])->middleware('management-permission:competency')->name('product-assignments.store');
     Route::get('/ojt', [OjtController::class, 'index'])->middleware('management-permission:ojt')->name('ojt.index');
