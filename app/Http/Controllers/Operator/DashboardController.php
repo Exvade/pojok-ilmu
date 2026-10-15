@@ -27,8 +27,13 @@ class DashboardController extends Controller
             ->orderBy('created_at')
             ->get();
         $enrollments->each(function (TrainingEnrollment $enrollment) use ($enrollments, $progress): void {
+            $blockingEnrollments = $progress->blockingEnrollments($enrollment, $enrollments);
+
             $enrollment->setAttribute('block', $progress->blockFor($enrollment));
-            $enrollment->setAttribute('is_unlocked', $progress->isUnlocked($enrollment, $enrollments));
+            $enrollment->setAttribute('is_unlocked', $blockingEnrollments->isEmpty());
+            $enrollment->setAttribute('blocking_training_titles', $blockingEnrollments
+                ->map(fn (TrainingEnrollment $item): string => $item->training->judul)
+                ->all());
             $enrollment->setAttribute('block_label', $progress->labelFor($enrollment));
         });
         $currentLevel = $progress->currentLevel($enrollments);

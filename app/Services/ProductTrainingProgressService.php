@@ -19,9 +19,16 @@ class ProductTrainingProgressService
     /** @param Collection<int, TrainingEnrollment> $enrollments */
     public function isUnlocked(TrainingEnrollment $enrollment, Collection $enrollments): bool
     {
-        return ! $enrollments
+        return $this->blockingEnrollments($enrollment, $enrollments)->isEmpty();
+    }
+
+    /** @return Collection<int, TrainingEnrollment> */
+    public function blockingEnrollments(TrainingEnrollment $enrollment, Collection $enrollments): Collection
+    {
+        return $enrollments
             ->filter(fn (TrainingEnrollment $item): bool => $item->training->level < $enrollment->training->level)
-            ->contains(fn (TrainingEnrollment $item): bool => $this->blockFor($item) < 2);
+            ->filter(fn (TrainingEnrollment $item): bool => $this->blockFor($item) < 2)
+            ->values();
     }
 
     /** @param Collection<int, TrainingEnrollment> $enrollments */
@@ -39,8 +46,8 @@ class ProductTrainingProgressService
     public function labelFor(TrainingEnrollment $enrollment): string
     {
         return match ($this->blockFor($enrollment)) {
-            2 => 'Balok 2 - Training disetujui OJT',
-            1 => 'Balok 1 - Post-test lulus, menunggu OJT',
+            2 => 'Balok 2 - Mampu mengerjakan dengan bimbingan',
+            1 => 'Balok 1 - Lulus post-test',
             default => 'Belum mencapai balok',
         };
     }

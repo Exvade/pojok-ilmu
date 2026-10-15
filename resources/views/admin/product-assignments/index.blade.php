@@ -16,7 +16,7 @@
         </div>
 
         <x-card bodyClass="p-5">
-            <div class="grid gap-4 md:grid-cols-3"><div><p class="text-sm font-semibold">Cara pakai</p><p class="mt-1 text-xs leading-5 text-gray-500">Pilih training, lalu pilih manpower yang wajib mempelajarinya.</p></div><div><p class="text-sm font-semibold">Balok 1</p><p class="mt-1 text-xs leading-5 text-gray-500">Dicapai setelah post-test lulus.</p></div><div><p class="text-sm font-semibold">Balok 2</p><p class="mt-1 text-xs leading-5 text-gray-500">Dicapai setelah OJT disetujui untuk training tersebut.</p></div></div>
+            <div class="grid gap-4 md:grid-cols-3"><div><p class="text-sm font-semibold">Cara pakai</p><p class="mt-1 text-xs leading-5 text-gray-500">Pilih training, lalu pilih manpower yang wajib mempelajarinya.</p></div><div><p class="text-sm font-semibold">Balok 1</p><p class="mt-1 text-xs leading-5 text-gray-500">Menandakan manpower lulus post-test.</p></div><div><p class="text-sm font-semibold">Balok 2</p><p class="mt-1 text-xs leading-5 text-gray-500">Menandakan manpower mampu mengerjakan dengan bimbingan; dibuktikan melalui OJT lulus.</p></div></div>
         </x-card>
 
         <div @class(['grid gap-4', 'md:grid-cols-2' => $products->count() > 1])>

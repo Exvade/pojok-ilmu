@@ -4,7 +4,7 @@
     $achieved = max(0, min(4, (int) $value));
     $label = match ($achieved) {
         1 => 'Lulus post-test',
-        2 => 'Bisa mengerjakan dengan bimbingan',
+        2 => 'Mampu mengerjakan dengan bimbingan',
         3 => 'Balok 3 belum dikembangkan',
         4 => 'Balok 4 belum dikembangkan',
         default => 'Belum mulai',

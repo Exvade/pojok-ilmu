@@ -106,7 +106,7 @@ class ImportController extends Controller
                 'description' => 'Satu baris adalah satu training yang wajib dipelajari. Level menunjukkan kelompok training, bukan tahapan di dalam training.',
                 'headings' => ['kode_training', 'departemen', 'level', 'judul', 'deskripsi', 'nilai_lulus', 'batas_percobaan'],
                 'samples' => [['BOX-BATTERY', 'PRODUKSI PLASTIK A; PRODUKSI PLASTIK B', 1, 'BOX BATTERY', 'Training BOX BATTERY.', 80, 3]],
-                'notes' => ['Departemen harus sama dengan penamaan dari HaRis. Pisahkan beberapa departemen dengan tanda titik koma (;).', 'Gunakan SEMUA pada kolom departemen untuk training umum.', 'Balok 1 diperoleh setelah post-test lulus, Balok 2 setelah OJT disetujui.'],
+                'notes' => ['Departemen harus sama dengan penamaan dari HaRis. Pisahkan beberapa departemen dengan tanda titik koma (;).', 'Gunakan SEMUA pada kolom departemen untuk training umum.', 'Balok 1 berarti lulus post-test. Balok 2 berarti mampu mengerjakan dengan bimbingan dan dibuktikan melalui OJT lulus.'],
             ],
             'materials' => [
                 'label' => 'materi pembelajaran',

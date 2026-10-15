@@ -16,7 +16,7 @@
         <div class="grid gap-4 sm:grid-cols-3">
             <x-card><p class="text-xs font-medium text-gray-500">Departemen</p><p class="mt-2 font-semibold">{{ $manpower->departemen }}</p><p class="mt-1 text-xs text-gray-500">{{ $manpower->bagian }}</p></x-card>
             <x-card><p class="text-xs font-medium text-gray-500">Balok 1</p><p class="mt-2 text-3xl font-semibold text-amber-600">{{ $enrollments->where('block', 1)->count() }}</p><p class="mt-1 text-xs text-gray-500">Lulus post-test.</p></x-card>
-            <x-card><p class="text-xs font-medium text-gray-500">Balok 2</p><p class="mt-2 text-3xl font-semibold text-brand-dark dark:text-green-400">{{ $enrollments->where('block', 2)->count() }}</p><p class="mt-1 text-xs text-gray-500">OJT disetujui Leader.</p></x-card>
+            <x-card><p class="text-xs font-medium text-gray-500">Balok 2</p><p class="mt-2 text-3xl font-semibold text-brand-dark dark:text-green-400">{{ $enrollments->where('block', 2)->count() }}</p><p class="mt-1 text-xs text-gray-500">Mampu mengerjakan dengan bimbingan.</p></x-card>
         </div>
 
         <x-card>

@@ -21,7 +21,7 @@
                     <svg class="w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 0 1 0 18 0z"></path></svg>
                 </div>
                 <h1 class="text-3xl font-semibold font-heading {{ $isPassed ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400' }} mt-4">{{ $isPassed ? 'Post-test selesai' : 'Post-test belum lulus' }}</h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $isPassed ? 'Balok 1 telah tercapai. Menunggu validasi OJT untuk Balok 2.' : 'Pelajari kembali materi lalu ulangi post-test.' }}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $isPassed ? 'Balok 1 telah tercapai. Lanjutkan OJT untuk membuktikan kemampuan mengerjakan dengan bimbingan pada Balok 2.' : 'Pelajari kembali materi lalu ulangi post-test.' }}</p>
             @else
                 <div class="w-24 h-24 mx-auto rounded-full bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center shadow-none">
                     <svg class="w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>

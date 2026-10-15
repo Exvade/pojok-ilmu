@@ -119,7 +119,7 @@
 
     <div class="grid gap-4 sm:grid-cols-3">
         <x-card><p class="text-xs font-medium text-gray-500">Level saat ini</p><p class="mt-3 text-3xl font-semibold">{{ $currentLevel ? 'Level '.$currentLevel : 'Belum ada' }}</p><p class="mt-1 text-xs text-gray-500">Level lengkap bila semua training pada level tersebut Balok 2.</p></x-card>
-        <x-card><p class="text-xs font-medium text-gray-500">Training Balok 2</p><p class="mt-3 text-3xl font-semibold">{{ $enrollments->where('block', 2)->count() }}</p><p class="mt-1 text-xs text-gray-500">Training yang sudah disetujui OJT.</p></x-card>
+        <x-card><p class="text-xs font-medium text-gray-500">Training Balok 2</p><p class="mt-3 text-3xl font-semibold">{{ $enrollments->where('block', 2)->count() }}</p><p class="mt-1 text-xs text-gray-500">Mampu mengerjakan dengan bimbingan.</p></x-card>
         <x-card><p class="text-xs font-medium text-gray-500">Menunggu OJT</p><p class="mt-3 text-3xl font-semibold">{{ $enrollments->where('block', 1)->count() }}</p><p class="mt-1 text-xs text-gray-500">Post-test lulus dan menunggu penilaian praktik.</p></x-card>
     </div>
 
@@ -127,7 +127,7 @@
         <div class="flex flex-col gap-4 md:flex-row md:items-center">
             <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-brand-dark text-sm font-bold text-white">1</div><div><p class="text-sm font-semibold">Balok 1: lulus post-test</p><p class="mt-1 text-xs text-gray-500">Selesaikan pre-test, materi, lalu post-test.</p></div>
             <div class="hidden h-8 w-px bg-gray-200 md:block dark:bg-gray-700"></div>
-            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-brand-dark text-sm font-bold text-white">2</div><div><p class="text-sm font-semibold">Balok 2: OJT disetujui</p><p class="mt-1 text-xs text-gray-500">Setelah OJT disetujui, Anda tercatat kompeten pada training ini.</p></div>
+            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-brand-dark text-sm font-bold text-white">2</div><div><p class="text-sm font-semibold">Balok 2: mampu mengerjakan dengan bimbingan</p><p class="mt-1 text-xs text-gray-500">Capaian ini dibuktikan setelah OJT dinyatakan lulus oleh Leader.</p></div>
         </div>
     </x-card>
 
@@ -135,6 +135,7 @@
         <div class="mb-4"><h2 class="text-lg font-semibold">Training yang ditugaskan</h2><p class="mt-1 text-xs text-gray-500">Training Level 2 dan seterusnya terbuka setelah seluruh training tugas pada level sebelumnya mencapai Balok 2.</p></div>
         <div class="grid gap-4 xl:grid-cols-2">
             @forelse($enrollments as $enrollment)
+                @php($blockingTrainingTitles = $enrollment->blocking_training_titles ?? [])
                 <x-card class="{{ $enrollment->is_unlocked ? '' : 'opacity-70' }}">
                     <div class="flex items-start justify-between gap-3">
                         <div><p class="font-mono text-xs font-semibold text-brand-dark dark:text-green-400">{{ $enrollment->training->kode_training }}</p><h3 class="mt-1 text-lg font-semibold">{{ $enrollment->training->judul }}</h3><p class="mt-2 text-xs text-gray-500">{{ $enrollment->training->departemen }} · Training Level {{ $enrollment->training->level }}</p></div>
@@ -145,7 +146,7 @@
                     <x-slot name="footer">
                         <div class="flex flex-wrap items-center justify-between gap-3">
                             @if(! $enrollment->is_unlocked)
-                                <span class="text-xs text-gray-500">Terkunci sampai seluruh training Level {{ $enrollment->training->level - 1 }} mencapai Balok 2.</span>
+                                <span class="text-xs leading-5 text-gray-500">Terkunci. Selesaikan Balok 2 untuk: {{ implode(', ', $blockingTrainingTitles) }}.</span>
                             @elseif($enrollment->block === 2)
                                 <span class="text-xs font-semibold text-brand-dark dark:text-green-300">Anda telah mencapai Balok 2 pada training ini.</span>
                                 <x-button :href="route('operator.materials.show', $enrollment->training_id)" variant="outline" size="sm"><x-icon name="eye" class="h-4 w-4" />Lihat training</x-button>

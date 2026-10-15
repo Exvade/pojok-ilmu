@@ -16,8 +16,8 @@
 
         <div class="grid gap-4 sm:grid-cols-3">
             <x-card><p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Training ditugaskan</p><p class="mt-2 text-3xl font-semibold">{{ $enrollments->count() }}</p><p class="mt-1 text-xs text-gray-500">Seluruh riwayat training manpower.</p></x-card>
-            <x-card><p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Balok 1</p><p class="mt-2 text-3xl font-semibold text-amber-600">{{ $totalBalokSatu }}</p><p class="mt-1 text-xs text-gray-500">Lulus post-test, menunggu OJT.</p></x-card>
-            <x-card><p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Balok 2</p><p class="mt-2 text-3xl font-semibold text-brand-dark">{{ $totalBalokDua }}</p><p class="mt-1 text-xs text-gray-500">OJT telah disetujui Leader.</p></x-card>
+            <x-card><p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Balok 1</p><p class="mt-2 text-3xl font-semibold text-amber-600">{{ $totalBalokSatu }}</p><p class="mt-1 text-xs text-gray-500">Lulus post-test.</p></x-card>
+            <x-card><p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Balok 2</p><p class="mt-2 text-3xl font-semibold text-brand-dark">{{ $totalBalokDua }}</p><p class="mt-1 text-xs text-gray-500">Mampu mengerjakan dengan bimbingan.</p></x-card>
         </div>
 
         <x-card body-class="p-0">

@@ -99,7 +99,7 @@
                     <div><label class="mb-2 block text-sm font-medium" for="conclusion">Kesimpulan Leader</label><x-textarea id="conclusion" name="conclusion" placeholder="Ringkasan hasil OJT">{{ old('conclusion', $assessment?->conclusion) }}</x-textarea></div>
                     <div><label class="mb-2 block text-sm font-medium" for="recommendation">Saran untuk manpower</label><x-textarea id="recommendation" name="recommendation" placeholder="Saran pembinaan atau perbaikan">{{ old('recommendation', $assessment?->recommendation) }}</x-textarea></div>
                 </div>
-                <p class="mt-4 text-xs text-gray-500">Sistem menyatakan lulus bila nilai teori dan tes praktik masing-masing minimal 75. Hasil lulus otomatis menetapkan Balok 2 pada training ini.</p>
+                <p class="mt-4 text-xs text-gray-500">Sistem menyatakan lulus bila nilai teori dan tes praktik masing-masing minimal 75. Hasil lulus menetapkan Balok 2: mampu mengerjakan dengan bimbingan.</p>
             </x-card>
 
             <div class="flex justify-end gap-3">

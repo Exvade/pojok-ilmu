@@ -149,7 +149,7 @@ class OjtController extends Controller
         }
 
         return redirect()->route('admin.ojt.index')->with('success', $isPassed
-            ? 'OJT disetujui. Manpower telah mencapai Balok 2 untuk training ini.'
+            ? 'OJT disetujui. Manpower telah mencapai Balok 2: mampu mengerjakan dengan bimbingan.'
             : 'Hasil OJT tersimpan. Manpower belum mencapai Balok 2 dan perlu pembinaan atau OJT ulang.');
     }
 
