@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Pelatihan saya · Pojok Ilmu')
 @section('content')
-{{-- Legacy self-learning dashboard retained temporarily for historical references.
+<template hidden>@verbatim
 <div class="page-shell">
     <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div><p class="mb-2 text-xs font-semibold uppercase tracking-wider text-brand-dark dark:text-green-400">Ruang belajar karyawan</p><h1 class="page-title">Selamat datang, {{ $manpower?->nama ?? auth()->user()->name }}</h1><p class="page-description">Pelajari materi yang tersedia dan pantau level kompetensi yang sudah dicapai.</p></div>
@@ -105,9 +105,24 @@
         </div>
     </section>
 </div>
---}}
+@endverbatim</template>
 
 <div class="page-shell">
+    @php
+        $welcomeTrainings = $enrollments
+            ->filter(fn ($enrollment): bool => $enrollment->is_unlocked && $enrollment->block < 2)
+            ->pluck('training.judul')
+            ->take(3)
+            ->values();
+        $remainingWelcomeTrainings = max(0, $enrollments
+            ->filter(fn ($enrollment): bool => $enrollment->is_unlocked && $enrollment->block < 2)
+            ->count() - $welcomeTrainings->count());
+        $welcomeName = $manpower?->nama ?? auth()->user()->name;
+        $welcomeSpeech = $welcomeTrainings->isEmpty()
+            ? "Selamat datang, {$welcomeName}. Saat ini tidak ada training aktif yang perlu Anda mulai."
+            : "Selamat datang, {$welcomeName}. Berdasarkan sistem, Anda memiliki " . $welcomeTrainings->count() . ' training yang perlu dilanjutkan: ' . $welcomeTrainings->implode(', ') . ($remainingWelcomeTrainings > 0 ? ", dan {$remainingWelcomeTrainings} training lainnya." : '.');
+    @endphp
+
     <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
             <p class="text-xs font-semibold uppercase tracking-wider text-brand-dark dark:text-green-400">Training saya</p>
@@ -116,6 +131,27 @@
         </div>
         <div class="flex flex-wrap items-center gap-2"><x-button :href="route('operator.profile')" variant="outline" size="sm"><x-icon name="user" class="h-4 w-4" />Profil saya</x-button><div class="rounded-md border border-gray-200 bg-white px-3 py-2 text-xs dark:border-gray-700 dark:bg-gray-800"><p class="font-semibold">{{ $manpower?->departemen ?? 'Departemen belum tersedia' }}</p><p class="mt-1 text-gray-500">{{ $manpower?->bagian ?? 'Jabatan belum tersedia' }}</p></div></div>
     </div>
+
+        <div x-data="welcomeSpeech($el.dataset.message, $el.dataset.shouldPlay === 'true')" data-message="{{ $welcomeSpeech }}" data-should-play="{{ session('play_welcome_speech') ? 'true' : 'false' }}" aria-live="polite">
+            <x-card bodyClass="p-4 sm:p-5">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex min-w-0 items-start gap-3">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-green-50 text-brand-dark dark:bg-green-950 dark:text-green-300"><x-icon name="speaker" class="h-5 w-5" /></span>
+                <div>
+                    <p class="text-sm font-semibold">Suara sambutan</p>
+                    <p class="mt-1 text-xs leading-5 text-gray-500" x-text="message"></p>
+                    <p x-show="! supported" x-cloak class="mt-1 text-xs text-amber-700 dark:text-amber-300">Browser ini belum mendukung suara sambutan.</p>
+                    <p x-show="autoplayBlocked" x-cloak class="mt-1 text-xs text-amber-700 dark:text-amber-300">Tekan “Dengarkan sambutan” untuk mengaktifkan suara pada browser ini.</p>
+                </div>
+            </div>
+            <div class="flex shrink-0 flex-wrap gap-2" x-show="supported" x-cloak>
+                <x-button type="button" variant="secondary" size="sm" @click="replay()" x-bind:disabled="speaking"><x-icon name="speaker" class="h-4 w-4" /><span x-text="speaking ? 'Sedang diputar' : 'Dengarkan sambutan'"></span></x-button>
+                <x-button type="button" variant="outline" size="sm" x-show="enabled" @click="disable()"><x-icon name="speaker-off" class="h-4 w-4" />Matikan suara</x-button>
+                <x-button type="button" variant="outline" size="sm" x-show="! enabled" x-cloak @click="enable()"><x-icon name="speaker" class="h-4 w-4" />Aktifkan suara</x-button>
+            </div>
+                </div>
+            </x-card>
+        </div>
 
     <div class="grid gap-4 sm:grid-cols-3">
         <x-card><p class="text-xs font-medium text-gray-500">Level saat ini</p><p class="mt-3 text-3xl font-semibold">{{ $currentLevel ? 'Level '.$currentLevel : 'Belum ada' }}</p><p class="mt-1 text-xs text-gray-500">Level lengkap bila semua training pada level tersebut Balok 2.</p></x-card>

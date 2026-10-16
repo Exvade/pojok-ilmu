@@ -52,9 +52,17 @@
                 <x-modal name="assign-{{ $product->id }}" title="Tugaskan {{ $product->judul }}" maxWidth="xl">
                     @php
                         $productManpowers = $manpowers->filter(fn ($manpower) => $product->appliesToDepartment($manpower->departemen));
+                        $manpowerSearchValues = $productManpowers
+                            ->map(fn ($manpower) => implode(' ', [
+                                $manpower->nama,
+                                $manpower->mp_id,
+                                $manpower->departemen,
+                                $manpower->bagian,
+                            ]))
+                            ->values();
                     @endphp
 
-                    <form action="{{ route('admin.product-assignments.store') }}" method="POST" class="space-y-4" x-data="{ selectAll() { this.$refs.manpowerList.querySelectorAll('input[type=checkbox]:not(:disabled)').forEach((input) => input.checked = true) }, clearAll() { this.$refs.manpowerList.querySelectorAll('input[type=checkbox]:not(:disabled)').forEach((input) => input.checked = false) } }">
+                    <form action="{{ route('admin.product-assignments.store') }}" method="POST" class="space-y-4" x-data="{ query: '', searchValues: @js($manpowerSearchValues), normalize(value) { return String(value).toLocaleLowerCase('id-ID') }, matches(value) { return this.normalize(value).includes(this.normalize(this.query)) }, filteredCount() { return this.searchValues.filter((value) => this.matches(value)).length }, selectAll() { this.$refs.manpowerList.querySelectorAll('input[type=checkbox]:not(:disabled)').forEach((input) => input.checked = true) }, clearAll() { this.$refs.manpowerList.querySelectorAll('input[type=checkbox]:not(:disabled)').forEach((input) => input.checked = false) } }">
                         @csrf
                         <input type="hidden" name="training_id" value="{{ $product->id }}">
                         <p class="text-sm text-gray-600 dark:text-gray-300">Pilih manpower aktif dari <strong>{{ $product->departmentLabel() }}</strong> yang wajib mengikuti training ini.</p>
@@ -64,13 +72,24 @@
                             <div class="flex flex-wrap gap-2"><x-button type="button" variant="secondary" size="sm" @click="selectAll()"><x-icon name="check" class="h-4 w-4" />Pilih semua</x-button><x-button type="button" variant="outline" size="sm" @click="clearAll()"><x-icon name="reset" class="h-4 w-4" />Kosongkan pilihan</x-button></div>
                         </div>
 
+                        @if ($productManpowers->isNotEmpty())
+                            <div>
+                                <label for="search-manpower-{{ $product->id }}" class="mb-1.5 block text-sm font-medium">Cari manpower</label>
+                                <x-input id="search-manpower-{{ $product->id }}" type="text" x-model="query" placeholder="Cari nama, NPK, atau bagian..." autocomplete="off" />
+                                <p class="mt-1.5 text-xs text-gray-500" x-show="query" x-cloak>
+                                    <span x-text="filteredCount()"></span> manpower ditemukan
+                                </p>
+                            </div>
+                        @endif
+
                         <div x-ref="manpowerList" class="max-h-80 space-y-2 overflow-y-auto rounded-lg border border-gray-200 p-3 dark:border-gray-700">
                             @forelse ($productManpowers as $manpower)
                                 @php
                                     $assignment = $product->enrollments->firstWhere('manpower_id', $manpower->id);
                                     $canCancelAssignment = ! $assignment || $assignment->status === 'enrolled';
+                                    $searchValue = implode(' ', [$manpower->nama, $manpower->mp_id, $manpower->departemen, $manpower->bagian]);
                                 @endphp
-                                <label @class([
+                                <label x-show="matches(@js($searchValue))" @class([
                                     'flex items-center gap-3 rounded-md px-2 py-2',
                                     'hover:bg-gray-50 dark:hover:bg-gray-800' => $canCancelAssignment,
                                     'bg-gray-50/70 dark:bg-gray-800/50' => ! $canCancelAssignment,
@@ -89,6 +108,9 @@
                             @empty
                                 <p class="p-3 text-sm text-gray-500">Tidak ada manpower aktif dari departemen yang dipilih.</p>
                             @endforelse
+                            @if ($productManpowers->isNotEmpty())
+                                <p x-show="query && filteredCount() === 0" x-cloak class="p-3 text-center text-sm text-gray-500">Manpower tidak ditemukan.</p>
+                            @endif
                         </div>
 
                         <div class="flex justify-end gap-2">

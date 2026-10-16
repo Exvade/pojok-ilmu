@@ -24,7 +24,7 @@ class ProfileController extends Controller
             $blockingEnrollments = $progress->blockingEnrollments($enrollment, $enrollments);
 
             $enrollment->setAttribute('block', $progress->blockFor($enrollment));
-            $enrollment->setAttribute('is_unlocked', $blockingEnrollments->isEmpty());
+            $enrollment->setAttribute('is_unlocked', $progress->isUnlocked($enrollment, $enrollments));
             $enrollment->setAttribute('blocking_training_titles', $blockingEnrollments
                 ->map(fn (TrainingEnrollment $item): string => $item->training->judul)
                 ->all());
@@ -44,6 +44,7 @@ class ProfileController extends Controller
                     'blocking_training_titles' => $progress->blockingEnrollments($firstEnrollment, $enrollments)
                         ->map(fn (TrainingEnrollment $item): string => $item->training->judul)
                         ->all(),
+                    'missing_prerequisite_levels' => $progress->missingPrerequisiteLevels($firstEnrollment, $enrollments),
                 ];
             })
             ->values();

@@ -40,17 +40,20 @@ class OjtController extends Controller
     {
         $departemen = trim($request->string('departemen')->toString());
         $search = trim($request->string('search')->toString());
-        $query = TrainingEnrollment::query()
+        $user = $request->user();
+        $visibleEnrollments = TrainingEnrollment::query()
+            ->whereHas('training', fn ($training) => $training->where('requires_ojt', true));
+
+        if (! $user->is_superadmin) {
+            $departemen = $user->manpower?->departemen ?? $departemen;
+        }
+
+        $visibleEnrollments->when($departemen !== '', fn ($enrollment) => $enrollment->whereHas('manpower', fn ($manpower) => $manpower->where('departemen', $departemen)));
+
+        $query = (clone $visibleEnrollments)
             ->with(['manpower', 'training', 'ojtAssessment'])
             ->whereNotNull('post_test_completed_at')
             ->whereIn('ojt_status', ['pending', 'rejected'])
-            ->whereHas('training', fn ($training) => $training->where('requires_ojt', true));
-
-        if (! $request->user()->is_superadmin) {
-            $departemen = $request->user()->manpower?->departemen ?? $departemen;
-        }
-
-        $query->when($departemen !== '', fn ($enrollment) => $enrollment->whereHas('training', fn ($training) => $training->forDepartment($departemen)))
             ->when($search !== '', function ($enrollment) use ($search): void {
                 $enrollment->whereHas('manpower', function ($manpower) use ($search): void {
                     $manpower->where('nama', 'like', "%{$search}%")->orWhere('mp_id', 'like', "%{$search}%");
@@ -58,18 +61,22 @@ class OjtController extends Controller
             });
 
         $enrollments = $query->latest('post_test_completed_at')->paginate(15)->withQueryString();
-        $departemens = TrainingEnrollment::query()
-            ->whereNotNull('post_test_completed_at')
-            ->whereHas('training', fn ($training) => $training->where('requires_ojt', true))
-            ->with('training:id,departemen')
+        $departemens = (clone $visibleEnrollments)
+            ->with('manpower:id,departemen')
             ->get()
-            ->pluck('training.departemen')
+            ->pluck('manpower.departemen')
             ->filter()
             ->unique()
             ->sort()
             ->values();
+        $summary = [
+            'ready' => (clone $visibleEnrollments)->whereNotNull('post_test_completed_at')->where('ojt_status', 'pending')->count(),
+            'retry' => (clone $visibleEnrollments)->whereNotNull('post_test_completed_at')->where('ojt_status', 'rejected')->count(),
+            'notReady' => (clone $visibleEnrollments)->whereNull('post_test_completed_at')->count(),
+            'completed' => (clone $visibleEnrollments)->where('status', 'passed')->where('ojt_status', 'approved')->count(),
+        ];
 
-        return view('admin.ojt.index', compact('enrollments', 'departemens', 'departemen', 'search'));
+        return view('admin.ojt.index', compact('enrollments', 'departemens', 'departemen', 'search', 'summary'));
     }
 
     public function show(Request $request, string $enrollment): View

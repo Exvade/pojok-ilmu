@@ -17,7 +17,7 @@
             if ($user->isManagement()) $items[] = ['operator.dashboard', 'operator.*', 'book', 'Pratinjau training'];
             if ($user->canManageCompetency()) $items[] = ['admin.product-assignments.index', 'admin.product-assignments.*', 'user', 'Penugasan training'];
             if ($user->canManageCurriculum()) $items[] = ['admin.trainings.index', 'admin.trainings.*', 'book', 'Training'];
-            if ($user->canAssessOjt()) $items[] = ['admin.ojt.index', 'admin.ojt.*', 'clipboard', 'OJT produksi'];
+            if ($user->canAssessOjt()) $items[] = ['admin.ojt.index', 'admin.ojt.*', 'clipboard', 'Dashboard OJT'];
             if ($user->is_superadmin) $items[] = ['admin.roles.index', 'admin.roles.*', 'user', 'Kelola role'];
         @endphp
         @foreach($items as [$route, $pattern, $icon, $label])

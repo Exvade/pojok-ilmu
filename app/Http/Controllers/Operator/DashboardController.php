@@ -30,7 +30,7 @@ class DashboardController extends Controller
             $blockingEnrollments = $progress->blockingEnrollments($enrollment, $enrollments);
 
             $enrollment->setAttribute('block', $progress->blockFor($enrollment));
-            $enrollment->setAttribute('is_unlocked', $blockingEnrollments->isEmpty());
+            $enrollment->setAttribute('is_unlocked', $progress->isUnlocked($enrollment, $enrollments));
             $enrollment->setAttribute('blocking_training_titles', $blockingEnrollments
                 ->map(fn (TrainingEnrollment $item): string => $item->training->judul)
                 ->all());

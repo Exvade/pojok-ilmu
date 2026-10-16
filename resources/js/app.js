@@ -126,6 +126,51 @@ Alpine.data('scanLogin', url => ({
     }
 }));
 
+Alpine.data('welcomeSpeech', (message, shouldPlay) => ({
+    message, shouldPlay,
+    enabled: true, supported: 'speechSynthesis' in window, autoplayBlocked: false, speaking: false, speechToken: 0,
+    init() {
+        try { this.enabled = localStorage.getItem('pojokIlmuWelcomeSpeech') !== 'off'; } catch {}
+        if (this.shouldPlay && this.enabled && this.supported) this.$nextTick(() => window.setTimeout(() => this.speak(), 300));
+    },
+    preferredVoice() {
+        const voices = window.speechSynthesis.getVoices();
+        return voices.find(voice => voice.lang.toLowerCase() === 'id-id' && /microsoft|google|natural/i.test(voice.name))
+            || voices.find(voice => voice.lang.toLowerCase() === 'id-id')
+            || null;
+    },
+    speak() {
+        if (!this.supported || !this.message) return;
+        const token = ++this.speechToken;
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(this.message);
+        utterance.lang = 'id-ID';
+        utterance.rate = 0.92;
+        utterance.pitch = 1;
+        const voice = this.preferredVoice();
+        if (voice) utterance.voice = voice;
+        utterance.onstart = () => { if (token === this.speechToken) { this.speaking = true; this.autoplayBlocked = false; } };
+        utterance.onend = () => { if (token === this.speechToken) this.speaking = false; };
+        utterance.onerror = () => { if (token === this.speechToken) { this.speaking = false; this.autoplayBlocked = true; } };
+        window.speechSynthesis.speak(utterance);
+    },
+    enable() {
+        this.enabled = true;
+        this.autoplayBlocked = false;
+        try { localStorage.setItem('pojokIlmuWelcomeSpeech', 'on'); } catch {}
+        this.speak();
+    },
+    disable() {
+        this.enabled = false;
+        this.speaking = false;
+        this.speechToken++;
+        window.speechSynthesis?.cancel();
+        try { localStorage.setItem('pojokIlmuWelcomeSpeech', 'off'); } catch {}
+    },
+    replay() { this.speak(); },
+    destroy() { this.speechToken++; window.speechSynthesis?.cancel(); },
+}));
+
 Alpine.data('importUploader', () => ({
     dragging: false, fileName: '', loading: false,
     submitFile(files) {

@@ -98,7 +98,9 @@ class LoginController extends Controller
             'departemen' => $manpower->departemen,
         ]);
 
-        return redirect('/operator/dashboard')->with('success', 'Selamat datang, ' . $manpower->nama . '!');
+        return redirect('/operator/dashboard')
+            ->with('success', 'Selamat datang, ' . $manpower->nama . '!')
+            ->with('play_welcome_speech', true);
     }
 
     /**
@@ -159,6 +161,7 @@ class LoginController extends Controller
             'user_name' => $manpower->nama,
             'departemen' => $manpower->departemen,
         ]);
+        session()->flash('play_welcome_speech', true);
 
         $redirectUrl = $user->isManagement() ? url('/admin/dashboard') : url('/operator/dashboard');
 

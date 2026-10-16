@@ -26,6 +26,8 @@
         'moon' => 'M20 15A9 9 0 0 1 9 4a9 9 0 1 0 11 11Z',
         'scan' => 'M3 8V3h5m8 0h5v5M3 16v5h5m8 0h5v-5M7 8v8m4-8v8m3-8v8m3-8v8',
         'eye' => 'M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Zm13 0a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z',
+        'speaker' => 'M11 5 6 9H3v6h3l5 4V5Zm4.5 4.5a5 5 0 0 1 0 5m2.5-7.5a8 8 0 0 1 0 10',
+        'speaker-off' => 'M11 5 6 9H3v6h3l5 4V5Zm4 5 6 6m0-6-6 6',
     ];
 @endphp
 <svg {{ $attributes->class(['h-5 w-5 shrink-0']) }} aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="{{ $paths[$name] ?? $paths['book'] }}" /></svg>

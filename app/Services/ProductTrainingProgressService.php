@@ -19,7 +19,26 @@ class ProductTrainingProgressService
     /** @param Collection<int, TrainingEnrollment> $enrollments */
     public function isUnlocked(TrainingEnrollment $enrollment, Collection $enrollments): bool
     {
-        return $this->blockingEnrollments($enrollment, $enrollments)->isEmpty();
+        return $this->blockingEnrollments($enrollment, $enrollments)->isEmpty()
+            && $this->missingPrerequisiteLevels($enrollment, $enrollments) === [];
+    }
+
+    /** @return array<int, int> */
+    public function missingPrerequisiteLevels(TrainingEnrollment $enrollment, Collection $enrollments): array
+    {
+        $targetLevel = $enrollment->training->level;
+        if ($targetLevel <= 1) {
+            return [];
+        }
+
+        $assignedLevels = $enrollments
+            ->filter(fn (TrainingEnrollment $item): bool => $item->training->level < $targetLevel)
+            ->groupBy(fn (TrainingEnrollment $item): int => $item->training->level);
+
+        return collect(range(1, $targetLevel - 1))
+            ->filter(fn (int $level): bool => ! $assignedLevels->has($level))
+            ->values()
+            ->all();
     }
 
     /** @return Collection<int, TrainingEnrollment> */
@@ -34,13 +53,23 @@ class ProductTrainingProgressService
     /** @param Collection<int, TrainingEnrollment> $enrollments */
     public function currentLevel(Collection $enrollments): int
     {
-        $completedLevels = $enrollments
-            ->groupBy(fn (TrainingEnrollment $enrollment): int => $enrollment->training->level)
-            ->filter(fn (Collection $items): bool => $items->isNotEmpty() && $items->every(fn (TrainingEnrollment $item): bool => $this->blockFor($item) === 2))
-            ->keys()
-            ->map(fn (mixed $level): int => (int) $level);
+        $levels = $enrollments->groupBy(fn (TrainingEnrollment $enrollment): int => $enrollment->training->level);
+        $currentLevel = 0;
 
-        return $completedLevels->isEmpty() ? 0 : $completedLevels->max();
+        foreach (range(1, 4) as $level) {
+            $levelEnrollments = $levels->get($level);
+            if (! $levelEnrollments instanceof Collection || $levelEnrollments->isEmpty()) {
+                break;
+            }
+
+            if (! $levelEnrollments->every(fn (TrainingEnrollment $item): bool => $this->blockFor($item) === 2)) {
+                break;
+            }
+
+            $currentLevel = $level;
+        }
+
+        return $currentLevel;
     }
 
     public function labelFor(TrainingEnrollment $enrollment): string

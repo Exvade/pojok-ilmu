@@ -7,10 +7,17 @@
         <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-brand-dark dark:text-green-400">Penilaian praktik</p>
-                <h1 class="page-title">Antrean OJT produksi</h1>
-                <p class="page-description">Manpower di bawah ini sudah lulus post-test dan menunggu penilaian OJT oleh Leader.</p>
+                <h1 class="page-title">Dashboard Leader OJT</h1>
+                <p class="page-description">Pantau kesiapan OJT anggota tim dan isi penilaian langsung dari antrean.</p>
             </div>
-            <span class="inline-flex w-fit items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">{{ $enrollments->total() }} menunggu OJT</span>
+            <span class="inline-flex w-fit items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">{{ $summary['ready'] + $summary['retry'] }} perlu ditindaklanjuti</span>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <x-card><div class="flex items-start justify-between gap-3"><div><p class="text-sm font-medium text-gray-500">Siap dinilai</p><p class="mt-2 text-3xl font-semibold text-amber-600">{{ $summary['ready'] }}</p><p class="mt-1 text-xs text-gray-500">Lulus post-test, menunggu OJT.</p></div><span class="rounded-md bg-amber-50 p-2 text-amber-700 dark:bg-amber-950/40 dark:text-amber-200"><x-icon name="clipboard" class="h-5 w-5" /></span></div></x-card>
+            <x-card><div class="flex items-start justify-between gap-3"><div><p class="text-sm font-medium text-gray-500">Perlu OJT ulang</p><p class="mt-2 text-3xl font-semibold text-red-600">{{ $summary['retry'] }}</p><p class="mt-1 text-xs text-gray-500">Butuh pembinaan dan penilaian ulang.</p></div><span class="rounded-md bg-red-50 p-2 text-red-600 dark:bg-red-950/40 dark:text-red-300"><x-icon name="reset" class="h-5 w-5" /></span></div></x-card>
+            <x-card><div class="flex items-start justify-between gap-3"><div><p class="text-sm font-medium text-gray-500">Belum siap OJT</p><p class="mt-2 text-3xl font-semibold text-gray-700 dark:text-gray-200">{{ $summary['notReady'] }}</p><p class="mt-1 text-xs text-gray-500">Belum lulus post-test.</p></div><span class="rounded-md bg-gray-100 p-2 text-gray-600 dark:bg-gray-800 dark:text-gray-300"><x-icon name="book" class="h-5 w-5" /></span></div></x-card>
+            <x-card><div class="flex items-start justify-between gap-3"><div><p class="text-sm font-medium text-gray-500">Sudah Balok 2</p><p class="mt-2 text-3xl font-semibold text-brand-dark dark:text-green-300">{{ $summary['completed'] }}</p><p class="mt-1 text-xs text-gray-500">OJT disetujui oleh Leader.</p></div><span class="rounded-md bg-green-50 p-2 text-brand-dark dark:bg-green-950/40 dark:text-green-300"><x-icon name="check" class="h-5 w-5" /></span></div></x-card>
         </div>
 
         <x-card>
@@ -39,7 +46,7 @@
                         <td class="text-right"><x-button :href="route('admin.ojt.show', $enrollment)" size="sm" title="Isi OJT {{ $enrollment->manpower->nama }}"><x-icon name="clipboard" class="h-4 w-4" /><span>Isi OJT</span></x-button></td>
                     </tr>
                 @empty
-                    <tr><td colspan="5"><x-empty-state title="Tidak ada antrean OJT" description="Belum ada manpower yang lulus post-test dan menunggu penilaian OJT pada filter ini." /></td></tr>
+                    <tr><td colspan="5"><x-empty-state title="Tidak ada antrean OJT" description="Belum ada anggota tim yang lulus post-test dan menunggu penilaian OJT pada filter ini." /></td></tr>
                 @endforelse
             </x-table>
             <div class="border-t border-gray-200 px-5 py-4 dark:border-gray-700">{{ $enrollments->links() }}</div>

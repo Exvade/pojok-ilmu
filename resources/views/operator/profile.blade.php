@@ -49,7 +49,11 @@
                         </div>
 
                         @if (! $level['is_unlocked'])
-                            <p class="mt-3 text-xs leading-5 text-amber-800 dark:text-amber-200">Selesaikan Balok 2 untuk: {{ implode(', ', $level['blocking_training_titles']) }}.</p>
+                            @if ($level['blocking_training_titles'] !== [])
+                                <p class="mt-3 text-xs leading-5 text-amber-800 dark:text-amber-200">Selesaikan Balok 2 untuk: {{ implode(', ', $level['blocking_training_titles']) }}.</p>
+                            @else
+                                <p class="mt-3 text-xs leading-5 text-amber-800 dark:text-amber-200">Level {{ implode(' dan ', $level['missing_prerequisite_levels']) }} perlu ditugaskan dan diselesaikan hingga Balok 2 terlebih dahulu.</p>
+                            @endif
                         @endif
 
                         <div class="mt-4 divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-900">
