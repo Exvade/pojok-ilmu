@@ -141,6 +141,7 @@
                     <p class="text-sm font-semibold">Suara sambutan</p>
                     <p class="mt-1 text-xs leading-5 text-gray-500" x-text="message"></p>
                     <p x-show="! supported" x-cloak class="mt-1 text-xs text-amber-700 dark:text-amber-300">Browser ini belum mendukung suara sambutan.</p>
+                    <p x-show="voiceUnavailable" x-cloak class="mt-1 text-xs text-amber-700 dark:text-amber-300">Suara Bahasa Indonesia belum siap di perangkat ini. Tunggu sebentar, lalu tekan tombol dengarkan kembali.</p>
                     <p x-show="autoplayBlocked" x-cloak class="mt-1 text-xs text-amber-700 dark:text-amber-300">Tekan “Dengarkan sambutan” untuk mengaktifkan suara pada browser ini.</p>
                 </div>
             </div>
