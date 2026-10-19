@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SkillController;
 use App\Http\Controllers\Admin\SkillMatrixController;
 use App\Http\Controllers\Admin\TrainingController;
+use App\Http\Controllers\Admin\TrainingReportController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Operator\DashboardController as OperatorDashboardController;
 use App\Http\Controllers\Operator\MaterialController as OperatorMaterialController;
@@ -56,6 +57,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/imports/{type}/confirm', [ImportController::class, 'confirm'])->middleware('management-permission:curriculum')->name('imports.confirm');
     Route::get('/product-assignments', [ProductAssignmentController::class, 'index'])->middleware('management-permission:competency')->name('product-assignments.index');
     Route::post('/product-assignments', [ProductAssignmentController::class, 'store'])->middleware('management-permission:competency')->name('product-assignments.store');
+    Route::get('/training-reports', [TrainingReportController::class, 'index'])->middleware('management-permission:competency')->name('training-reports.index');
+    Route::get('/training-reports/export', [TrainingReportController::class, 'export'])->middleware('management-permission:competency')->name('training-reports.export');
     Route::get('/ojt', [OjtController::class, 'index'])->middleware('management-permission:ojt')->name('ojt.index');
     Route::get('/ojt/{enrollment}', [OjtController::class, 'show'])->middleware('management-permission:ojt')->name('ojt.show');
     Route::post('/ojt/{enrollment}', [OjtController::class, 'store'])->middleware('management-permission:ojt')->name('ojt.store');

@@ -20,13 +20,13 @@ class SkillMatrixController extends Controller
         $search = trim($request->string('search')->toString());
 
         if ($departemenFilter === '' && ! $request->has('departemen')) {
-            $departemenFilter = $request->user()?->manpower?->departemen ?? '';
+            $departemenFilter = $request->user()?->manpower?->trainingDepartment() ?? '';
         }
 
         $manpowerQuery = MManpower::query()
             ->where('status', true)
             ->whereNotNull('haris_synced_at')
-            ->when($departemenFilter !== '', fn ($query) => $query->where('departemen', $departemenFilter))
+            ->when($departemenFilter !== '', fn ($query) => $query->forTrainingDepartment($departemenFilter))
             ->when($search !== '', function ($query) use ($search): void {
                 $query->where(function ($nestedQuery) use ($search): void {
                     $nestedQuery->where('nama', 'like', "%{$search}%")
@@ -38,7 +38,7 @@ class SkillMatrixController extends Controller
         $manpowerIds = (clone $manpowerQuery)->pluck('id');
         $products = Training::query()
             ->whereHas('enrollments', fn ($query) => $query->whereIn('manpower_id', $manpowerIds))
-            ->when($departemenFilter !== '', fn ($query) => $query->where('departemen', $departemenFilter))
+            ->when($departemenFilter !== '', fn ($query) => $query->forDepartment($departemenFilter))
             ->orderBy('level')
             ->orderBy('judul')
             ->get();
@@ -62,10 +62,12 @@ class SkillMatrixController extends Controller
         $departemens = MManpower::query()
             ->where('status', true)
             ->whereNotNull('haris_synced_at')
-            ->whereNotNull('departemen')
-            ->distinct()
-            ->orderBy('departemen')
-            ->pluck('departemen');
+            ->get()
+            ->map(fn (MManpower $manpower): ?string => $manpower->trainingDepartment())
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
 
         return view('admin.product-matrix-clean', compact(
             'manpowerIds',

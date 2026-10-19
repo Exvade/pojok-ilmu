@@ -13,6 +13,7 @@ use App\Models\Training;
 use App\Models\TrainingEnrollment;
 use App\Models\TrainingMaterial;
 use App\Services\DepartmentAliasResolver;
+use App\Services\DepartmentGroupService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -276,7 +277,7 @@ class ImportController extends Controller
                 if (! $manpower) {
                     $errors[] = 'NPK tidak ditemukan, tidak aktif, atau belum tersinkron dari HaRis.';
                 }
-                if ($training && $manpower && ! $training->appliesToDepartment($manpower->departemen)) {
+                if ($training && $manpower && ! $training->appliesToDepartment($manpower->trainingDepartment())) {
                     $errors[] = 'Departemen manpower tidak termasuk dalam departemen training.';
                 }
             }
@@ -326,6 +327,9 @@ class ImportController extends Controller
         $departments = collect(explode(';', (string) ($row['_resolved_departemen'] ?? $row['departemen'])))
             ->map(fn (string $department): string => trim($department))
             ->reject(fn (string $department): bool => $department === '')
+            ->map(fn (string $department): ?string => DepartmentGroupService::normalize($department))
+            ->filter()
+            ->unique()
             ->values()
             ->all();
         $isGeneralTraining = count($departments) === 1 && strtoupper($departments[0]) === 'SEMUA';

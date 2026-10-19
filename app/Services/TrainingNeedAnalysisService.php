@@ -17,7 +17,7 @@ class TrainingNeedAnalysisService
     public function synchronizeFor(MManpower $manpower): int
     {
         $targets = MSkillTargetLevel::query()
-            ->where('departemen', $manpower->departemen)
+            ->where('departemen', $manpower->trainingDepartment())
             ->where('bagian', $manpower->bagian)
             ->get();
 

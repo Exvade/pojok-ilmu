@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\DepartmentGroupService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -27,7 +28,12 @@ class Training extends BaseModel
     /** @return array<int, string> */
     public function departmentList(): array
     {
-        return filled($this->departemens) ? $this->departemens : array_filter([$this->departemen]);
+        return collect(filled($this->departemens) ? $this->departemens : array_filter([$this->departemen]))
+            ->map(fn (string $department): ?string => DepartmentGroupService::normalize($department))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 
     public function departmentLabel(): string
@@ -43,11 +49,13 @@ class Training extends BaseModel
 
     public function appliesToDepartment(?string $department): bool
     {
-        return $this->departmentList() === [] || in_array($department, $this->departmentList(), true);
+        return $this->departmentList() === [] || in_array(DepartmentGroupService::normalize($department), $this->departmentList(), true);
     }
 
     public function scopeForDepartment(Builder $query, string $department): Builder
     {
+        $department = DepartmentGroupService::normalize($department);
+
         return $query->where(function (Builder $query) use ($department): void {
             $query->whereJsonContains('departemens', $department)
                 ->orWhereJsonLength('departemens', 0)

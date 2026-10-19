@@ -27,16 +27,18 @@ class ProductAssignmentController extends Controller
         $manpowers = MManpower::query()
             ->where('status', true)
             ->whereNotNull('haris_synced_at')
-            ->when($department !== '', fn ($query) => $query->where('departemen', $department))
+            ->when($department !== '', fn ($query) => $query->forTrainingDepartment($department))
             ->orderBy('nama')
             ->get();
         $departments = MManpower::query()
             ->where('status', true)
             ->whereNotNull('haris_synced_at')
-            ->whereNotNull('departemen')
-            ->distinct()
-            ->orderBy('departemen')
-            ->pluck('departemen');
+            ->get()
+            ->map(fn (MManpower $manpower): ?string => $manpower->trainingDepartment())
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
 
         return view('admin.product-assignments.index-clean', compact('products', 'manpowers', 'departments', 'department'));
     }
@@ -56,7 +58,7 @@ class ProductAssignmentController extends Controller
             ->where('status', true)
             ->whereNotNull('haris_synced_at')
             ->get()
-            ->filter(fn (MManpower $manpower): bool => $training->appliesToDepartment($manpower->departemen))
+            ->filter(fn (MManpower $manpower): bool => $training->appliesToDepartment($manpower->trainingDepartment()))
             ->pluck('id')
             ->all();
 

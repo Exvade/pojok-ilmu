@@ -7,6 +7,7 @@ use App\Models\MManpower;
 use App\Models\MSkill;
 use App\Models\Training;
 use App\Models\TrainingMaterial;
+use App\Services\DepartmentGroupService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,10 +27,12 @@ class TrainingController extends Controller
         $departments = MManpower::query()
             ->where('status', true)
             ->whereNotNull('haris_synced_at')
-            ->whereNotNull('departemen')
-            ->distinct()
-            ->orderBy('departemen')
-            ->pluck('departemen');
+            ->get()
+            ->map(fn (MManpower $manpower): ?string => $manpower->trainingDepartment())
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
 
         return view('admin.trainings.index', compact('trainings', 'departments'));
     }
@@ -175,6 +178,8 @@ class TrainingController extends Controller
     {
         $departments = collect($departmentValues)
             ->reject(fn (string $department): bool => $department === '__all__')
+            ->map(fn (string $department): ?string => DepartmentGroupService::normalize($department))
+            ->filter()
             ->unique()
             ->values()
             ->all();

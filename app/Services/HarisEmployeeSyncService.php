@@ -84,6 +84,7 @@ class HarisEmployeeSyncService
                         [
                             'nama',
                             'departemen',
+                            'department_group',
                             'kode_departemen',
                             'nama_plant',
                             'haris_plant_id',
@@ -175,6 +176,7 @@ class HarisEmployeeSyncService
             'nik' => $nik,
             'nama' => $name,
             'departemen' => $departmentName,
+            'department_group' => DepartmentGroupService::normalize($departmentName),
             'kode_departemen' => $departmentCode,
             'nama_plant' => $plantName,
             'haris_plant_id' => $plantId,

@@ -51,12 +51,12 @@
 
                 <x-modal name="assign-{{ $product->id }}" title="Tugaskan {{ $product->judul }}" maxWidth="xl">
                     @php
-                        $productManpowers = $manpowers->filter(fn ($manpower) => $product->appliesToDepartment($manpower->departemen));
+                        $productManpowers = $manpowers->filter(fn ($manpower) => $product->appliesToDepartment($manpower->trainingDepartment()));
                         $manpowerSearchValues = $productManpowers
                             ->map(fn ($manpower) => implode(' ', [
                                 $manpower->nama,
                                 $manpower->mp_id,
-                                $manpower->departemen,
+                                $manpower->trainingDepartment(),
                                 $manpower->bagian,
                             ]))
                             ->values();
@@ -87,7 +87,7 @@
                                 @php
                                     $assignment = $product->enrollments->firstWhere('manpower_id', $manpower->id);
                                     $canCancelAssignment = ! $assignment || $assignment->status === 'enrolled';
-                                    $searchValue = implode(' ', [$manpower->nama, $manpower->mp_id, $manpower->departemen, $manpower->bagian]);
+                                    $searchValue = implode(' ', [$manpower->nama, $manpower->mp_id, $manpower->trainingDepartment(), $manpower->departemen, $manpower->bagian]);
                                 @endphp
                                 <label x-show="matches(@js($searchValue))" @class([
                                     'flex items-center gap-3 rounded-md px-2 py-2',
