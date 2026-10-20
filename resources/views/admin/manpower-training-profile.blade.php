@@ -38,7 +38,7 @@
                                 <td><x-competency-blocks :value="$enrollment->block" /></td>
                                 <td class="text-right">
                                     @if($ojt && auth()->user()->canAssessOjt())
-                                        <x-button :href="route('admin.ojt.pdf', $enrollment)" variant="ghost" size="sm" title="Unduh hasil OJT" aria-label="Unduh hasil OJT {{ $enrollment->training?->judul }}"><x-icon name="download" class="h-4 w-4" /></x-button>
+                                        <x-button :href="route('admin.ojt.pdf', $enrollment)" data-no-loading variant="ghost" size="sm" title="Unduh hasil OJT" aria-label="Unduh hasil OJT {{ $enrollment->training?->judul }}"><x-icon name="download" class="h-4 w-4" /></x-button>
                                     @endif
                                 </td>
                             </tr>
