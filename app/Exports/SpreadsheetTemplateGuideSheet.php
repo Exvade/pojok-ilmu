@@ -132,7 +132,7 @@ class SpreadsheetTemplateGuideSheet implements FromArray, WithEvents, WithTitle
                 ? 'Isi pada baris pertama setiap kelompok. Kosongkan pada baris berikutnya untuk mengikuti kode training di atasnya.'
                 : 'Isi sesuai kode training yang ingin diimpor.',
             'departemen' => 'Gunakan nama resmi HaRis atau alias terdaftar. Pisahkan beberapa departemen dengan ; atau isi SEMUA untuk training umum.',
-            'level' => 'Pilih angka 1 sampai 4.',
+            'level' => 'Pilih angka 1 sampai 3.',
             'nilai_lulus' => 'Masukkan angka 50 sampai 100.',
             'batas_percobaan', 'durasi_menit', 'masa_tunggu_jam', 'urutan' => 'Masukkan angka bulat positif.',
             'tipe_media' => 'Pilih dari daftar: text, video_youtube, video_gdrive, image, atau pdf.',

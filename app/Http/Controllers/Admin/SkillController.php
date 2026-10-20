@@ -44,7 +44,7 @@ class SkillController extends Controller
             'departemen' => 'required|string|exists:m_manpower,departemen',
             'bagian' => 'required|string|exists:m_manpower,jabatan',
             'skill_id' => 'required|exists:m_skills,id',
-            'target_level' => 'required|integer|min:1|max:4',
+            'target_level' => 'required|integer|min:1|max:3',
         ]);
 
         DB::beginTransaction();

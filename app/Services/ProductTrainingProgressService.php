@@ -56,7 +56,7 @@ class ProductTrainingProgressService
         $levels = $enrollments->groupBy(fn (TrainingEnrollment $enrollment): int => $enrollment->training->level);
         $currentLevel = 0;
 
-        foreach (range(1, 4) as $level) {
+        foreach (range(1, 3) as $level) {
             $levelEnrollments = $levels->get($level);
             if (! $levelEnrollments instanceof Collection || $levelEnrollments->isEmpty()) {
                 break;

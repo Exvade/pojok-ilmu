@@ -12,7 +12,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('kode_training')->unique();
             $table->foreignUuid('skill_id')->constrained('m_skills')->onDelete('cascade');
-            $table->tinyInteger('level')->default(1); // 1, 2, 3, 4
+            $table->tinyInteger('level')->default(1); // 1, 2, 3
             $table->string('judul');
             $table->text('deskripsi')->nullable();
             $table->integer('max_retries')->default(3);

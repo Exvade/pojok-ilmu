@@ -107,7 +107,7 @@ class SpreadsheetTemplateDataSheet implements FromArray, WithColumnWidths, WithE
     private function applyValidation(object $sheet, string $column, string $heading, int $lastRow): void
     {
         $allowedValues = match ($heading) {
-            'level' => ['1', '2', '3', '4'],
+            'level' => ['1', '2', '3'],
             'tipe_media' => ['text', 'video_youtube', 'video_gdrive', 'image', 'pdf'],
             'kunci_jawaban' => ['a', 'b', 'c', 'd'],
             default => [],

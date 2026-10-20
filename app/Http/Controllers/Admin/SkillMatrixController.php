@@ -131,7 +131,7 @@ class SkillMatrixController extends Controller
     public function setInitialLevel(Request $request, string $matrixId, TrainingNeedAnalysisService $tna)
     {
         $data = $request->validate([
-            'current_level' => 'required|integer|min:0|max:4',
+            'current_level' => 'required|integer|min:0|max:3',
         ]);
 
         $matrix = OperatorSkillMatrix::with(['manpower', 'skill'])->findOrFail($matrixId);
