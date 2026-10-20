@@ -32,6 +32,8 @@ return [
         'url' => env('HARIS_API_URL'),
         'token' => env('HARIS_API_TOKEN'),
         'sync_at' => env('HARIS_SYNC_AT', '02:00'),
+        'retry_times' => env('HARIS_RETRY_TIMES', 3),
+        'retry_delay_ms' => env('HARIS_RETRY_DELAY_MS', 1000),
         'scope_plant_code' => env('HARIS_SCOPE_PLANT_CODE', 'PSG'),
         'scope_plant_id' => env('HARIS_SCOPE_PLANT_ID', '3'),
     ],
