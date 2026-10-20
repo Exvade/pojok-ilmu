@@ -157,3 +157,33 @@ test('it keeps Plant 3 and management employees across plants in the local scope
     $this->assertDatabaseHas('m_manpower', ['nik' => '100013', 'status' => true]);
     $this->assertDatabaseMissing('m_manpower', ['nik' => '100011']);
 });
+
+test('it does not deactivate employees outside the active plant scope', function () {
+    config()->set('services.haris.scope_plant_code', 'PSG');
+    config()->set('services.haris.scope_plant_id', '3');
+
+    $outsideScope = MManpower::create([
+        'mp_id' => '100020',
+        'nik' => '100020',
+        'nama' => 'Operator Cikarang Lama',
+        'departemen' => 'PPIC',
+        'kode_departemen' => 'CKR.PPIC',
+        'haris_plant_id' => '4',
+        'bagian' => 'OPERATOR',
+        'jabatan' => 'OPERATOR',
+        'status' => true,
+        'haris_synced_at' => now()->subDay(),
+    ]);
+
+    Http::fake([
+        'https://haris.test/api/employees*' => Http::response([
+            'data' => [
+                ['namaLengkap' => 'Operator P3', 'nik' => '100021', 'jabatan' => 'Operator', 'statusKaryawan' => 'Aktif', 'departemen' => ['kode' => 'PSG.PPIC', 'nama' => 'PPIC - Pasir Gombong'], 'plant' => ['id' => '3', 'nama' => 'Pasir Gombong']],
+            ],
+        ]),
+    ]);
+
+    app(HarisEmployeeSyncService::class)->sync();
+
+    expect($outsideScope->fresh()->status)->toBeTrue();
+});

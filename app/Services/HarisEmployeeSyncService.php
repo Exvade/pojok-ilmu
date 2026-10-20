@@ -31,6 +31,10 @@ class HarisEmployeeSyncService
             $response = Http::acceptJson()
                 ->connectTimeout(10)
                 ->timeout(60)
+                ->retry(
+                    (int) config('services.haris.retry_times'),
+                    (int) config('services.haris.retry_delay_ms'),
+                )
                 ->get($url, ['token' => $token]);
 
             $response->throw();
@@ -58,11 +62,14 @@ class HarisEmployeeSyncService
             // Compare the response with the same Plant 3/management scope. This
             // keeps the incomplete-response safeguard useful after the scope is
             // deliberately narrowed from all plants to Plant 3.
-            $existingCount = MManpower::query()
+            $scopedExistingNiks = MManpower::query()
                 ->whereNotNull('haris_synced_at')
                 ->get(['nik', 'kode_departemen', 'jabatan'])
                 ->filter(fn (MManpower $employee): bool => $this->isIncludedInScope($employee->getAttributes(), $managementUserIds))
-                ->count();
+                ->pluck('nik')
+                ->all();
+
+            $existingCount = count($scopedExistingNiks);
 
             $minimumSafeCount = (int) floor($existingCount * 0.7);
 
@@ -70,7 +77,7 @@ class HarisEmployeeSyncService
                 throw new RuntimeException('Jumlah data dari HaRis di bawah ambang aman. Penonaktifan dibatalkan.');
             }
 
-            $deactivatedCount = DB::transaction(function () use ($records): int {
+            $deactivatedCount = DB::transaction(function () use ($records, $scopedExistingNiks): int {
                 $syncedNiks = $records->pluck('nik')->all();
 
                 MManpower::withTrashed()
@@ -102,6 +109,7 @@ class HarisEmployeeSyncService
 
                 return MManpower::query()
                     ->whereNotNull('haris_synced_at')
+                    ->whereIn('nik', $scopedExistingNiks)
                     ->whereNotIn('nik', $syncedNiks)
                     ->where('status', true)
                     ->update([
