@@ -27,7 +27,16 @@ test('management pages render shared sidebar and training forms', function () {
     $this->get('/admin/trainings/' . $training->id)->assertOk()->assertSee('Tambah Soal Kuis')->assertSee('Apa langkah pertama?');
     $skill->delete();
     $this->get('/admin/trainings/' . $training->id)->assertOk()->assertSee('Training Level 1');
-    $this->get('/admin/trainings')->assertOk()->assertSee('Training', false);
+    $this->get('/admin/trainings')->assertOk()->assertSee('Training', false)->assertDontSee('Level 4');
+
+    $this->from('/admin/trainings')->post('/admin/trainings', [
+        'kode_training' => 'UI-LEVEL-4',
+        'departemens' => ['IT'],
+        'level' => 4,
+        'judul' => 'Training tidak valid',
+        'max_retries' => 3,
+        'passing_grade' => 80,
+    ])->assertSessionHasErrors('level');
 });
 
 test('invalid form preserves user input and reopens the correct modal', function () {

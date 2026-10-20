@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('departemen');
             $table->string('bagian');
             $table->foreignUuid('skill_id')->constrained('m_skills')->onDelete('cascade');
-            $table->tinyInteger('target_level')->default(1); // 1, 2, 3, 4
+            $table->tinyInteger('target_level')->default(1); // 1, 2, 3
             $table->softDeletes();
             $table->mwtTimestamps();
         });

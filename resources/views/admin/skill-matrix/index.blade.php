@@ -158,9 +158,9 @@
                                 <td class="py-4 px-4 border-l border-gray-200 dark:border-gray-700 text-center align-middle whitespace-nowrap">
                                     @if(!$matrix)<span class="text-xs text-gray-400">Belum ditetapkan</span>@else
                                     <div class="inline-flex flex-col items-center">
-                                        <!-- 4-Block Level Indicator -->
+                                        <!-- 3-Level Indicator -->
                                         <div class="flex items-center gap-1 mb-1">
-                                            @for($l = 1; $l <= 4; $l++)
+                                            @for($l = 1; $l <= 3; $l++)
                                                 <div class="w-3.5 h-6 rounded-sm border {{ $l <= $current ? 'bg-brand-light border-green-600 shadow-sm' : 'bg-gray-200 dark:bg-gray-700 border-gray-300 dark:border-gray-600' }}" title="Level {{ $l }}"></div>
                                             @endfor
                                         </div>
@@ -190,7 +190,7 @@
                                             <div>
                                                 <label class="mb-1 block text-sm font-medium" for="baseline-{{ $matrix->id }}-current_level">Level kemampuan saat ini</label>
                                                 <x-select name="current_level" id="baseline-{{ $matrix->id }}-current_level">
-                                                    @for($optionLevel = 0; $optionLevel <= 4; $optionLevel++)
+                                                    @for($optionLevel = 0; $optionLevel <= 3; $optionLevel++)
                                                         <option value="{{ $optionLevel }}" @selected($current === $optionLevel)>Level {{ $optionLevel }}{{ $optionLevel === 0 ? ' — Belum tervalidasi' : '' }}</option>
                                                     @endfor
                                                 </x-select>

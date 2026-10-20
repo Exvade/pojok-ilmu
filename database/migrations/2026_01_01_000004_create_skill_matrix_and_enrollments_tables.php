@@ -38,8 +38,8 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignId('manpower_id')->constrained('m_manpower')->onDelete('cascade');
             $table->foreignUuid('skill_id')->constrained('m_skills')->onDelete('cascade');
-            $table->tinyInteger('current_level')->default(0); // 0, 1, 2, 3, 4
-            $table->tinyInteger('target_level')->default(1); // 1, 2, 3, 4
+            $table->tinyInteger('current_level')->default(0); // 0, 1, 2, 3
+            $table->tinyInteger('target_level')->default(1); // 1, 2, 3
             $table->string('status_gap')->default('Gap -1 Level');
             $table->timestamp('last_updated_at')->nullable();
             $table->softDeletes();

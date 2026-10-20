@@ -6,7 +6,7 @@
     @php
         $totalBalokSatu = $enrollments->where('block', 1)->count();
         $totalBalokDua = $enrollments->where('block', 2)->count();
-        $levels = collect(range(1, 4));
+        $levels = collect(range(1, 3));
     @endphp
 
     <div class="page-shell">

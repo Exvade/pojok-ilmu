@@ -240,8 +240,8 @@ class ImportController extends Controller
                 }
             }
             if ($type === 'trainings') {
-                if (! is_numeric($row['level'] ?? null) || ! in_array((int) $row['level'], [1, 2, 3, 4], true)) {
-                    $errors[] = 'Level harus bernilai 1 sampai 4.';
+                if (! is_numeric($row['level'] ?? null) || ! in_array((int) $row['level'], [1, 2, 3], true)) {
+                    $errors[] = 'Level harus bernilai 1 sampai 3.';
                 }
 
                 $departmentResolution = $this->resolveDepartments($row['departemen'] ?? null);
