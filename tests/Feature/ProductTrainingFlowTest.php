@@ -105,7 +105,7 @@ test('pengelola dapat mengubah data training yang sudah dibuat', function () {
 
     $this->actingAs($admin)->put('/admin/trainings/' . $training->id, [
         'kode_training' => 'TRN-EDIT-01',
-        'departemen' => 'PRODUKSI',
+        'departemens' => ['PRODUKSI'],
         'level' => 2,
         'judul' => 'BOX BATTERY REVISI',
         'deskripsi' => 'Training revisi untuk BOX BATTERY.',
@@ -148,8 +148,20 @@ test('pengelola dapat mengimpor penugasan training tanpa membuat data ganda', fu
     ]);
     $file = UploadedFile::fake()->createWithContent('penugasan.csv', "kode_training,npk\nTRN-IMPORT-01,TRN-MP-01\n");
 
-    $this->actingAs($admin)->post('/admin/imports/assignments', ['file' => $file])->assertSessionHas('success');
-    $this->actingAs($admin)->post('/admin/imports/assignments', ['file' => $file])->assertSessionHas('success');
+    $preview = $this->actingAs($admin)
+        ->post('/admin/imports/assignments', ['file' => $file])
+        ->assertOk()
+        ->assertViewHas('preview');
+    $this->post(route('admin.assignments.import.confirm'), [
+        'preview_token' => $preview->viewData('preview')['token'],
+    ])->assertSessionHas('success');
+
+    $preview = $this->post('/admin/imports/assignments', ['file' => $file])
+        ->assertOk()
+        ->assertViewHas('preview');
+    $this->post(route('admin.assignments.import.confirm'), [
+        'preview_token' => $preview->viewData('preview')['token'],
+    ])->assertSessionHas('success');
 
     $this->assertDatabaseHas('training_enrollments', [
         'training_id' => $training->id,
