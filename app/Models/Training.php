@@ -105,4 +105,9 @@ class Training extends BaseModel
     {
         return $this->hasMany(TrainingEnrollment::class, 'training_id', 'id');
     }
+
+    public function assignmentLogs(): HasMany
+    {
+        return $this->hasMany(TrainingAssignmentLog::class, 'training_id', 'id');
+    }
 }

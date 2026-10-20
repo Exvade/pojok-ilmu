@@ -56,6 +56,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/imports/{type}', [ImportController::class, 'store'])->middleware('management-permission:curriculum')->name('imports.store');
     Route::post('/imports/{type}/confirm', [ImportController::class, 'confirm'])->middleware('management-permission:curriculum')->name('imports.confirm');
     Route::get('/product-assignments', [ProductAssignmentController::class, 'index'])->middleware('management-permission:competency')->name('product-assignments.index');
+    Route::get('/product-assignments/{training}/history', [ProductAssignmentController::class, 'history'])->middleware('management-permission:competency')->name('product-assignments.history');
     Route::post('/product-assignments', [ProductAssignmentController::class, 'store'])->middleware('management-permission:competency')->name('product-assignments.store');
     Route::get('/training-reports', [TrainingReportController::class, 'index'])->middleware('management-permission:competency')->name('training-reports.index');
     Route::get('/training-reports/export', [TrainingReportController::class, 'export'])->middleware('management-permission:competency')->name('training-reports.export');
