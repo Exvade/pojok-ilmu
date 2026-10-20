@@ -43,9 +43,14 @@
                     </div>
                     <p class="mt-4 text-sm text-gray-600 dark:text-gray-300">Semua manpower yang ditugaskan memulai dari proses training, lalu mengejar data Balok 1 dan Balok 2 di sistem.</p>
                     <x-slot name="footer">
-                        <x-button type="button" @click="$dispatch('open-modal', 'assign-{{ $product->id }}')" size="sm">
-                            Atur manpower <x-icon name="arrow" class="h-4 w-4" />
-                        </x-button>
+                        <div class="flex items-center justify-between gap-2">
+                            <x-button :href="route('admin.product-assignments.history', $product)" variant="ghost" size="sm" aria-label="Lihat riwayat penugasan {{ $product->judul }}" title="Riwayat penugasan">
+                                <x-icon name="document" class="h-4 w-4" />
+                            </x-button>
+                            <x-button type="button" @click="$dispatch('open-modal', 'assign-{{ $product->id }}')" size="sm">
+                                Atur manpower <x-icon name="arrow" class="h-4 w-4" />
+                            </x-button>
+                        </div>
                     </x-slot>
                 </x-card>
 
@@ -111,6 +116,11 @@
                             @if ($productManpowers->isNotEmpty())
                                 <p x-show="query && filteredCount() === 0" x-cloak class="p-3 text-center text-sm text-gray-500">Manpower tidak ditemukan.</p>
                             @endif
+                        </div>
+
+                        <div>
+                            <label for="reason-{{ $product->id }}" class="mb-1.5 block text-sm font-medium">Catatan perubahan <span class="font-normal text-gray-500">(opsional)</span></label>
+                            <x-textarea id="reason-{{ $product->id }}" name="reason" rows="2" placeholder="Contoh: penugasan disesuaikan dengan kebutuhan lini produksi." />
                         </div>
 
                         <div class="flex justify-end gap-2">

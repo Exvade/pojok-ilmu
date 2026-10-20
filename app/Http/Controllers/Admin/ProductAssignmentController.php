@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\MManpower;
 use App\Models\Training;
+use App\Models\TrainingAssignmentLog;
 use App\Models\TrainingEnrollment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -49,6 +50,7 @@ class ProductAssignmentController extends Controller
             'training_id' => 'required|exists:trainings,id',
             'manpower_ids' => 'nullable|array',
             'manpower_ids.*' => 'exists:m_manpower,id',
+            'reason' => 'nullable|string|max:1000',
         ]);
 
         $training = Training::findOrFail($data['training_id']);
@@ -68,17 +70,56 @@ class ProductAssignmentController extends Controller
 
         try {
             DB::beginTransaction();
-            TrainingEnrollment::query()
+            $canceledEnrollments = TrainingEnrollment::query()
                 ->where('training_id', $training->id)
                 ->where('status', 'enrolled')
                 ->when($validManpowerIds !== [], fn ($query) => $query->whereNotIn('manpower_id', $validManpowerIds))
-                ->delete();
+                ->get();
+
+            foreach ($canceledEnrollments as $enrollment) {
+                $enrollment->delete();
+                $this->logAssignmentChange(
+                    $training,
+                    $enrollment,
+                    'canceled',
+                    'enrolled',
+                    'dibatalkan',
+                    $data['reason'] ?? null,
+                    $request->user()->id,
+                );
+            }
 
             foreach ($validManpowerIds as $manpowerId) {
-                TrainingEnrollment::firstOrCreate([
+                $enrollment = TrainingEnrollment::withTrashed()->firstOrNew([
                     'training_id' => $data['training_id'],
                     'manpower_id' => $manpowerId,
-                ], ['status' => 'enrolled', 'ojt_status' => 'not_started']);
+                ]);
+
+                if ($enrollment->exists && ! $enrollment->trashed()) {
+                    continue;
+                }
+
+                $previousStatus = $enrollment->exists ? 'dibatalkan' : null;
+
+                if ($enrollment->exists) {
+                    $enrollment->restore();
+                }
+
+                $enrollment->forceFill([
+                    'status' => 'enrolled',
+                    'ojt_status' => 'not_started',
+                ]);
+                $enrollment->save();
+
+                $this->logAssignmentChange(
+                    $training,
+                    $enrollment,
+                    'assigned',
+                    $previousStatus,
+                    'enrolled',
+                    $data['reason'] ?? null,
+                    $request->user()->id,
+                );
             }
             DB::commit();
         } catch (Throwable $exception) {
@@ -89,5 +130,36 @@ class ProductAssignmentController extends Controller
         }
 
         return back()->with('success', 'Penugasan training berhasil diperbarui.');
+    }
+
+    public function history(Training $training): View
+    {
+        $logs = $training->assignmentLogs()
+            ->with(['manpower', 'actor'])
+            ->latest()
+            ->paginate(20);
+
+        return view('admin.product-assignments.history', compact('training', 'logs'));
+    }
+
+    private function logAssignmentChange(
+        Training $training,
+        TrainingEnrollment $enrollment,
+        string $action,
+        ?string $statusBefore,
+        string $statusAfter,
+        ?string $reason,
+        string $actorUserId,
+    ): void {
+        TrainingAssignmentLog::create([
+            'training_id' => $training->id,
+            'manpower_id' => $enrollment->manpower_id,
+            'enrollment_id' => $enrollment->id,
+            'actor_user_id' => $actorUserId,
+            'action' => $action,
+            'status_before' => $statusBefore,
+            'status_after' => $statusAfter,
+            'reason' => filled($reason) ? $reason : null,
+        ]);
     }
 }

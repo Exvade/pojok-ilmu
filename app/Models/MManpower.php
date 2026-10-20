@@ -67,4 +67,9 @@ class MManpower extends BaseModel
     {
         return $this->hasMany(TrainingEnrollment::class, 'manpower_id', 'id');
     }
+
+    public function trainingAssignmentLogs(): HasMany
+    {
+        return $this->hasMany(TrainingAssignmentLog::class, 'manpower_id', 'id');
+    }
 }
