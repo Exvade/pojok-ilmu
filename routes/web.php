@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\TrainingReportController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Operator\DashboardController as OperatorDashboardController;
 use App\Http\Controllers\Operator\MaterialController as OperatorMaterialController;
+use App\Http\Controllers\Operator\OjtPdfController;
 use App\Http\Controllers\Operator\ProfileController as OperatorProfileController;
 use App\Http\Controllers\Operator\QuizController as OperatorQuizController;
 use Illuminate\Support\Facades\Auth;
@@ -61,6 +62,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/training-reports', [TrainingReportController::class, 'index'])->middleware('management-permission:competency')->name('training-reports.index');
     Route::get('/training-reports/export', [TrainingReportController::class, 'export'])->middleware('management-permission:competency')->name('training-reports.export');
     Route::get('/ojt', [OjtController::class, 'index'])->middleware('management-permission:ojt')->name('ojt.index');
+    Route::get('/ojt/{enrollment}/pdf', [OjtPdfController::class, 'downloadForManagement'])->middleware('management-permission:ojt')->name('ojt.pdf');
     Route::get('/ojt/{enrollment}', [OjtController::class, 'show'])->middleware('management-permission:ojt')->name('ojt.show');
     Route::post('/ojt/{enrollment}', [OjtController::class, 'store'])->middleware('management-permission:ojt')->name('ojt.store');
 
@@ -96,6 +98,7 @@ Route::middleware(['auth', 'active-operator'])->prefix('operator')->name('operat
     Route::get('/dashboard', [OperatorDashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile', [OperatorProfileController::class, 'show'])->name('profile');
     Route::get('/training/{enrollment}/ojt-result', [OperatorProfileController::class, 'ojtResult'])->name('ojt-result');
+    Route::get('/training/{enrollment}/ojt-result/pdf', [OjtPdfController::class, 'downloadForOperator'])->name('ojt-result.pdf');
     Route::get('/materials/{trainingId}', [OperatorMaterialController::class, 'show'])->name('materials.show');
     Route::post('/materials/{trainingId}/{materialId}/complete', [OperatorMaterialController::class, 'completeMaterial'])->name('materials.item.complete');
     Route::post('/materials/{trainingId}/complete', [OperatorMaterialController::class, 'complete'])->name('materials.complete');

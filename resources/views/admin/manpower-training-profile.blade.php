@@ -27,7 +27,7 @@
             @else
                 <div class="overflow-x-auto">
                     <x-table>
-                        <x-slot name="head"><tr><th>Training</th><th>Post-test</th><th>OJT</th><th>Balok</th></tr></x-slot>
+                        <x-slot name="head"><tr><th>Training</th><th>Post-test</th><th>OJT</th><th>Balok</th><th class="w-16 text-right">Aksi</th></tr></x-slot>
                         @foreach($enrollments as $enrollment)
                             @php($postTestAttempt = $enrollment->attempts->first(fn ($attempt) => $attempt->quiz?->tipe === 'post_test'))
                             @php($ojt = $enrollment->ojtAssessment)
@@ -36,6 +36,11 @@
                                 <td class="text-sm">@if($enrollment->post_test_completed_at)<p class="font-semibold text-brand-dark dark:text-green-300">Lulus · {{ $postTestAttempt?->score ?? '-' }}%</p><p class="mt-1 text-xs text-gray-500">{{ $enrollment->post_test_completed_at->translatedFormat('d M Y, H:i') }}</p>@else<span class="text-gray-400">Belum lulus</span>@endif</td>
                                 <td class="text-sm">@if($enrollment->ojt_status === 'approved')<p class="font-semibold text-brand-dark dark:text-green-300">Disetujui</p><p class="mt-1 text-xs text-gray-500">{{ $ojt?->theory_score ?? '-' }}% teori · {{ $ojt?->practice_score ?? '-' }}% praktik</p>@elseif($enrollment->ojt_status === 'pending')<span class="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950 dark:text-amber-200">Menunggu OJT</span>@elseif($enrollment->ojt_status === 'rejected')<span class="inline-flex rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700 dark:bg-red-950 dark:text-red-300">Perlu OJT ulang</span>@else<span class="text-gray-400">Belum masuk OJT</span>@endif</td>
                                 <td><x-competency-blocks :value="$enrollment->block" /></td>
+                                <td class="text-right">
+                                    @if($ojt && auth()->user()->canAssessOjt())
+                                        <x-button :href="route('admin.ojt.pdf', $enrollment)" variant="ghost" size="sm" title="Unduh hasil OJT" aria-label="Unduh hasil OJT {{ $enrollment->training?->judul }}"><x-icon name="download" class="h-4 w-4" /></x-button>
+                                    @endif
+                                </td>
                             </tr>
                         @endforeach
                     </x-table>
