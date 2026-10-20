@@ -26,9 +26,14 @@ test('competency spreadsheet import creates and updates skills by code', functio
         'IT-SE-GIT,Dasar Pemrograman dan Git,Software Engineering,Dasar pengelolaan source code',
     ]));
 
-    $this->actingAs($admin)
+    $preview = $this->actingAs($admin)
         ->post(route('admin.imports.store', 'skills'), ['file' => $file])
-        ->assertRedirect(route('admin.imports.create', 'skills'))
+        ->assertOk()
+        ->assertViewHas('preview');
+
+    $this->post(route('admin.imports.confirm', 'skills'), [
+        'preview_token' => $preview->viewData('preview')['token'],
+    ])->assertRedirect(route('admin.imports.create', 'skills'))
         ->assertSessionHas('success');
 
     $this->assertDatabaseHas('m_skills', [
@@ -41,9 +46,14 @@ test('competency spreadsheet import creates and updates skills by code', functio
         'IT-SE-GIT,Git dan Kolaborasi Tim,Software Engineering,Deskripsi diperbarui',
     ]));
 
-    $this->actingAs($admin)
+    $preview = $this->actingAs($admin)
         ->post(route('admin.imports.store', 'skills'), ['file' => $updateFile])
-        ->assertSessionHas('success');
+        ->assertOk()
+        ->assertViewHas('preview');
+
+    $this->post(route('admin.imports.confirm', 'skills'), [
+        'preview_token' => $preview->viewData('preview')['token'],
+    ])->assertSessionHas('success');
 
     expect(MSkill::where('kode_skill', 'IT-SE-GIT')->count())->toBe(1);
     $this->assertDatabaseHas('m_skills', ['kode_skill' => 'IT-SE-GIT', 'nama_skill' => 'Git dan Kolaborasi Tim']);
@@ -64,10 +74,9 @@ test('question spreadsheet import rejects a training code that does not exist', 
     ]));
 
     $this->actingAs(curriculumAdmin())
-        ->from(route('admin.imports.create', 'questions'))
         ->post(route('admin.imports.store', 'questions'), ['file' => $file])
-        ->assertRedirect(route('admin.imports.create', 'questions'))
-        ->assertSessionHasErrors('file');
+        ->assertOk()
+        ->assertSee('Kode training tidak ditemukan.');
 
     expect(QuizQuestion::count())->toBe(0);
 });
