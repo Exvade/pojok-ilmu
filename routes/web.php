@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\DepartmentAliasController;
+use App\Http\Controllers\Admin\HarisSyncController;
 use App\Http\Controllers\Admin\ImportController;
 use App\Http\Controllers\Admin\OjtController;
 use App\Http\Controllers\Admin\ProductAssignmentController;
@@ -91,6 +92,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/roles', [RoleController::class, 'index'])->middleware('management-permission:superadmin')->name('roles.index');
     Route::get('/roles/{manpower}/edit', [RoleController::class, 'edit'])->middleware('management-permission:superadmin')->name('roles.edit');
     Route::put('/roles/{manpower}', [RoleController::class, 'update'])->middleware('management-permission:superadmin')->name('roles.update');
+    Route::get('/haris-sync', [HarisSyncController::class, 'index'])->middleware('management-permission:superadmin')->name('haris-sync.index');
+    Route::post('/haris-sync', [HarisSyncController::class, 'store'])->middleware('management-permission:superadmin')->name('haris-sync.store');
 });
 
 // Operator Portal Routes

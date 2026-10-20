@@ -50,7 +50,7 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->is_superadmin;
+        return (bool) $this->is_superadmin;
     }
 
     public function isManagement(): bool
@@ -81,7 +81,7 @@ class User extends Authenticatable
     public function hasManagementPermission(string $permission): bool
     {
         return match ($permission) {
-            'superadmin' => $this->is_superadmin,
+            'superadmin' => (bool) $this->is_superadmin,
             'competency' => $this->canManageCompetency(),
             'curriculum' => $this->canManageCurriculum(),
             'ojt' => $this->canAssessOjt(),
