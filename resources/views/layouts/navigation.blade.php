@@ -1,7 +1,10 @@
 <div x-show="sidebarOpen" x-cloak @click="closeSidebar()" class="fixed inset-0 z-30 bg-gray-950/50 lg:hidden" aria-hidden="true"></div>
 <aside id="app-sidebar" x-ref="sidebar" :inert="!sidebarOpen && !desktop" :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'" @keydown.escape.window="closeSidebar()" @keydown.tab="trapSidebar($event)" class="fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-gray-200 bg-white transition-transform duration-200 dark:border-gray-800 dark:bg-gray-900" aria-label="Menu utama">
     <div class="flex h-20 shrink-0 items-center justify-between border-b border-gray-100 px-5 dark:border-gray-800">
-        <a href="{{ auth()->user()->isManagement() ? route('admin.dashboard') : route('operator.dashboard') }}" aria-label="Beranda Pojok Ilmu"><img src="{{ asset('assets/images/logo/logo-landscape.webp') }}" alt="PT Mada Wikri Tunggal" class="w-48 rounded bg-white p-1.5"></a>
+        <a href="{{ auth()->user()->isManagement() ? route('admin.dashboard') : route('operator.dashboard') }}" aria-label="Beranda Pojok Ilmu">
+            <img src="{{ asset('assets/images/logo/logo-landscape.webp') }}" alt="PT Mada Wikri Tunggal" class="w-48 dark:hidden">
+            <img src="{{ asset('assets/images/logo/logo-landscape-light.webp') }}" alt="PT Mada Wikri Tunggal" class="hidden w-48 dark:block">
+        </a>
         <button type="button" @click="closeSidebar()" aria-label="Tutup menu" class="ml-2 text-gray-500 lg:hidden"><x-icon name="close" /></button>
     </div>
     <div class="px-6 pb-5 pt-6">
