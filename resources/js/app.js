@@ -31,6 +31,7 @@ document.addEventListener('submit', async event => {
 const interactionLock = document.getElementById('interaction-lock');
 const pageSkeleton = document.getElementById('page-skeleton');
 let previousOverflow = '';
+let skeletonTimer = null;
 const lockPageInteraction = () => {
     previousOverflow ||= document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -59,6 +60,14 @@ const showPageSkeleton = href => {
     setSkeletonScreen(href);
     pageSkeleton?.classList.replace('hidden', 'block');
 };
+const schedulePageSkeleton = href => {
+    const path = new URL(href, window.location.origin).pathname;
+
+    if (path.startsWith('/login')) return;
+
+    window.clearTimeout(skeletonTimer);
+    skeletonTimer = window.setTimeout(() => showPageSkeleton(href), 350);
+};
 const showButtonLoading = button => {
     if (!button || button.dataset.loading === 'true') return;
     button.dataset.loading = 'true';
@@ -86,9 +95,12 @@ document.addEventListener('submit', event => {
 document.addEventListener('click', event => {
     const link = event.target.closest('a[href]');
     if (event.defaultPrevented || event.button !== 0 || !link || link.target === '_blank' || link.hasAttribute('download') || link.dataset.noLoading !== undefined || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-    if (link.href.startsWith(window.location.origin) && link.getAttribute('href') !== '#') showPageSkeleton(link.href);
+    if (link.href.startsWith(window.location.origin) && link.getAttribute('href') !== '#') schedulePageSkeleton(link.href);
 });
-window.addEventListener('pageshow', unlockPageInteraction);
+window.addEventListener('pageshow', () => {
+    window.clearTimeout(skeletonTimer);
+    unlockPageInteraction();
+});
 
 Alpine.data('appShell', () => ({
     sidebarOpen: false, desktop: window.innerWidth >= 1024, darkMode: document.documentElement.classList.contains('dark'), opener: null,
