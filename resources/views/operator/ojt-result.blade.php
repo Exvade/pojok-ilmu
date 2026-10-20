@@ -8,7 +8,10 @@
         <x-button :href="route('operator.profile')" variant="outline"><x-icon name="back" class="h-4 w-4" />Kembali ke profil</x-button>
         <div class="mt-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div><p class="text-xs font-semibold uppercase tracking-wider text-brand-dark dark:text-green-400">Hasil OJT</p><h1 class="page-title">{{ $enrollment->training->judul }}</h1><p class="page-description">Hasil penilaian praktik oleh Leader.</p></div>
-            <x-competency-blocks :value="$ojt->is_passed ? 2 : 1" />
+            <div class="flex flex-wrap items-center gap-2">
+                <x-button :href="route('operator.ojt-result.pdf', $enrollment)" variant="outline" size="sm"><x-icon name="download" class="h-4 w-4" />Unduh PDF</x-button>
+                <x-competency-blocks :value="$ojt->is_passed ? 2 : 1" />
+            </div>
         </div>
 
         <div class="grid gap-4 sm:grid-cols-3">
