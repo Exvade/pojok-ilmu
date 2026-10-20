@@ -31,6 +31,11 @@ test('operator can download their completed ojt result as pdf', function () {
         ->assertHeader('content-type', 'application/pdf')
         ->assertHeader('content-disposition', 'attachment; filename=hasil-ojt-pdf-ojt-pdf-op-01.pdf');
 
+    $this->actingAs($operator)
+        ->get(route('operator.ojt-result', $enrollment))
+        ->assertOk()
+        ->assertSee('data-no-loading', false);
+
     $this->actingAs($assessor)
         ->get(route('admin.ojt.pdf', $enrollment))
         ->assertOk()
