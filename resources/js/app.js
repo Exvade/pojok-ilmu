@@ -46,7 +46,13 @@ const unlockPageInteraction = () => {
 const setSkeletonScreen = href => {
     if (!pageSkeleton) return;
     const path = new URL(href, window.location.origin).pathname;
-    const screen = path === '/admin/dashboard' || path.includes('/product-matrix')
+    const screen = path.includes('/training-reports')
+        ? 'training-report'
+        : path.includes('/training-follow-ups')
+            ? 'follow-up'
+            : path.includes('/admin/roles') || path.includes('/admin/ojt')
+                ? 'management-table'
+                : path === '/admin/dashboard' || path.includes('/product-matrix')
         ? 'matrix'
         : path.includes('/product-assignments')
             ? 'assignment'
