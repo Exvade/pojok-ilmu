@@ -15,6 +15,30 @@ test('only superadmin can access manual haris synchronization', function () {
     $this->actingAs($superadmin)->get(route('admin.haris-sync.index'))->assertOk()->assertSee('Sinkronisasi HaRis');
 });
 
+test('superadmin can inspect incomplete haris employee data', function () {
+    config()->set('services.haris.url', 'https://haris.test/api/employees');
+    config()->set('services.haris.token', 'test-token');
+
+    Http::fake([
+        'https://haris.test/api/employees*' => Http::response([
+            'data' => [
+                ['namaLengkap' => 'Karyawan Plant Kosong', 'nik' => 'QUALITY-001', 'jabatan' => 'Operator', 'departemen' => ['kode' => 'PSG.PRD', 'nama' => 'Produksi - Pasir Gombong'], 'plant' => ['id' => null, 'nama' => null]],
+                ['namaLengkap' => 'Karyawan Lengkap', 'nik' => 'QUALITY-002', 'jabatan' => 'Operator', 'departemen' => ['kode' => 'PSG.PRD', 'nama' => 'Produksi - Pasir Gombong'], 'plant' => ['id' => '3', 'nama' => 'Pasir Gombong']],
+            ],
+        ]),
+    ]);
+
+    $superadmin = User::create(['user_id' => 'SUPERADMIN', 'name' => 'Superadmin', 'role' => 1, 'is_superadmin' => true]);
+
+    $this->actingAs($superadmin)
+        ->get(route('admin.haris-data-quality.index'))
+        ->assertOk()
+        ->assertSee('Kualitas data HaRis')
+        ->assertSee('Karyawan Plant Kosong')
+        ->assertSee('Plant belum lengkap')
+        ->assertDontSee('Karyawan Lengkap');
+});
+
 test('superadmin can start haris synchronization from the web', function () {
     config()->set('services.haris.url', 'https://haris.test/api/employees');
     config()->set('services.haris.token', 'test-token');
