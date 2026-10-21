@@ -75,7 +75,10 @@ test('operator dashboard enables fifteen minute kiosk inactivity timeout', funct
     $this->actingAs($user)->get('/operator/dashboard')
         ->assertOk()
         ->assertSee('data-kiosk-idle-timeout="900000"', false)
-        ->assertSee('data-kiosk-logout-url="' . route('logout') . '"', false);
+        ->assertSee('data-kiosk-logout-url="' . route('logout') . '"', false)
+        ->assertSee('href="' . route('operator.profile') . '"', false)
+        ->assertSee('aria-label="Lihat profil saya"', false)
+        ->assertDontSee('>Profil saya<', false);
 });
 
 test('flash messages safely encode script markup and apostrophes', function () {
