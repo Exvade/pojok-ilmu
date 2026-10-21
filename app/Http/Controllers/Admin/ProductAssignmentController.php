@@ -7,6 +7,7 @@ use App\Models\MManpower;
 use App\Models\Training;
 use App\Models\TrainingAssignmentLog;
 use App\Models\TrainingEnrollment;
+use App\Services\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,7 @@ use Throwable;
 
 class ProductAssignmentController extends Controller
 {
+    public function __construct(private ActivityLogger $activityLogger) {}
     public function index(Request $request): View
     {
         $department = $request->string('departemen')->toString();
@@ -160,6 +162,14 @@ class ProductAssignmentController extends Controller
             'status_before' => $statusBefore,
             'status_after' => $statusAfter,
             'reason' => filled($reason) ? $reason : null,
+        ]);
+        $this->activityLogger->record('assignment', "assignment.{$action}", $enrollment, [
+            'training_title' => $training->judul,
+            'manpower_name' => $enrollment->manpower?->nama,
+            'manpower_nik' => $enrollment->manpower?->nik,
+            'status_before' => $statusBefore,
+            'status_after' => $statusAfter,
+            'reason' => $reason,
         ]);
     }
 }

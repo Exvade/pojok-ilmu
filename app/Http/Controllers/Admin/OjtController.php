@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\OjtAssessment;
 use App\Models\TrainingEnrollment;
+use App\Services\ActivityLogger;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,6 +14,7 @@ use Throwable;
 
 class OjtController extends Controller
 {
+    public function __construct(private ActivityLogger $activityLogger) {}
     private const THEORY_QUESTIONS = [
         'part_name' => ['label' => 'Sebutkan nama part yang Anda proses.', 'maximum' => 8],
         'part_material' => ['label' => 'Sebutkan nama material part yang Anda proses.', 'maximum' => 8],
@@ -121,7 +123,7 @@ class OjtController extends Controller
         $isPassed = $theoryScore >= 75 && $practiceScore >= 75;
 
         try {
-            DB::transaction(function () use ($data, $enrollment, $theoryScore, $practiceScore, $isPassed): void {
+            DB::transaction(function () use ($data, $enrollment, $theoryScore, $practiceScore, $isPassed, $request): void {
                 OjtAssessment::updateOrCreate(
                     ['enrollment_id' => $enrollment->id],
                     [
@@ -148,6 +150,13 @@ class OjtController extends Controller
                     'ojt_assessed_by_user_id' => auth()->id(),
                     'ojt_assessed_at' => now(),
                 ])->save();
+                $this->activityLogger->record('ojt', $isPassed ? 'ojt.approved' : 'ojt.rejected', $enrollment, [
+                    'training_title' => $enrollment->training?->judul,
+                    'manpower_name' => $enrollment->manpower?->nama,
+                    'manpower_nik' => $enrollment->manpower?->nik,
+                    'theory_score' => $theoryScore,
+                    'practice_score' => $practiceScore,
+                ], $request->user());
             });
         } catch (Throwable $exception) {
             report($exception);

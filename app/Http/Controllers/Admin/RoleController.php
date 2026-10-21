@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\MManpower;
 use App\Models\User;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class RoleController extends Controller
 {
+    public function __construct(private ActivityLogger $activityLogger) {}
     public function index(Request $request)
     {
         $search = trim((string) $request->query('search'));
@@ -57,6 +59,11 @@ class RoleController extends Controller
         $ojtAssessor = $request->boolean('can_assess_ojt');
         $hasAccess = $competency || $curriculum || $ojtAssessor;
         $user = User::withTrashed()->firstOrNew(['user_id' => $manpower->mp_id]);
+        $before = [
+            'competency' => (bool) $user->can_manage_competency,
+            'curriculum' => (bool) $user->can_manage_curriculum,
+            'ojt' => (bool) $user->can_assess_ojt,
+        ];
 
         if ($hasAccess && blank($user->password) && blank($data['password'] ?? null)) {
             return back()->withErrors(['password' => 'Kata sandi awal wajib diisi saat pertama kali memberikan akses pengelola.'])->withInput();
@@ -79,6 +86,12 @@ class RoleController extends Controller
         }
 
         $user->save();
+        $this->activityLogger->record('access', 'access.updated', $user, [
+            'manpower_name' => $manpower->nama,
+            'manpower_nik' => $manpower->nik,
+            'before' => $before,
+            'after' => ['competency' => $competency, 'curriculum' => $curriculum, 'ojt' => $ojtAssessor],
+        ], $request->user());
 
         return redirect()->route('admin.roles.index')->with('success', $hasAccess
             ? 'Akses pengelola berhasil disimpan.'

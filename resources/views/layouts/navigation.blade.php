@@ -24,6 +24,7 @@
             if ($user->canManageCurriculum()) $items[] = ['admin.trainings.index', 'admin.trainings.*', 'book', 'Training'];
             if ($user->canAssessOjt()) $items[] = ['admin.ojt.index', 'admin.ojt.*', 'clipboard', 'Dashboard OJT'];
             if ($user->is_superadmin) $items[] = ['admin.roles.index', 'admin.roles.*', 'user', 'Kelola akses'];
+            if ($user->is_superadmin) $items[] = ['admin.activity-logs.index', 'admin.activity-logs.*', 'clipboard', 'Riwayat aktivitas'];
             if ($user->is_superadmin) $items[] = ['admin.haris-sync.index', 'admin.haris-sync.*', 'reset', 'Sinkronisasi HaRis'];
             if ($user->is_superadmin) $items[] = ['admin.haris-data-quality.index', 'admin.haris-data-quality.*', 'clipboard', 'Kualitas data HaRis'];
         @endphp
