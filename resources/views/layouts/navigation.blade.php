@@ -24,6 +24,7 @@
             if ($user->canAssessOjt()) $items[] = ['admin.ojt.index', 'admin.ojt.*', 'clipboard', 'Dashboard OJT'];
             if ($user->is_superadmin) $items[] = ['admin.roles.index', 'admin.roles.*', 'user', 'Kelola role'];
             if ($user->is_superadmin) $items[] = ['admin.haris-sync.index', 'admin.haris-sync.*', 'reset', 'Sinkronisasi HaRis'];
+            if ($user->is_superadmin) $items[] = ['admin.haris-data-quality.index', 'admin.haris-data-quality.*', 'clipboard', 'Kualitas data HaRis'];
         @endphp
         @foreach($items as [$route, $pattern, $icon, $label])
             <a href="{{ route($route) }}" @if(request()->routeIs($pattern)) aria-current="page" @endif class="flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium transition-colors {{ request()->routeIs($pattern) ? 'bg-brand-dark text-white' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800' }}"><x-icon :name="$icon" />{{ $label }}</a>
