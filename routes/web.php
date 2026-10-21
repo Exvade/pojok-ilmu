@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SkillController;
 use App\Http\Controllers\Admin\SkillMatrixController;
 use App\Http\Controllers\Admin\TrainingController;
+use App\Http\Controllers\Admin\TrainingFollowUpController;
 use App\Http\Controllers\Admin\TrainingReportController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Operator\DashboardController as OperatorDashboardController;
@@ -62,6 +63,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/product-assignments/{training}/history', [ProductAssignmentController::class, 'history'])->middleware('management-permission:competency')->name('product-assignments.history');
     Route::post('/product-assignments', [ProductAssignmentController::class, 'store'])->middleware('management-permission:competency')->name('product-assignments.store');
     Route::get('/training-reports', [TrainingReportController::class, 'index'])->middleware('management-permission:competency')->name('training-reports.index');
+    Route::get('/training-follow-ups', [TrainingFollowUpController::class, 'index'])->middleware('management-permission:competency')->name('training-follow-ups.index');
     Route::get('/training-reports/export', [TrainingReportController::class, 'export'])->middleware('management-permission:competency')->name('training-reports.export');
     Route::get('/ojt', [OjtController::class, 'index'])->middleware('management-permission:ojt')->name('ojt.index');
     Route::get('/ojt/{enrollment}/pdf', [OjtPdfController::class, 'downloadForManagement'])->middleware('management-permission:ojt')->name('ojt.pdf');
