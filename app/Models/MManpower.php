@@ -25,32 +25,14 @@ class MManpower extends BaseModel
 
     public function trainingDepartment(): ?string
     {
-        return $this->department_group_override
-            ?? $this->department_group
-            ?? DepartmentGroupService::normalize($this->departemen);
+        return DepartmentGroupService::normalize($this->departemen);
     }
 
     public function scopeForTrainingDepartment(Builder $query, string $department): Builder
     {
         $department = DepartmentGroupService::normalize($department);
 
-        return $query->where(function (Builder $query) use ($department): void {
-            $query->where('department_group_override', $department)
-                ->orWhere(function (Builder $groupQuery) use ($department): void {
-                    $groupQuery->whereNull('department_group_override')
-                        ->where('department_group', $department);
-                })->orWhere(function (Builder $legacyQuery) use ($department): void {
-                    $legacyQuery->whereNull('department_group_override')
-                        ->whereNull('department_group')
-                        ->where(function (Builder $departmentQuery) use ($department): void {
-                            $departmentQuery->where('departemen', $department);
-
-                            if ($department === DepartmentGroupService::PRODUCTION_PLASTIC) {
-                                $departmentQuery->orWhere('departemen', 'like', DepartmentGroupService::PRODUCTION_PLASTIC . '%');
-                            }
-                        });
-                });
-        });
+        return $query->where('departemen', $department);
     }
 
     public function user(): HasOne

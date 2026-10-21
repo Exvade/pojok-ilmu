@@ -133,14 +133,14 @@ class TrainingReportController extends Controller
     {
         return (clone $query)
             ->join('m_manpower as report_manpower', 'training_enrollments.manpower_id', '=', 'report_manpower.id')
-            ->selectRaw("COALESCE(NULLIF(report_manpower.department_group_override, ''), NULLIF(report_manpower.department_group, ''), report_manpower.departemen) as department_group")
+            ->selectRaw('report_manpower.departemen as department_group')
             ->selectRaw('COUNT(*) as total')
             ->selectRaw("SUM(CASE WHEN training_enrollments.status = 'enrolled' THEN 1 ELSE 0 END) as belum_dimulai")
             ->selectRaw("SUM(CASE WHEN training_enrollments.status = 'in_progress' AND training_enrollments.post_test_completed_at IS NULL THEN 1 ELSE 0 END) as dalam_proses")
             ->selectRaw("SUM(CASE WHEN training_enrollments.post_test_completed_at IS NOT NULL AND training_enrollments.ojt_status = 'pending' THEN 1 ELSE 0 END) as menunggu_ojt")
             ->selectRaw("SUM(CASE WHEN training_enrollments.ojt_status = 'rejected' THEN 1 ELSE 0 END) as ojt_ulang")
             ->selectRaw("SUM(CASE WHEN training_enrollments.status = 'passed' AND training_enrollments.ojt_status = 'approved' THEN 1 ELSE 0 END) as balok_dua")
-            ->groupByRaw("COALESCE(NULLIF(report_manpower.department_group_override, ''), NULLIF(report_manpower.department_group, ''), report_manpower.departemen)")
+            ->groupBy('report_manpower.departemen')
             ->orderBy('department_group')
             ->get();
     }
