@@ -158,6 +158,17 @@ test('it keeps Plant 3 and management employees across plants in the local scope
     $this->assertDatabaseMissing('m_manpower', ['nik' => '100011']);
 });
 
+test('it keeps production plastic variants as separate training departments', function () {
+    $plasticA = MManpower::create(['mp_id' => 'DEPT-A', 'nik' => 'DEPT-A', 'nama' => 'Operator Plastik A', 'departemen' => 'PRODUKSI PLASTIK A', 'department_group' => 'PRODUKSI PLASTIK', 'bagian' => 'OPERATOR', 'status' => true]);
+    $plasticB = MManpower::create(['mp_id' => 'DEPT-B', 'nik' => 'DEPT-B', 'nama' => 'Operator Plastik B', 'departemen' => 'PRODUKSI PLASTIK B', 'department_group' => 'PRODUKSI PLASTIK', 'bagian' => 'OPERATOR', 'status' => true]);
+
+    expect($plasticA->trainingDepartment())->toBe('PRODUKSI PLASTIK A')
+        ->and($plasticB->trainingDepartment())->toBe('PRODUKSI PLASTIK B')
+        ->and(MManpower::query()->forTrainingDepartment('PRODUKSI PLASTIK A')->pluck('id')->all())
+        ->toContain($plasticA->id)
+        ->not->toContain($plasticB->id);
+});
+
 test('it does not deactivate employees outside the active plant scope', function () {
     config()->set('services.haris.scope_plant_code', 'PSG');
     config()->set('services.haris.scope_plant_id', '3');
