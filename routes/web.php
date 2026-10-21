@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\DepartmentAliasController;
 use App\Http\Controllers\Admin\HarisDataQualityController;
 use App\Http\Controllers\Admin\HarisSyncController;
@@ -93,6 +94,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::delete('/questions/{id}', [AdminQuizController::class, 'destroy'])->middleware('management-permission:curriculum')->name('questions.destroy');
 
     Route::get('/roles', [RoleController::class, 'index'])->middleware('management-permission:superadmin')->name('roles.index');
+    Route::get('/activity-logs', [ActivityLogController::class, 'index'])->middleware('management-permission:superadmin')->name('activity-logs.index');
     Route::get('/roles/{manpower}/edit', [RoleController::class, 'edit'])->middleware('management-permission:superadmin')->name('roles.edit');
     Route::put('/roles/{manpower}', [RoleController::class, 'update'])->middleware('management-permission:superadmin')->name('roles.update');
     Route::get('/haris-sync', [HarisSyncController::class, 'index'])->middleware('management-permission:superadmin')->name('haris-sync.index');
