@@ -102,6 +102,34 @@ window.addEventListener('pageshow', () => {
     unlockPageInteraction();
 });
 
+const kioskTimeout = Number(document.body.dataset.kioskIdleTimeout || 0);
+const kioskLogoutUrl = document.body.dataset.kioskLogoutUrl;
+if (kioskTimeout > 0 && kioskLogoutUrl) {
+    let kioskTimer = null;
+    const logoutKioskUser = () => {
+        if (document.body.dataset.kioskLoggingOut === 'true') return;
+        document.body.dataset.kioskLoggingOut = 'true';
+        lockPageInteraction();
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = kioskLogoutUrl;
+        const token = document.createElement('input');
+        token.type = 'hidden';
+        token.name = '_token';
+        token.value = document.querySelector('meta[name="csrf-token"]')?.content || '';
+        form.append(token);
+        document.body.append(form);
+        HTMLFormElement.prototype.submit.call(form);
+    };
+    const resetKioskTimer = () => {
+        if (document.body.dataset.kioskLoggingOut === 'true') return;
+        window.clearTimeout(kioskTimer);
+        kioskTimer = window.setTimeout(logoutKioskUser, kioskTimeout);
+    };
+    ['pointerdown', 'keydown', 'touchstart', 'focusin'].forEach(event => window.addEventListener(event, resetKioskTimer, { passive: true }));
+    resetKioskTimer();
+}
+
 Alpine.data('appShell', () => ({
     sidebarOpen: false, desktop: window.innerWidth >= 1024, darkMode: document.documentElement.classList.contains('dark'), opener: null,
     toggleTheme() { this.darkMode = !this.darkMode; document.documentElement.classList.toggle('dark', this.darkMode); try { localStorage.setItem('theme', this.darkMode ? 'dark' : 'light'); } catch {} },

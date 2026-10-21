@@ -9,7 +9,7 @@
     <script>try { document.documentElement.classList.toggle('dark', localStorage.getItem('theme') === 'dark'); } catch {}</script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body x-data="appShell" class="min-h-dvh bg-brand-surface font-sans text-brand-text antialiased dark:bg-gray-950 dark:text-gray-100">
+<body x-data="appShell" @auth @if(auth()->user()->isOperator()) data-kiosk-idle-timeout="900000" data-kiosk-logout-url="{{ route('logout') }}" @endif @endauth class="min-h-dvh bg-brand-surface font-sans text-brand-text antialiased dark:bg-gray-950 dark:text-gray-100">
     <div id="interaction-lock" class="fixed inset-0 z-[120] hidden touch-none" aria-hidden="true"></div>
     <div id="page-skeleton" class="fixed inset-y-0 left-0 right-0 z-[130] hidden overflow-y-auto bg-brand-surface dark:bg-gray-950 @auth lg:left-64 @endauth" aria-live="polite" aria-label="Halaman sedang dimuat">
         <div class="min-h-16 border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"></div>

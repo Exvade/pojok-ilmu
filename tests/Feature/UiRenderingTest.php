@@ -68,6 +68,16 @@ test('operator material and assessment pages render media and answer controls', 
     }
 });
 
+test('operator dashboard enables fifteen minute kiosk inactivity timeout', function () {
+    $employee = MManpower::create(['mp_id' => 'KIOSK-OP', 'nik' => 'KIOSK-OP', 'nama' => 'Operator Kiosk', 'departemen' => 'PRODUKSI', 'bagian' => 'OPERATOR', 'status' => true]);
+    $user = User::create(['user_id' => $employee->mp_id, 'name' => $employee->nama, 'role' => 0]);
+
+    $this->actingAs($user)->get('/operator/dashboard')
+        ->assertOk()
+        ->assertSee('data-kiosk-idle-timeout="900000"', false)
+        ->assertSee('data-kiosk-logout-url="' . route('logout') . '"', false);
+});
+
 test('flash messages safely encode script markup and apostrophes', function () {
     $this->withSession(['success' => "O'Brien </script><script>alert(1)</script>"])->get('/login')
         ->assertOk()->assertDontSee("O'Brien </script><script>alert(1)</script>", false)->assertSee('O\\u0027Brien', false);
