@@ -26,7 +26,7 @@
             <x-slot name="header">
                 <div class="flex w-full flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div><h2 class="font-heading text-lg font-bold">Penugasan dan balok kompetensi</h2><p class="mt-1 text-xs text-gray-500">Empat balok menunjukkan tahapan kompetensi. Balok 3 dan 4 ditampilkan sebagai arah pengembangan berikutnya.</p></div>
-                    <form action="{{ route('admin.dashboard') }}" method="GET" class="grid w-full gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto] lg:max-w-2xl">
+                    <form action="{{ route('admin.dashboard') }}" method="GET" data-auto-search class="grid w-full gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto] lg:max-w-2xl">
                         <x-select-menu name="departemen" :options="['' => 'Semua departemen'] + $departemens->mapWithKeys(fn ($item) => [$item => $item])->all()" :selected="$departemenFilter" aria-label="Filter departemen" />
                         <x-input type="text" name="search" aria-label="Cari manpower" :value="$search" placeholder="Cari nama / NPK..." />
                         <x-button type="submit" size="sm"><x-icon name="filter" class="h-4 w-4" />Terapkan</x-button>

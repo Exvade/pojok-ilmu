@@ -13,7 +13,7 @@
                 <x-button :href="route('admin.assignments.import')" variant="outline" class="w-full sm:w-auto">
                     <x-icon name="download" class="h-4 w-4" />Impor penugasan
                 </x-button>
-                <form method="GET" class="mt-2 grid w-full gap-2 sm:grid-cols-[minmax(0,1fr)_auto] 2xl:w-[32rem]">
+                <form method="GET" data-auto-search class="mt-2 grid w-full gap-2 sm:grid-cols-[minmax(0,1fr)_auto] 2xl:w-[32rem]">
                     <x-select-menu name="departemen" :options="['' => 'Semua departemen'] + $departments->mapWithKeys(fn ($item) => [$item => $item])->all()" :selected="$department" aria-label="Filter departemen" class="w-full" />
                     <x-button type="submit" variant="secondary" class="w-full sm:w-auto">
                         <x-icon name="filter" class="h-4 w-4" />Tampilkan
