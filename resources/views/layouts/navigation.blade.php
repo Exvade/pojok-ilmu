@@ -11,7 +11,7 @@
         <p class="text-xl font-bold tracking-tight text-brand-dark dark:text-green-400">Pojok Ilmu<span class="text-brand-light">.</span></p>
         <p class="mt-1 text-xs text-gray-500">Belajar. Berkembang. Berkontribusi.</p>
     </div>
-    <nav class="flex-1 space-y-1 overflow-y-auto px-3" aria-label="Navigasi aplikasi">
+    <nav x-ref="sidebarNavigation" class="flex-1 space-y-1 overflow-y-auto px-3" aria-label="Navigasi aplikasi">
         <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-400">{{ auth()->user()->isManagement() ? 'Manajemen pembelajaran' : 'Pembelajaran' }}</p>
         @php
             $user = auth()->user();
@@ -28,7 +28,7 @@
             if ($user->is_superadmin) $items[] = ['admin.haris-data-quality.index', 'admin.haris-data-quality.*', 'clipboard', 'Kualitas data HaRis'];
         @endphp
         @foreach($items as [$route, $pattern, $icon, $label])
-            <a href="{{ route($route) }}" @if(request()->routeIs($pattern)) aria-current="page" @endif class="flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium transition-colors {{ request()->routeIs($pattern) ? 'bg-brand-dark text-white' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800' }}"><x-icon :name="$icon" />{{ $label }}</a>
+            <a href="{{ route($route) }}" @click="persistSidebarScroll()" @if(request()->routeIs($pattern)) aria-current="page" @endif class="flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium transition-colors {{ request()->routeIs($pattern) ? 'bg-brand-dark text-white' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800' }}"><x-icon :name="$icon" />{{ $label }}</a>
         @endforeach
         <div class="mx-3 mt-7 border-t border-gray-100 pt-5 dark:border-gray-800">
             <p class="text-xs font-semibold text-gray-700 dark:text-gray-300">Dari pembelajaran ke leveling</p>

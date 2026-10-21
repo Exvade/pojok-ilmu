@@ -19,7 +19,7 @@ test('management pages render shared sidebar and training forms', function () {
     $training = Training::create(['kode_training' => 'UI-TR', 'skill_id' => $skill->id, 'level' => 1, 'judul' => 'Dasar keselamatan', 'passing_grade' => 80, 'max_retries' => 3]);
     $this->actingAs($admin);
     foreach (['/admin/dashboard', '/admin/skills', '/admin/trainings'] as $url) {
-        $this->get($url)->assertOk()->assertSee('id="app-sidebar"', false)->assertSee('Training', false);
+        $this->get($url)->assertOk()->assertSee('id="app-sidebar"', false)->assertSee('x-ref="sidebarNavigation"', false)->assertSee('Training', false);
     }
     $this->get('/admin/trainings/' . $training->id)->assertOk()->assertSee('Siapkan pre-test & post-test', false)->assertSee('activeSection', false)->assertSee('x-teleport="body"', false);
     $quiz = Quiz::create(['training_id' => $training->id, 'tipe' => 'post_test', 'judul' => 'Evaluasi keselamatan', 'durasi_menit' => 15, 'passing_grade' => 80]);
