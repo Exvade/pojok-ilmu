@@ -20,6 +20,7 @@
             if ($user->isManagement()) $items[] = ['operator.dashboard', 'operator.*', 'book', 'Pratinjau training'];
             if ($user->canManageCompetency()) $items[] = ['admin.product-assignments.index', 'admin.product-assignments.*', 'user', 'Penugasan training'];
             if ($user->canManageCompetency()) $items[] = ['admin.training-reports.index', 'admin.training-reports.*', 'chart', 'Laporan training'];
+            if ($user->canManageCompetency()) $items[] = ['admin.training-follow-ups.index', 'admin.training-follow-ups.*', 'clipboard', 'Tindak lanjut training'];
             if ($user->canManageCurriculum()) $items[] = ['admin.trainings.index', 'admin.trainings.*', 'book', 'Training'];
             if ($user->canAssessOjt()) $items[] = ['admin.ojt.index', 'admin.ojt.*', 'clipboard', 'Dashboard OJT'];
             if ($user->is_superadmin) $items[] = ['admin.roles.index', 'admin.roles.*', 'user', 'Kelola role'];
