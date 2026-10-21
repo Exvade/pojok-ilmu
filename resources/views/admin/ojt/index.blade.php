@@ -21,7 +21,7 @@
         </div>
 
         <x-card>
-            <form action="{{ route('admin.ojt.index') }}" method="GET" class="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto]">
+            <form action="{{ route('admin.ojt.index') }}" method="GET" data-auto-search class="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto]">
                 <x-select name="departemen" aria-label="Filter departemen">
                     <option value="">-- Semua Departemen --</option>
                     @foreach($departemens as $item)

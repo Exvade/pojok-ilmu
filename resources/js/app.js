@@ -97,6 +97,26 @@ document.addEventListener('click', event => {
     if (event.defaultPrevented || event.button !== 0 || !link || link.target === '_blank' || link.hasAttribute('download') || link.dataset.noLoading !== undefined || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
     if (link.href.startsWith(window.location.origin) && link.getAttribute('href') !== '#') schedulePageSkeleton(link.href);
 });
+document.querySelectorAll('form[data-auto-search]').forEach(form => {
+    const delay = Number(form.dataset.autoSearchDelay || 450);
+    let timer = null;
+    const submit = () => {
+        window.clearTimeout(timer);
+        if (!form.dataset.autoSearchSubmitting) {
+            form.dataset.autoSearchSubmitting = 'true';
+            form.requestSubmit();
+        }
+    };
+    form.querySelectorAll('input[name="search"]').forEach(input => {
+        input.addEventListener('input', () => {
+            const query = input.value.trim();
+            window.clearTimeout(timer);
+            if (query !== '' && query.length < 2) return;
+            timer = window.setTimeout(submit, delay);
+        });
+    });
+    form.querySelectorAll('select[name]').forEach(select => select.addEventListener('change', submit));
+});
 window.addEventListener('pageshow', () => {
     window.clearTimeout(skeletonTimer);
     unlockPageInteraction();

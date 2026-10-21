@@ -14,7 +14,7 @@
     </div>
 
     <x-card>
-        <form method="GET" class="flex flex-col gap-3 sm:flex-row">
+        <form method="GET" data-auto-search class="flex flex-col gap-3 sm:flex-row">
             <label class="sr-only" for="role-search">Cari karyawan</label>
             <x-input id="role-search" name="search" :value="$search" placeholder="Cari nama, NIK, atau departemen" class="sm:max-w-md" />
             <x-button type="submit"><x-icon name="search" class="h-4 w-4" />Cari</x-button>
