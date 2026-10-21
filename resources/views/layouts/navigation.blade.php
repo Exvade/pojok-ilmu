@@ -16,7 +16,7 @@
         @php
             $user = auth()->user();
             $items = $user->isManagement() ? [['admin.dashboard', 'admin.dashboard', 'grid', 'Ringkasan']]
-                : [['operator.dashboard', 'operator.dashboard', 'book', 'Training saya'], ['operator.profile', 'operator.profile', 'user', 'Profil saya']];
+                : [['operator.dashboard', 'operator.dashboard', 'book', 'Training saya']];
             if ($user->isManagement()) $items[] = ['operator.dashboard', 'operator.*', 'book', 'Pratinjau training'];
             if ($user->canManageCompetency()) $items[] = ['admin.product-assignments.index', 'admin.product-assignments.*', 'user', 'Penugasan training'];
             if ($user->canManageCompetency()) $items[] = ['admin.training-reports.index', 'admin.training-reports.*', 'chart', 'Laporan training'];
@@ -36,10 +36,18 @@
         </div>
     </nav>
     <div class="shrink-0 border-t border-gray-200 p-4 dark:border-gray-800">
+        @if(auth()->user()->manpower)
+        <a href="{{ route('operator.profile') }}" @click="persistSidebarScroll()" class="mb-3 flex items-start gap-3 rounded-lg p-1 transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-light dark:hover:bg-gray-800" aria-label="Lihat profil saya">
+        @else
         <div class="mb-3 flex items-start gap-3">
+        @endif
             <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-green-50 text-brand-dark dark:bg-gray-800 dark:text-green-400"><x-icon name="user" /></span>
             <div class="min-w-0"><p class="break-words text-xs font-semibold">{{ auth()->user()->name }}</p><p class="mt-1 break-words text-[11px] text-gray-500">{{ auth()->user()->manpower?->departemen ?? 'Pengelola aplikasi' }}</p></div>
+        @if(auth()->user()->manpower)
+        </a>
+        @else
         </div>
+        @endif
         <form action="{{ route('logout') }}" method="POST">@csrf<x-button type="submit" variant="outline" size="sm" class="w-full"><x-icon name="logout" class="h-4 w-4" />Keluar</x-button></form>
     </div>
 </aside>
