@@ -30,8 +30,22 @@ document.addEventListener('submit', async event => {
 
 const interactionLock = document.getElementById('interaction-lock');
 const pageSkeleton = document.getElementById('page-skeleton');
+const searchScrollStorageKey = 'pojok-ilmu:search-scroll-position';
 let previousOverflow = '';
 let skeletonTimer = null;
+const preserveSearchScroll = () => {
+    try {
+        sessionStorage.setItem(searchScrollStorageKey, JSON.stringify({ path: window.location.pathname, top: window.scrollY, savedAt: Date.now() }));
+    } catch {}
+};
+const restoreSearchScroll = () => {
+    try {
+        const saved = JSON.parse(sessionStorage.getItem(searchScrollStorageKey) || 'null');
+        sessionStorage.removeItem(searchScrollStorageKey);
+        if (saved?.path !== window.location.pathname || !Number.isFinite(saved.top) || Date.now() - saved.savedAt > 10000) return;
+        window.requestAnimationFrame(() => window.scrollTo(0, saved.top));
+    } catch {}
+};
 const lockPageInteraction = () => {
     previousOverflow ||= document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -93,6 +107,10 @@ window.showFormLoading = form => {
 document.addEventListener('submit', event => {
     const form = event.target;
     if (event.defaultPrevented) return;
+    if (form.matches('form[data-auto-search]')) {
+        preserveSearchScroll();
+        return;
+    }
     if (form.dataset.confirm && form.dataset.confirmed !== 'true') return;
     if (!form.checkValidity()) return;
     showButtonLoading(event.submitter || form.querySelector('[type="submit"]'));
@@ -126,6 +144,7 @@ document.querySelectorAll('form[data-auto-search]').forEach(form => {
 window.addEventListener('pageshow', () => {
     window.clearTimeout(skeletonTimer);
     unlockPageInteraction();
+    restoreSearchScroll();
 });
 
 const kioskTimeout = Number(document.body.dataset.kioskIdleTimeout || 0);
