@@ -7,8 +7,8 @@
     <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
             <p class="text-xs font-semibold uppercase tracking-[0.16em] text-brand-dark">Superadmin</p>
-            <h1 class="page-title mt-1">Kelola role pengelola</h1>
-            <p class="page-description">Berikan akses Kompetensi & Target, Kurikulum & Modul, atau keduanya kepada karyawan aktif dari HaRis.</p>
+            <h1 class="page-title mt-1">Akses pengelolaan</h1>
+            <p class="page-description">Atur kewenangan karyawan untuk mengelola kompetensi, materi training, dan penilaian OJT.</p>
         </div>
         <x-button :href="route('admin.dashboard')" variant="outline"><x-icon name="back" class="h-4 w-4" />Kembali ke matriks</x-button>
     </div>
@@ -31,12 +31,12 @@
                     <td><p>{{ $person->departemen }}</p><p class="mt-1 text-xs text-gray-500">{{ $person->jabatan ?? $person->bagian }}</p></td>
                     <td>
                         @if($person->user?->is_superadmin)
-                            <span class="inline-flex rounded-md bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800">Superadmin</span>
+                            <span class="inline-flex rounded-md bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800">Akses penuh</span>
                         @elseif($person->user?->can_manage_competency || $person->user?->can_manage_curriculum || $person->user?->can_assess_ojt)
                             <div class="flex flex-wrap gap-1">
-                                @if($person->user->can_manage_competency)<span class="rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">Kompetensi</span>@endif
-                                @if($person->user->can_manage_curriculum)<span class="rounded-md bg-green-100 px-2 py-1 text-xs font-medium text-green-800">Kurikulum</span>@endif
-                                @if($person->user->can_assess_ojt)<span class="rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">Penilai OJT</span>@endif
+                                @if($person->user->can_manage_competency)<span class="rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">Kompetensi & penugasan</span>@endif
+                                @if($person->user->can_manage_curriculum)<span class="rounded-md bg-green-100 px-2 py-1 text-xs font-medium text-green-800">Materi & evaluasi</span>@endif
+                                @if($person->user->can_assess_ojt)<span class="rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">Nilai OJT</span>@endif
                             </div>
                         @else
                             <span class="text-sm text-gray-500">Karyawan</span>
