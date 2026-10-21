@@ -45,7 +45,7 @@
             </form>
         </x-card>
 
-        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <x-card><p class="text-sm font-medium text-gray-500">Total penugasan</p><p class="mt-2 text-3xl font-semibold">{{ $summary['total'] }}</p><p class="mt-1 text-xs text-gray-500">Sesuai filter departemen dan pencarian.</p></x-card>
             <x-card><p class="text-sm font-medium text-gray-500">Belum mulai / proses</p><p class="mt-2 text-3xl font-semibold text-sky-700 dark:text-sky-300">{{ $summary['not_started'] + $summary['in_progress'] }}</p><p class="mt-1 text-xs text-gray-500">{{ $summary['not_started'] }} belum mulai · {{ $summary['in_progress'] }} sedang training.</p></x-card>
             <x-card><p class="text-sm font-medium text-gray-500">Menunggu tindak lanjut</p><p class="mt-2 text-3xl font-semibold text-amber-600">{{ $summary['pending_ojt'] + $summary['retry_ojt'] }}</p><p class="mt-1 text-xs text-gray-500">{{ $summary['pending_ojt'] }} menunggu OJT · {{ $summary['retry_ojt'] }} perlu OJT ulang.</p></x-card>
