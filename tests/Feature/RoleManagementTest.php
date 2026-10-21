@@ -12,6 +12,7 @@ test('only superadmin can assign competency and curriculum permissions from HaRi
     $employee = MManpower::create(['mp_id' => '100200', 'nik' => '100200', 'nama' => 'Pengelola Baru', 'departemen' => 'IT', 'bagian' => 'STAFF', 'status' => true, 'haris_synced_at' => now()]);
 
     $this->actingAs($superadmin)->get('/admin/roles')->assertOk()->assertSee('Pengelola Baru')->assertSee('Akses pengelolaan');
+    $this->get('/admin/roles/' . $employee->id . '/edit')->assertOk()->assertSee('md:grid-cols-3', false);
     $this->put('/admin/roles/' . $employee->id, ['can_manage_competency' => '1', 'password' => 'role-access-2026'])
         ->assertRedirect('/admin/roles');
 
