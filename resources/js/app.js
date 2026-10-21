@@ -162,8 +162,28 @@ Alpine.data('appShell', () => ({
     openSidebar() { this.opener = document.activeElement; this.sidebarOpen = true; document.body.style.overflow = 'hidden'; this.$nextTick(() => focusable(this.$refs.sidebar)[0]?.focus()); },
     closeSidebar() { if (!this.sidebarOpen) return; this.sidebarOpen = false; document.body.style.overflow = ''; this.opener?.focus(); },
     trapSidebar(event) { if (this.sidebarOpen) trap(event, this.$refs.sidebar); },
-    init() { this.resizeHandler = () => { this.desktop = window.innerWidth >= 1024; if (this.desktop) this.closeSidebar(); }; window.addEventListener('resize', this.resizeHandler); },
-    destroy() { window.removeEventListener('resize', this.resizeHandler); }
+    persistSidebarScroll() {
+        try {
+            sessionStorage.setItem('pojok-ilmu:sidebar-scroll-top', String(this.$refs.sidebarNavigation?.scrollTop ?? 0));
+        } catch {}
+    },
+    restoreSidebarScroll() {
+        try {
+            const scrollTop = Number(sessionStorage.getItem('pojok-ilmu:sidebar-scroll-top'));
+            if (Number.isFinite(scrollTop)) this.$refs.sidebarNavigation.scrollTop = scrollTop;
+        } catch {}
+    },
+    init() {
+        this.resizeHandler = () => { this.desktop = window.innerWidth >= 1024; if (this.desktop) this.closeSidebar(); };
+        this.pageHideHandler = () => this.persistSidebarScroll();
+        window.addEventListener('resize', this.resizeHandler);
+        window.addEventListener('pagehide', this.pageHideHandler);
+        this.$nextTick(() => this.restoreSidebarScroll());
+    },
+    destroy() {
+        window.removeEventListener('resize', this.resizeHandler);
+        window.removeEventListener('pagehide', this.pageHideHandler);
+    }
 }));
 Alpine.data('modalDialog', (name, initiallyOpen) => ({
     name, open: false, opener: null, previousOverflow: '',
