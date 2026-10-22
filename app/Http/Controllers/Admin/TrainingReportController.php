@@ -54,8 +54,10 @@ class TrainingReportController extends Controller
     public function export(Request $request): BinaryFileResponse
     {
         $filters = $this->filters($request);
+        $baseQuery = $this->baseQuery($filters);
+        $summary = $this->summary($baseQuery);
         $enrollments = $this->report
-            ->applyStatusFilter($this->baseQuery($filters), $filters['status'])
+            ->applyStatusFilter(clone $baseQuery, $filters['status'])
             ->with(['manpower', 'training'])
             ->latest('updated_at')
             ->get();
@@ -80,7 +82,16 @@ class TrainingReportController extends Controller
         })->all();
 
         return Excel::download(
-            new TrainingProgressReportExport($rows),
+            new TrainingProgressReportExport(
+                $rows,
+                $summary,
+                [
+                    'departemen' => $filters['departemen'],
+                    'search' => $filters['search'],
+                    'status' => $filters['status'] !== '' ? $this->report->labelFor($filters['status']) : '',
+                ],
+                now()->translatedFormat('d M Y, H:i'),
+            ),
             'laporan-progres-training-' . now()->format('Ymd-His') . '.xlsx'
         );
     }
