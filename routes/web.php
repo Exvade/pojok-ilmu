@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\QuizController as AdminQuizController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SkillController;
 use App\Http\Controllers\Admin\SkillMatrixController;
+use App\Http\Controllers\Admin\TrainingAuditController;
 use App\Http\Controllers\Admin\TrainingController;
 use App\Http\Controllers\Admin\TrainingFollowUpController;
 use App\Http\Controllers\Admin\TrainingReportController;
@@ -79,6 +80,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Trainings & Materials
     Route::get('/trainings', [TrainingController::class, 'index'])->middleware('management-permission:curriculum')->name('trainings.index');
+    Route::get('/training-audit', [TrainingAuditController::class, 'index'])->middleware('management-permission:curriculum')->name('training-audit.index');
     Route::post('/trainings', [TrainingController::class, 'store'])->middleware('management-permission:curriculum')->name('trainings.store');
     Route::put('/trainings/{id}', [TrainingController::class, 'update'])->middleware('management-permission:curriculum')->name('trainings.update');
     Route::get('/trainings/{id}', [TrainingController::class, 'show'])->middleware('management-permission:curriculum')->name('trainings.show');
