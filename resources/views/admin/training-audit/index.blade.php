@@ -21,6 +21,8 @@
                 ['Isi perlu dilengkapi', $summary['contentIssues'], 'Materi atau evaluasi belum siap.', 'amber'],
                 ['Belum ditugaskan', $summary['unassigned'], 'Belum memiliki manpower.', 'sky'],
                 ['Urutan level', $summary['levelIssues'], 'Departemen dengan level yang loncat.', 'amber'],
+                ['Karyawan tanpa tugas', $summary['withoutAssignments'], 'Karyawan aktif belum memiliki training.', 'sky'],
+                ['Target belum terpenuhi', $summary['belowTarget'], 'Belum mencapai minimum 6, 5, dan 3 training.', 'amber'],
             ] as [$label, $value, $description, $tone])
                 <x-card body-class="p-5">
                     <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">{{ $label }}</p>
@@ -42,6 +44,38 @@
                             <td class="font-semibold">{{ $coverage['department'] }}</td>
                             @foreach([1, 2, 3] as $level)<td>{{ $coverage['levels'][$level] }} training</td>@endforeach
                             <td><div class="flex flex-wrap gap-1.5">@forelse($coverage['issues'] as $issue)<span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950/70 dark:text-amber-200">{{ $issue }}</span>@empty<span class="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-brand-dark dark:bg-green-950/70 dark:text-green-200">Urutan tersedia</span>@endforelse</div></td>
+                        </tr>
+                    @endforeach
+                </x-table>
+            @endif
+        </x-card>
+
+        <x-card body-class="p-0">
+            <x-slot name="header"><div><h2 class="font-heading text-lg font-bold">Karyawan yang perlu penugasan</h2><p class="mt-1 text-xs text-gray-500">Target minimum per karyawan: 6 training Level 1, 5 training Level 2, dan 3 training Level 3. Jumlah dihitung dari training unik yang sedang ditugaskan.</p></div></x-slot>
+            @if($manpowerTargets->isEmpty())
+                <x-empty-state title="Target penugasan sudah terpenuhi" description="Seluruh karyawan aktif telah memiliki penugasan dan memenuhi target minimum." />
+            @else
+                <x-table>
+                    <x-slot name="head"><tr><th>Karyawan</th><th>Level 1</th><th>Level 2</th><th>Level 3</th><th>Perlu ditindaklanjuti</th></tr></x-slot>
+                    @foreach($manpowerTargets as $target)
+                        <tr>
+                            <td><p class="font-semibold">{{ $target['manpower']->nama }}</p><p class="mt-1 font-mono text-xs text-gray-500">{{ $target['manpower']->nik }} · {{ $target['manpower']->departemen }}</p></td>
+                            @foreach([1 => 6, 2 => 5, 3 => 3] as $level => $minimum)
+                                <td>{{ $target['summary']['levels'][$level] }} dari {{ $minimum }}</td>
+                            @endforeach
+                            <td>
+                                <div class="flex flex-wrap gap-1.5">
+                                    @if($target['summary']['total'] === 0)
+                                        <span class="rounded-full bg-sky-100 px-2.5 py-1 text-xs font-semibold text-sky-800 dark:bg-sky-950/70 dark:text-sky-200">Belum ada penugasan</span>
+                                    @endif
+
+                                    @foreach($target['summary']['gaps'] as $level => $gap)
+                                        @if($gap > 0)
+                                            <span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950/70 dark:text-amber-200">Level {{ $level }} kurang {{ $gap }}</span>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            </td>
                         </tr>
                     @endforeach
                 </x-table>

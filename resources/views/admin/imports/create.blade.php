@@ -72,6 +72,38 @@
 
         @if ($preview)
             @php($invalidCount = count($preview['rows']) - $preview['valid_count'])
+            @if($type === 'assignments' && $assignmentTargets->isNotEmpty())
+                <x-card body-class="p-0">
+                    <x-slot name="header"><div><h2 class="font-heading text-lg font-bold">Target penugasan setelah impor</h2><p class="mt-1 text-xs text-gray-500">Perhitungan menggabungkan penugasan yang sudah ada dengan file ini. Ini peringatan, bukan penghambat impor.</p></div></x-slot>
+                    <x-table>
+                        <x-slot name="head"><tr><th>Karyawan</th><th>Level 1</th><th>Level 2</th><th>Level 3</th><th>Hasil</th></tr></x-slot>
+                        @foreach($assignmentTargets as $target)
+                            <tr>
+                                <td>
+                                    <p class="font-semibold">{{ $target['manpower']->nama }}</p>
+                                    <p class="mt-1 font-mono text-xs text-gray-500">{{ $target['manpower']->nik }}</p>
+                                </td>
+                                @foreach([1 => 6, 2 => 5, 3 => 3] as $level => $minimum)
+                                    <td>{{ $target['summary']['levels'][$level] }} dari {{ $minimum }}</td>
+                                @endforeach
+                                <td>
+                                    @if($target['summary']['meets_target'])
+                                        <span class="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-brand-dark dark:bg-green-950/70 dark:text-green-200">Target terpenuhi</span>
+                                    @else
+                                        <div class="flex flex-wrap gap-1.5">
+                                            @foreach($target['summary']['gaps'] as $level => $gap)
+                                                @if($gap > 0)
+                                                    <span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950/70 dark:text-amber-200">Level {{ $level }} kurang {{ $gap }}</span>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </x-table>
+                </x-card>
+            @endif
             <x-card data-import-preview>
                 <x-slot name="header">
                     <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

@@ -1,9 +1,11 @@
 <?php
 
+use App\Models\MManpower;
 use App\Models\MSkill;
 use App\Models\Quiz;
 use App\Models\QuizQuestion;
 use App\Models\Training;
+use App\Models\TrainingEnrollment;
 use App\Models\TrainingMaterial;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -44,6 +46,10 @@ test('curriculum manager can audit training readiness and level coverage', funct
         'requires_ojt' => true,
     ]);
 
+    $assignedManpower = MManpower::create(['mp_id' => 'AUDIT-MP-1', 'nik' => 'AUDIT-NIK-1', 'nama' => 'Kurang Target', 'departemen' => 'PRODUKSI', 'bagian' => 'OPERATOR', 'status' => true, 'haris_synced_at' => now()]);
+    MManpower::create(['mp_id' => 'AUDIT-MP-2', 'nik' => 'AUDIT-NIK-2', 'nama' => 'Belum Ditugaskan', 'departemen' => 'PRODUKSI', 'bagian' => 'OPERATOR', 'status' => true, 'haris_synced_at' => now()]);
+    TrainingEnrollment::create(['training_id' => $completeTraining->id, 'manpower_id' => $assignedManpower->id, 'status' => 'enrolled', 'ojt_status' => 'not_started']);
+
     $this->actingAs($manager)
         ->get(route('admin.training-audit.index'))
         ->assertOk()
@@ -52,5 +58,8 @@ test('curriculum manager can audit training readiness and level coverage', funct
         ->assertSee('Training belum lengkap')
         ->assertSee('Materi belum ada')
         ->assertSee('Post-test belum dibuat')
-        ->assertSee('Level 1 belum tersedia');
+        ->assertSee('Level 1 belum tersedia')
+        ->assertSee('Kurang Target')
+        ->assertSee('Belum Ditugaskan')
+        ->assertSee('Level 1 kurang 5');
 });
