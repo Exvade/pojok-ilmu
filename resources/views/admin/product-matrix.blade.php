@@ -38,7 +38,7 @@
                                 <option value="{{ $departemen }}" @selected($departemenFilter === $departemen)>{{ $departemen }}</option>
                             @endforeach
                         </x-select>
-                        <x-input type="text" name="search" aria-label="Cari manpower" value="{{ $search }}" placeholder="Cari nama / NPK..." />
+                        <x-input type="text" name="search" aria-label="Cari manpower" value="{{ $search }}" placeholder="Cari nama / NIK..." />
                         <x-button type="submit" variant="primary" size="sm"><x-icon name="filter" class="h-4 w-4" />Terapkan</x-button>
                         <x-button :href="route('admin.dashboard', ['departemen' => ''])" variant="outline" size="sm"><x-icon name="reset" class="h-4 w-4" />Reset</x-button>
                     </form>
@@ -52,7 +52,7 @@
                     <x-table>
                         <x-slot name="head">
                             <tr class="bg-gray-100 text-xs font-bold uppercase tracking-wider text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                                <th class="rounded-tl-xl px-4 py-3.5">Manpower / NPK</th>
+                                <th class="rounded-tl-xl px-4 py-3.5">Manpower / NIK</th>
                                 <th class="px-4 py-3.5">Departemen / Jabatan</th>
                                 <th class="px-4 py-3.5 text-center">Profil</th>
                                 @foreach($products as $product)
@@ -62,7 +62,7 @@
                         </x-slot>
                         @forelse($manpowers as $manpower)
                             <tr class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                <td class="whitespace-nowrap px-4 py-4 font-semibold text-gray-900 dark:text-gray-100"><div>{{ $manpower->nama }}</div><span class="font-mono text-xs text-gray-400">NPK: {{ $manpower->mp_id }}</span></td>
+                                <td class="whitespace-nowrap px-4 py-4 font-semibold text-gray-900 dark:text-gray-100"><div>{{ $manpower->nama }}</div><span class="font-mono text-xs text-gray-400">NIK: {{ $manpower->nik }}</span></td>
                                 <td class="whitespace-nowrap px-4 py-4 text-xs text-gray-600 dark:text-gray-400"><div>{{ $manpower->departemen }}</div><span class="text-gray-400">{{ $manpower->bagian }}</span></td>
                                 <td class="px-4 py-4 text-center"><x-button :href="route('admin.manpower.training-profile', $manpower->id)" variant="ghost" size="sm" aria-label="Lihat profil training {{ $manpower->nama }}" title="Lihat profil training"><x-icon name="eye" class="h-4 w-4" /></x-button></td>
                                 @foreach($products as $product)

@@ -138,7 +138,7 @@ class SpreadsheetTemplateGuideSheet implements FromArray, WithEvents, WithTitle
             'tipe_media' => 'Pilih dari daftar: text, video_youtube, video_gdrive, image, atau pdf.',
             'url_media' => 'Wajib untuk video, gambar, atau PDF. Kosongkan untuk materi teks.',
             'kunci_jawaban' => 'Pilih satu huruf: a, b, c, atau d.',
-            'npk' => 'Gunakan NPK yang sama persis dengan data HaRis.',
+            'nik' => 'Gunakan NIK yang sama persis dengan data HaRis.',
             default => 'Isi sesuai data yang ingin diimpor.',
         };
     }

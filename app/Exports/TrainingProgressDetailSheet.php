@@ -26,7 +26,7 @@ class TrainingProgressDetailSheet implements FromArray, WithColumnWidths, WithEv
     /** @return array<int, string> */
     public function headings(): array
     {
-        return ['NPK', 'Nama karyawan', 'Kelompok departemen', 'Departemen HaRis', 'Bagian', 'Kode training', 'Training', 'Level', 'Status', 'Lulus post-test', 'Penilaian OJT', 'Diperbarui'];
+        return ['NIK', 'Nama karyawan', 'Kelompok departemen', 'Departemen HaRis', 'Bagian', 'Kode training', 'Training', 'Level', 'Status', 'Lulus post-test', 'Penilaian OJT', 'Diperbarui'];
     }
 
     /** @return array<string, int> */

@@ -131,7 +131,7 @@ test('pengelola dapat mengimpor penugasan training tanpa membuat data ganda', fu
     ]);
     $manpower = MManpower::create([
         'mp_id' => 'TRN-MP-01',
-        'nik' => 'TRN-MP-01',
+        'nik' => 'NIK-TRN-01',
         'nama' => 'Operator Impor',
         'departemen' => 'PRODUKSI',
         'bagian' => 'OPERATOR',
@@ -146,7 +146,7 @@ test('pengelola dapat mengimpor penugasan training tanpa membuat data ganda', fu
         'level' => 1,
         'judul' => 'BOX BATTERY',
     ]);
-    $file = UploadedFile::fake()->createWithContent('penugasan.csv', "kode_training,npk\nTRN-IMPORT-01,TRN-MP-01\n");
+    $file = UploadedFile::fake()->createWithContent('penugasan.csv', "kode_training,nik\nTRN-IMPORT-01,NIK-TRN-01\n");
 
     $preview = $this->actingAs($admin)
         ->post('/admin/imports/assignments', ['file' => $file])

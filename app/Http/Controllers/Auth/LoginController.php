@@ -27,7 +27,7 @@ class LoginController extends Controller
     }
 
     /**
-     * Handle Login Manual (Admin/Management dengan Password, Operator dengan NPK)
+     * Handle Login Manual (Admin/Management dengan Password, Operator dengan NIK)
      */
     public function login(Request $request)
     {
@@ -39,7 +39,7 @@ class LoginController extends Controller
         $userId = trim($request->input('user_id'));
         $password = $request->input('password');
 
-        // 1. Cari akun yang sudah terdaftar berdasarkan user_id / NPK
+        // 1. Cari akun yang sudah terdaftar berdasarkan user_id atau NIK
         $user = User::where('user_id', $userId)->first();
 
         // 2. Jika Akun Admin / Management (Role 1 atau 2) -> Wajib Password
@@ -65,13 +65,13 @@ class LoginController extends Controller
             return redirect('/admin/dashboard')->with('success', 'Selamat datang, ' . $user->name . '!');
         }
 
-        // 3. Login operator berdasarkan NPK / MP_ID pada master karyawan HaRis lokal
-        $manpower = MManpower::where('mp_id', $userId)
-            ->orWhere('nik', $userId)
+        // 3. Login operator berdasarkan NIK pada master karyawan HaRis lokal.
+        $manpower = MManpower::where('nik', $userId)
+            ->orWhere('mp_id', $userId)
             ->first();
 
         if (! $manpower) {
-            return back()->with('error', 'NPK / ID Manpower (' . $userId . ') tidak terdaftar di sistem.')->withInput();
+            return back()->with('error', 'NIK (' . $userId . ') tidak terdaftar di sistem.')->withInput();
         }
 
         if (! $manpower->status) {
@@ -122,16 +122,16 @@ class LoginController extends Controller
 
         $scannedCode = trim($request->input('token'));
 
-        // Cari Manpower berdasarkan mp_id / NPK / QR Code
-        $manpower = MManpower::where('mp_id', $scannedCode)
-            ->orWhere('nik', $scannedCode)
+        // Cari manpower berdasarkan NIK, ID internal lama, atau kode QR.
+        $manpower = MManpower::where('nik', $scannedCode)
+            ->orWhere('mp_id', $scannedCode)
             ->orWhere('qrcode', $scannedCode)
             ->first();
 
         if (! $manpower) {
             return response()->json([
                 'success' => false,
-                'message' => 'NPK / Barcode Operator (' . $scannedCode . ') tidak ditemukan di database.',
+                'message' => 'NIK / Barcode operator (' . $scannedCode . ') tidak ditemukan di database.',
             ], 442);
         }
 

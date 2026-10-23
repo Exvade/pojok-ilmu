@@ -160,10 +160,10 @@ class ImportController extends Controller
             ],
             'assignments' => [
                 'label' => 'penugasan training',
-                'description' => 'Tugaskan banyak manpower sekaligus menggunakan kode training dan NPK dari HaRis.',
-                'headings' => ['kode_training', 'npk'],
+                'description' => 'Tugaskan banyak manpower sekaligus menggunakan kode training dan NIK dari HaRis.',
+                'headings' => ['kode_training', 'nik'],
                 'samples' => [['BOX-BATTERY-L1', '4067.260721.CKR']],
-                'notes' => ['NPK harus sama dengan data HaRis yang telah disinkronkan.', 'Untuk banyak manpower pada satu training, kosongkan kode_training pada baris berikutnya agar mengikuti kode di atasnya.', 'Manpower harus aktif dan berada pada departemen training yang sama.', 'Impor ulang tidak membuat penugasan ganda.'],
+                'notes' => ['NIK harus sama dengan data HaRis yang telah disinkronkan.', 'Untuk banyak manpower pada satu training, kosongkan kode_training pada baris berikutnya agar mengikuti kode di atasnya.', 'Manpower harus aktif dan berada pada departemen training yang sama.', 'Impor ulang tidak membuat penugasan ganda.'],
             ],
         ];
     }
@@ -232,7 +232,7 @@ class ImportController extends Controller
                 'trainings' => ['kode_training', 'departemen', 'level', 'judul'],
                 'materials' => ['kode_training', 'urutan', 'judul_materi', 'tipe_media'],
                 'questions' => ['kode_training', 'pertanyaan', 'opsi_a', 'opsi_b', 'opsi_c', 'opsi_d', 'kunci_jawaban'],
-                'assignments' => ['npk'],
+                'assignments' => ['nik'],
             };
             foreach ($required as $field) {
                 if (! isset($row[$field]) || $row[$field] === '') {
@@ -266,7 +266,7 @@ class ImportController extends Controller
                 $resolvedTrainingCode = $row['_resolved_kode_training'] ?? null;
                 $training = $resolvedTrainingCode ? Training::where('kode_training', $resolvedTrainingCode)->first() : null;
                 $manpower = MManpower::query()
-                    ->where('mp_id', (string) ($row['npk'] ?? ''))
+                    ->where('nik', (string) ($row['nik'] ?? ''))
                     ->where('status', true)
                     ->whereNotNull('haris_synced_at')
                     ->first();
@@ -275,7 +275,7 @@ class ImportController extends Controller
                     $errors[] = 'Kode training tidak ditemukan.';
                 }
                 if (! $manpower) {
-                    $errors[] = 'NPK tidak ditemukan, tidak aktif, atau belum tersinkron dari HaRis.';
+                    $errors[] = 'NIK tidak ditemukan, tidak aktif, atau belum tersinkron dari HaRis.';
                 }
                 if ($training && $manpower && ! $training->appliesToDepartment($manpower->trainingDepartment())) {
                     $errors[] = 'Departemen manpower tidak termasuk dalam departemen training.';
@@ -393,7 +393,7 @@ class ImportController extends Controller
     private function saveAssignment(array $row): void
     {
         $training = Training::where('kode_training', $row['_resolved_kode_training'] ?? strtoupper((string) $row['kode_training']))->firstOrFail();
-        $manpower = MManpower::where('mp_id', (string) $row['npk'])->firstOrFail();
+        $manpower = MManpower::where('nik', (string) $row['nik'])->firstOrFail();
 
         TrainingEnrollment::firstOrCreate([
             'training_id' => $training->id,

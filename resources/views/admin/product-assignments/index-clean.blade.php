@@ -80,7 +80,7 @@
                         @if ($productManpowers->isNotEmpty())
                             <div>
                                 <label for="search-manpower-{{ $product->id }}" class="mb-1.5 block text-sm font-medium">Cari manpower</label>
-                                <x-input id="search-manpower-{{ $product->id }}" type="text" x-model="query" placeholder="Cari nama, NPK, atau bagian..." autocomplete="off" />
+                                <x-input id="search-manpower-{{ $product->id }}" type="text" x-model="query" placeholder="Cari nama, NIK, atau bagian..." autocomplete="off" />
                                 <p class="mt-1.5 text-xs text-gray-500" x-show="query" x-cloak>
                                     <span x-text="filteredCount()"></span> manpower ditemukan
                                 </p>
