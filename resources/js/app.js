@@ -233,7 +233,7 @@ Alpine.data('scanLogin', url => ({
 
 Alpine.data('welcomeSpeech', (message, shouldPlay) => ({
     message, shouldPlay,
-    enabled: true, supported: 'speechSynthesis' in window, autoplayBlocked: false, speaking: false, speechToken: 0, voiceRetryTimer: null, voiceUnavailable: false,
+    enabled: true, supported: 'speechSynthesis' in window, autoplayBlocked: false, speaking: false, speechToken: 0,
     init() {
         try { this.enabled = localStorage.getItem('pojokIlmuWelcomeSpeech') !== 'off'; } catch {}
         if (this.shouldPlay && this.enabled && this.supported) this.$nextTick(() => window.setTimeout(() => this.speak(), 300));
@@ -245,29 +245,16 @@ Alpine.data('welcomeSpeech', (message, shouldPlay) => ({
             || voices.find(isIndonesian)
             || null;
     },
-    speak(retries = 0) {
+    speak() {
         if (!this.supported || !this.message) return;
-        window.clearTimeout(this.voiceRetryTimer);
-        const voice = this.preferredVoice();
-        if (!voice) {
-            if (retries < 12) {
-                this.voiceRetryTimer = window.setTimeout(() => this.speak(retries + 1), 250);
-                return;
-            }
-
-            this.voiceUnavailable = true;
-            this.speaking = false;
-            return;
-        }
-
-        this.voiceUnavailable = false;
         const token = ++this.speechToken;
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(this.message);
         utterance.lang = 'id-ID';
         utterance.rate = 0.92;
         utterance.pitch = 1;
-        utterance.voice = voice;
+        const voice = this.preferredVoice();
+        if (voice) utterance.voice = voice;
         utterance.onstart = () => { if (token === this.speechToken) { this.speaking = true; this.autoplayBlocked = false; } };
         utterance.onend = () => { if (token === this.speechToken) this.speaking = false; };
         utterance.onerror = () => { if (token === this.speechToken) { this.speaking = false; this.autoplayBlocked = true; } };
@@ -276,7 +263,6 @@ Alpine.data('welcomeSpeech', (message, shouldPlay) => ({
     enable() {
         this.enabled = true;
         this.autoplayBlocked = false;
-        this.voiceUnavailable = false;
         try { localStorage.setItem('pojokIlmuWelcomeSpeech', 'on'); } catch {}
         this.speak();
     },
@@ -287,8 +273,8 @@ Alpine.data('welcomeSpeech', (message, shouldPlay) => ({
         window.speechSynthesis?.cancel();
         try { localStorage.setItem('pojokIlmuWelcomeSpeech', 'off'); } catch {}
     },
-    replay() { this.voiceUnavailable = false; this.speak(); },
-    destroy() { this.speechToken++; window.clearTimeout(this.voiceRetryTimer); window.speechSynthesis?.cancel(); },
+    replay() { this.speak(); },
+    destroy() { this.speechToken++; window.speechSynthesis?.cancel(); },
 }));
 
 Alpine.data('importUploader', () => ({
