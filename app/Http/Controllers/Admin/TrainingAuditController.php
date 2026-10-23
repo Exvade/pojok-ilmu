@@ -3,13 +3,17 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\MManpower;
 use App\Models\Training;
+use App\Services\TrainingAssignmentTargetService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
 class TrainingAuditController extends Controller
 {
+    public function __construct(private readonly TrainingAssignmentTargetService $assignmentTargets) {}
+
     public function index(Request $request): View
     {
         $trainings = Training::query()
@@ -22,10 +26,23 @@ class TrainingAuditController extends Controller
             ->map(fn (Training $training): Training => $this->decorate($training));
 
         $levelCoverage = $this->levelCoverage($trainings);
+        $activeManpowers = MManpower::query()
+            ->where('status', true)
+            ->whereNotNull('haris_synced_at')
+            ->orderBy('nama')
+            ->get();
+        $manpowerTargets = $this->assignmentTargets->summaries($activeManpowers)
+            ->map(fn (array $summary, string|int $manpowerId): array => [
+                'manpower' => $activeManpowers->firstWhere('id', $manpowerId),
+                'summary' => $summary,
+            ])
+            ->filter(fn (array $target): bool => $target['summary']['total'] === 0 || ! $target['summary']['meets_target'])
+            ->values();
 
         return view('admin.training-audit.index', [
             'trainings' => $trainings,
             'levelCoverage' => $levelCoverage,
+            'manpowerTargets' => $manpowerTargets,
             'summary' => [
                 'total' => $trainings->count(),
                 'ready' => $trainings->where('audit_ready', true)->count(),
@@ -36,6 +53,8 @@ class TrainingAuditController extends Controller
                 'contentIssues' => $trainings->filter(fn (Training $training): bool => $training->audit_content_issues !== [])->count(),
                 'unassigned' => $trainings->where('enrollments_count', 0)->count(),
                 'levelIssues' => $levelCoverage->filter(fn (array $coverage): bool => $coverage['issues'] !== [])->count(),
+                'withoutAssignments' => $manpowerTargets->where('summary.total', 0)->count(),
+                'belowTarget' => $manpowerTargets->where('summary.meets_target', false)->count(),
             ],
         ]);
     }

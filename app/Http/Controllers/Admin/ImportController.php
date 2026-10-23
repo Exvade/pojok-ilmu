@@ -14,8 +14,10 @@ use App\Models\TrainingEnrollment;
 use App\Models\TrainingMaterial;
 use App\Services\DepartmentAliasResolver;
 use App\Services\DepartmentGroupService;
+use App\Services\TrainingAssignmentTargetService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -26,7 +28,10 @@ use Throwable;
 
 class ImportController extends Controller
 {
-    public function __construct(private readonly DepartmentAliasResolver $departmentAliases) {}
+    public function __construct(
+        private readonly DepartmentAliasResolver $departmentAliases,
+        private readonly TrainingAssignmentTargetService $assignmentTargets,
+    ) {}
 
     public function create(string $type): View
     {
@@ -79,6 +84,7 @@ class ImportController extends Controller
                 'type' => $type,
                 'definition' => $definition,
                 'preview' => ['token' => $token, 'rows' => $previewRows, 'valid_count' => count($validRows)],
+                'assignmentTargets' => $type === 'assignments' ? $this->assignmentTargets($previewRows) : collect(),
             ]);
         } catch (Throwable $exception) {
             report($exception);
@@ -294,6 +300,37 @@ class ImportController extends Controller
         }
 
         return $preview;
+    }
+
+    /** @param array<int, array{data: array<string, string|int|null>, is_valid: bool}> $previewRows @return \Illuminate\Support\Collection<int, array{manpower: MManpower, summary: array{levels: array<int, int>, gaps: array<int, int>, total: int, meets_target: bool}}> */
+    private function assignmentTargets(array $previewRows): Collection
+    {
+        $rows = collect($previewRows)->filter(fn (array $row): bool => $row['is_valid']);
+        $manpowers = MManpower::query()
+            ->whereIn('nik', $rows->pluck('data.nik')->filter()->unique())
+            ->get();
+        $manpowersByNik = $manpowers->keyBy('nik');
+        $trainingsByCode = Training::query()
+            ->whereIn('kode_training', $rows->pluck('data._resolved_kode_training')->filter()->unique())
+            ->get()
+            ->keyBy('kode_training');
+        $incomingTrainingIds = $rows
+            ->map(function (array $row) use ($manpowersByNik, $trainingsByCode): ?array {
+                $manpower = $manpowersByNik->get($row['data']['nik'] ?? '');
+                $training = $trainingsByCode->get($row['data']['_resolved_kode_training'] ?? '');
+
+                return $manpower && $training ? [$manpower->id, $training->id] : null;
+            })
+            ->filter()
+            ->groupBy(0)
+            ->map(fn (Collection $assignments): array => $assignments->pluck(1)->unique()->values()->all())
+            ->all();
+        $summaries = $this->assignmentTargets->summaries($manpowers, $incomingTrainingIds);
+
+        return $manpowers
+            ->map(fn (MManpower $manpower): array => ['manpower' => $manpower, 'summary' => $summaries->get($manpower->id)])
+            ->sortBy('manpower.nama')
+            ->values();
     }
 
     /** @param array<string, string|int> $row */

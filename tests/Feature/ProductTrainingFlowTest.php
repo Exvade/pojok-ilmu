@@ -151,7 +151,9 @@ test('pengelola dapat mengimpor penugasan training tanpa membuat data ganda', fu
     $preview = $this->actingAs($admin)
         ->post('/admin/imports/assignments', ['file' => $file])
         ->assertOk()
-        ->assertViewHas('preview');
+        ->assertViewHas('preview')
+        ->assertSee('Target penugasan setelah impor')
+        ->assertSee('Level 1 kurang 5');
     $this->post(route('admin.assignments.import.confirm'), [
         'preview_token' => $preview->viewData('preview')['token'],
     ])->assertSessionHas('success');
