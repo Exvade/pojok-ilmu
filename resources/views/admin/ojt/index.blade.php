@@ -28,7 +28,7 @@
                         <option value="{{ $item }}" @selected($departemen === $item)>{{ $item }}</option>
                     @endforeach
                 </x-select>
-                <x-input name="search" value="{{ $search }}" placeholder="Cari nama / NPK..." aria-label="Cari manpower" />
+                <x-input name="search" value="{{ $search }}" placeholder="Cari nama / NIK..." aria-label="Cari manpower" />
                 <x-button type="submit" size="sm"><x-icon name="filter" class="h-4 w-4" />Terapkan</x-button>
                 <x-button :href="route('admin.ojt.index')" variant="outline" size="sm"><x-icon name="reset" class="h-4 w-4" />Reset</x-button>
             </form>

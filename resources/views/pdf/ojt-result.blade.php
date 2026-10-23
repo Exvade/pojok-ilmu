@@ -37,7 +37,7 @@
     <div class="section">
         <div class="section-title">Identitas dan pelaksanaan</div>
         <table class="identity">
-            <tr><td>Nama</td><td class="value">{{ $enrollment->manpower->nama }}</td><td>NPK</td><td class="value">{{ $enrollment->manpower->mp_id }}</td></tr>
+            <tr><td>Nama</td><td class="value">{{ $enrollment->manpower->nama }}</td><td>NIK</td><td class="value">{{ $enrollment->manpower->nik }}</td></tr>
             <tr><td>Departemen HaRis</td><td class="value">{{ $enrollment->manpower->departemen }}</td><td>Jabatan / Bagian</td><td class="value">{{ $enrollment->manpower->jabatan ?? $enrollment->manpower->bagian }}</td></tr>
             <tr><td>Tanggal</td><td class="value">{{ $assessment->training_date?->translatedFormat('d F Y') }}</td><td>Jam / Tempat</td><td class="value">{{ $assessment->training_time ?? '-' }}{{ $assessment->location ? ' / ' . $assessment->location : '' }}</td></tr>
             <tr><td>Kategori</td><td colspan="3" class="value">{{ collect($assessment->categories)->map(fn ($category) => str($category)->replace('_', ' ')->title())->implode(', ') }}</td></tr>

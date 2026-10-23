@@ -39,7 +39,7 @@
                         <option value="{{ $value }}" @selected($filters['status'] === $value)>{{ $label }}</option>
                     @endforeach
                 </x-select>
-                <x-input name="search" value="{{ $filters['search'] }}" placeholder="Cari nama, NPK, atau training..." aria-label="Cari laporan training" />
+                <x-input name="search" value="{{ $filters['search'] }}" placeholder="Cari nama, NIK, atau training..." aria-label="Cari laporan training" />
                 <x-button type="submit" size="sm"><x-icon name="filter" class="h-4 w-4" />Terapkan</x-button>
                 <x-button :href="route('admin.training-reports.index')" variant="outline" size="sm"><x-icon name="reset" class="h-4 w-4" />Reset</x-button>
             </form>

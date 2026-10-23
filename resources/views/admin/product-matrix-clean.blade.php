@@ -28,7 +28,7 @@
                     <div><h2 class="font-heading text-lg font-bold">Penugasan dan balok kompetensi</h2><p class="mt-1 text-xs text-gray-500">Empat balok menunjukkan tahapan kompetensi. Balok 3 dan 4 ditampilkan sebagai arah pengembangan berikutnya.</p></div>
                     <form action="{{ route('admin.dashboard') }}" method="GET" data-auto-search class="grid w-full gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto] lg:max-w-2xl">
                         <x-select-menu name="departemen" :options="['' => 'Semua departemen'] + $departemens->mapWithKeys(fn ($item) => [$item => $item])->all()" :selected="$departemenFilter" aria-label="Filter departemen" />
-                        <x-input type="text" name="search" aria-label="Cari manpower" :value="$search" placeholder="Cari nama / NPK..." />
+                        <x-input type="text" name="search" aria-label="Cari manpower" :value="$search" placeholder="Cari nama / NIK..." />
                         <x-button type="submit" size="sm"><x-icon name="filter" class="h-4 w-4" />Terapkan</x-button>
                         <x-button :href="route('admin.dashboard')" variant="outline" size="sm"><x-icon name="reset" class="h-4 w-4" />Reset</x-button>
                     </form>
@@ -41,7 +41,7 @@
                 </x-slot>
                 @forelse ($manpowers as $manpower)
                     <tr class="align-top transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                        <td><p class="font-semibold">{{ $manpower->nama }}</p><p class="mt-1 font-mono text-xs text-gray-500">NPK: {{ $manpower->mp_id }}</p><p class="mt-1 text-xs text-gray-400">{{ $manpower->departemen }} · {{ $manpower->bagian }}</p></td>
+                        <td><p class="font-semibold">{{ $manpower->nama }}</p><p class="mt-1 font-mono text-xs text-gray-500">NIK: {{ $manpower->nik }}</p><p class="mt-1 text-xs text-gray-400">{{ $manpower->departemen }} · {{ $manpower->bagian }}</p></td>
                         <td class="text-center"><x-button :href="route('admin.manpower.training-profile', $manpower->id)" variant="ghost" size="sm" aria-label="Lihat profil training {{ $manpower->nama }}" title="Lihat profil training"><x-icon name="eye" class="h-4 w-4" /></x-button></td>
                         @foreach ($levels as $level)
                             @php($levelEnrollments = $manpower->enrollments->filter(fn ($enrollment) => $enrollment->training?->level === $level))

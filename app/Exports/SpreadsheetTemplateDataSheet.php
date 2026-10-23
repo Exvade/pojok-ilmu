@@ -78,7 +78,7 @@ class SpreadsheetTemplateDataSheet implements FromArray, WithColumnWidths, WithE
 
                 foreach ($this->definition['headings'] as $index => $heading) {
                     $column = Coordinate::stringFromColumnIndex($index + 1);
-                    if (in_array($heading, ['npk', 'kode_training', 'kode_skill', 'kunci_jawaban'], true)) {
+                    if (in_array($heading, ['nik', 'kode_training', 'kode_skill', 'kunci_jawaban'], true)) {
                         $sheet->getStyle("{$column}2:{$column}{$lastRow}")->getNumberFormat()->setFormatCode('@');
                     }
 

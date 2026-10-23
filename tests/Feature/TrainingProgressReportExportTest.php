@@ -8,7 +8,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 test('training progress export provides shareable summary and detail sheets', function () {
     $export = new TrainingProgressReportExport(
-        [['NPK-001', 'Dani Rusdani', 'PRODUKSI', 'PRODUKSI PLASTIK A', 'OPERATOR', 'TR-001', 'BOX BATTERY', 1, 'Menunggu OJT', '22 Okt 2026, 08:00', '-', '22 Okt 2026, 08:15']],
+        [['NIK-001', 'Dani Rusdani', 'PRODUKSI', 'PRODUKSI PLASTIK A', 'OPERATOR', 'TR-001', 'BOX BATTERY', 1, 'Menunggu OJT', '22 Okt 2026, 08:00', '-', '22 Okt 2026, 08:15']],
         ['total' => 6, 'not_started' => 1, 'in_progress' => 2, 'pending_ojt' => 1, 'retry_ojt' => 1, 'block_two' => 1],
         ['departemen' => 'PRODUKSI', 'search' => '', 'status' => 'Menunggu OJT'],
         '22 Okt 2026, 10:00',
@@ -22,6 +22,7 @@ test('training progress export provides shareable summary and detail sheets', fu
         ->and($sheets[0]->array())->toContain(['Total penugasan', 6])
         ->and($sheets[1])->toBeInstanceOf(TrainingProgressDetailSheet::class)
         ->and($sheets[1]->title())->toBe('Detail penugasan')
+        ->and($sheets[1]->headings())->toContain('NIK')
         ->and($sheets[1]->headings())->toContain('Status');
 
     $temporaryPath = tempnam(sys_get_temp_dir(), 'training-progress-');

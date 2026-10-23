@@ -9,7 +9,7 @@
                 <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-brand-dark dark:hover:text-green-300"><x-icon name="back" class="h-3.5 w-3.5" />Kembali ke matriks</a>
                 <p class="mt-4 text-xs font-semibold uppercase tracking-wider text-brand-dark dark:text-green-400">Profil kompetensi</p>
                 <h1 class="page-title mt-1">{{ $manpower->nama }}</h1>
-                <p class="page-description">NPK: {{ $manpower->mp_id }} · {{ $manpower->departemen }} · {{ $manpower->jabatan ?? $manpower->bagian }}</p>
+                <p class="page-description">NIK: {{ $manpower->nik }} · {{ $manpower->departemen }} · {{ $manpower->jabatan ?? $manpower->bagian }}</p>
             </div>
             <span class="inline-flex w-fit items-center rounded-full border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-semibold text-brand-dark dark:border-green-900 dark:bg-green-950/40 dark:text-green-300">Level saat ini: {{ $currentLevel ? 'Level '.$currentLevel : 'Belum tercapai' }}</span>
         </div>
