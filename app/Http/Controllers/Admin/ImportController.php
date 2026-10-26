@@ -68,12 +68,31 @@ class ImportController extends Controller
     public function store(Request $request, string $type): View|RedirectResponse
     {
         $definition = $this->definition($type);
-        $request->validate(['file' => 'required|file|mimes:xlsx,xls,csv|max:5120']);
+        $request->validate(['file' => 'required|file|mimes:xlsx,xls,csv|max:5120'], [
+            'file.required' => 'Pilih file Excel atau CSV yang akan diimpor.',
+            'file.file' => 'File yang dipilih tidak dapat dibaca. Pilih kembali file Anda.',
+            'file.mimes' => 'Format file tidak didukung. Gunakan file XLSX, XLS, atau CSV.',
+            'file.max' => 'Ukuran file terlalu besar. Maksimal 5 MB.',
+        ]);
 
         try {
             $reader = new SpreadsheetRowsImport;
             Excel::import($reader, $request->file('file'));
             $rows = $this->normalizedRows($reader);
+            if ($rows !== []) {
+                $requiredHeadings = match ($type) {
+                    'skills' => ['kode_skill', 'nama_skill', 'kategori'],
+                    'trainings' => ['kode_training', 'departemen', 'level', 'judul'],
+                    'materials' => ['kode_training', 'urutan', 'judul_materi', 'tipe_media'],
+                    'questions' => ['kode_training', 'pertanyaan', 'opsi_a', 'opsi_b', 'opsi_c', 'opsi_d', 'kunci_jawaban'],
+                    'assignments' => ['kode_training', 'nik'],
+                };
+                $missingHeadings = array_diff($requiredHeadings, array_keys($rows[0]));
+                if ($missingHeadings !== []) {
+                    return back()->withErrors(['file' => 'Kolom berikut tidak ditemukan: ' . implode(', ', $missingHeadings) . '. Gunakan baris judul dari template dan jangan mengubah nama kolom.']);
+                }
+                $rows = array_map(fn (array $row): array => array_replace(array_fill_keys($definition['headings'], null), $row), $rows);
+            }
             $previewRows = $this->previewRows($type, $rows);
             $validRows = collect($previewRows)->where('is_valid', true)->pluck('data')->all();
             $token = (string) Str::uuid();
@@ -183,13 +202,13 @@ class ImportController extends Controller
         return $types[$type];
     }
 
-    /** @return array<int, array<string, string|int|null>> */
+    /** @return array<int, array<string, string|int|float|null>> */
     private function normalizedRows(SpreadsheetRowsImport $reader): array
     {
         return $reader->rows
             ->map(function ($row, int $index): array {
                 $values = collect($row)
-                    ->map(fn ($value): string|int|null => is_string($value) ? trim($value) : $value)
+                    ->map(fn ($value): string|int|float|null => is_string($value) ? trim($value) : $value)
                     ->all();
                 $values['_row'] = $index + 2;
 
@@ -200,7 +219,7 @@ class ImportController extends Controller
             ->all();
     }
 
-    /** @param array<int, array<string, string|int|null>> $rows @return array<int, array{row: int, data: array<string, string|int|null>, errors: array<int, string>, is_valid: bool}> */
+    /** @param array<int, array<string, string|int|float|null>> $rows @return array<int, array{row: int, data: array<string, string|int|float|null>, errors: array<int, string>, is_valid: bool}> */
     private function previewRows(string $type, array $rows): array
     {
         if ($rows === []) {
@@ -223,7 +242,7 @@ class ImportController extends Controller
                 $trainingCode = trim((string) ($row['kode_training'] ?? ''));
                 if ($trainingCode === '') {
                     if ($lastAssignmentTrainingCode === null) {
-                        $errors[] = 'Kode training belum diisi pada baris sebelumnya.';
+                        $errors[] = 'Isi kode training pada baris ini atau pada baris sebelumnya sebelum mencantumkan NIK.';
                     } else {
                         $row['_resolved_kode_training'] = $lastAssignmentTrainingCode;
                         $inheritedTraining = true;
@@ -242,49 +261,80 @@ class ImportController extends Controller
             };
             foreach ($required as $field) {
                 if (! isset($row[$field]) || $row[$field] === '') {
-                    $errors[] = 'Kolom ' . $field . ' wajib diisi.';
+                    $errors[] = 'Kolom ' . ($field === 'nik' ? 'NIK' : str_replace('_', ' ', $field)) . ' wajib diisi.';
                 }
             }
             if ($type === 'trainings') {
-                if (! is_numeric($row['level'] ?? null) || ! in_array((int) $row['level'], [1, 2, 3], true)) {
-                    $errors[] = 'Level harus bernilai 1 sampai 3.';
+                if (isset($row['level']) && $row['level'] !== '' && ! in_array((string) $row['level'], ['1', '2', '3'], true)) {
+                    $errors[] = 'Level harus berupa angka 1, 2, atau 3.';
                 }
 
                 $departmentResolution = $this->resolveDepartments($row['departemen'] ?? null);
                 if ($departmentResolution === null) {
-                    $errors[] = 'Departemen tidak ditemukan. Gunakan nama HaRis atau alias departemen yang terdaftar.';
+                    $unrecognized = collect(explode(';', (string) ($row['departemen'] ?? '')))
+                        ->map(fn (string $department): string => trim($department))
+                        ->filter(fn (string $department): bool => $department !== '' && $this->departmentAliases->resolve($department) === null)
+                        ->implode(', ');
+                    $errors[] = 'Departemen tidak dikenali: ' . $unrecognized . '. Gunakan nama HaRis atau alias terdaftar; pisahkan beberapa departemen dengan titik koma (;).';
                 } else {
                     $row['_resolved_departemen'] = implode('; ', $departmentResolution);
                 }
             }
-            if (in_array($type, ['materials', 'questions'], true) && ! Training::where('kode_training', $row['kode_training'] ?? '')->exists()) {
-                $errors[] = 'Kode training tidak ditemukan.';
+            if (in_array($type, ['materials', 'questions'], true) && filled($row['kode_training'] ?? null) && ! Training::where('kode_training', $row['kode_training'])->exists()) {
+                $errors[] = 'Kode training tidak ditemukan. Periksa kode atau buat training terlebih dahulu.';
             }
-            if ($type === 'materials' && ! in_array($row['tipe_media'] ?? '', ['text', 'video_youtube', 'video_gdrive', 'image', 'pdf'], true)) {
-                $errors[] = 'Tipe media tidak valid.';
+            if ($type === 'materials') {
+                $mediaType = $row['tipe_media'] ?? null;
+                if (filled($mediaType) && ! in_array($mediaType, ['text', 'video_youtube', 'video_gdrive', 'image', 'pdf'], true)) {
+                    $errors[] = 'Tipe media tidak valid. Pilih text, video_youtube, video_gdrive, image, atau pdf.';
+                }
+                if (in_array($mediaType, ['video_youtube', 'video_gdrive', 'image', 'pdf'], true) && blank($row['url_media'] ?? null)) {
+                    $errors[] = 'Kolom URL media wajib diisi untuk video, gambar, atau PDF.';
+                }
             }
             if ($type === 'questions') {
-                if (! in_array(strtolower((string) ($row['kunci_jawaban'] ?? '')), ['a', 'b', 'c', 'd'], true)) {
-                    $errors[] = 'Kunci jawaban harus a, b, c, atau d.';
+                if (filled($row['kunci_jawaban'] ?? null) && ! in_array(strtolower((string) $row['kunci_jawaban']), ['a', 'b', 'c', 'd'], true)) {
+                    $errors[] = 'Kunci jawaban harus berupa satu huruf: a, b, c, atau d.';
+                }
+            }
+            foreach (match ($type) {
+                'trainings' => ['nilai_lulus', 'batas_percobaan'],
+                'materials' => ['urutan'],
+                'questions' => ['durasi_menit', 'nilai_lulus', 'batas_percobaan', 'masa_tunggu_jam'],
+                default => [],
+            } as $field) {
+                $value = $row[$field] ?? null;
+                if ($value === null || $value === '') {
+                    continue;
+                }
+                $validInteger = filter_var($value, FILTER_VALIDATE_INT) !== false;
+                if ($field === 'nilai_lulus' && (! $validInteger || (int) $value < 50 || (int) $value > 100)) {
+                    $errors[] = 'Nilai lulus harus berupa angka bulat antara 50 dan 100.';
+                } elseif ($field === 'masa_tunggu_jam' && (! $validInteger || (int) $value < 1 || (int) $value > 168)) {
+                    $errors[] = 'Masa tunggu harus berupa angka bulat antara 1 dan 168 jam.';
+                } elseif ($field !== 'nilai_lulus' && (! $validInteger || (int) $value < 1)) {
+                    $errors[] = ucfirst(str_replace('_', ' ', $field)) . ' harus berupa angka bulat positif.';
                 }
             }
             if ($type === 'assignments') {
                 $resolvedTrainingCode = $row['_resolved_kode_training'] ?? null;
                 $training = $resolvedTrainingCode ? Training::where('kode_training', $resolvedTrainingCode)->first() : null;
-                $manpower = MManpower::query()
-                    ->where('nik', (string) ($row['nik'] ?? ''))
-                    ->where('status', true)
-                    ->whereNotNull('haris_synced_at')
-                    ->first();
+                $manpower = filled($row['nik'] ?? null) ? MManpower::where('nik', (string) $row['nik'])->first() : null;
 
                 if ($resolvedTrainingCode && ! $training) {
-                    $errors[] = 'Kode training tidak ditemukan.';
+                    $errors[] = 'Kode training ' . $resolvedTrainingCode . ' tidak ditemukan. Periksa kode atau buat training terlebih dahulu.';
                 }
-                if (! $manpower) {
-                    $errors[] = 'NIK tidak ditemukan, tidak aktif, atau belum tersinkron dari HaRis.';
+                if (filled($row['nik'] ?? null)) {
+                    if (! $manpower) {
+                        $errors[] = 'NIK ' . $row['nik'] . ' tidak ditemukan. Periksa NIK dan sinkronisasi HaRis.';
+                    } elseif (! $manpower->status) {
+                        $errors[] = 'Karyawan ' . $manpower->nama . ' tidak aktif dan tidak dapat ditugaskan.';
+                    } elseif (! $manpower->haris_synced_at) {
+                        $errors[] = 'Data karyawan ' . $manpower->nama . ' belum tersinkron dari HaRis.';
+                    }
                 }
-                if ($training && $manpower && ! $training->appliesToDepartment($manpower->trainingDepartment())) {
-                    $errors[] = 'Departemen manpower tidak termasuk dalam departemen training.';
+                if ($training && $manpower && $manpower->status && $manpower->haris_synced_at && ! $training->appliesToDepartment($manpower->trainingDepartment())) {
+                    $errors[] = 'Departemen ' . $manpower->nama . ' (' . ($manpower->trainingDepartment() ?: 'belum tersedia') . ') tidak sesuai. Training ' . $training->judul . ' ditujukan untuk: ' . $training->departmentLabel() . '.';
                 }
             }
 
