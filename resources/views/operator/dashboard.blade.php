@@ -109,18 +109,17 @@
 
 <div class="page-shell">
     @php
-        $welcomeTrainings = $enrollments
-            ->filter(fn ($enrollment): bool => $enrollment->is_unlocked && $enrollment->block < 2)
+        $availableWelcomeTrainings = $enrollments
+            ->filter(fn ($enrollment): bool => $enrollment->is_unlocked && $enrollment->block < 2);
+        $welcomeTrainings = $availableWelcomeTrainings
             ->pluck('training.judul')
             ->take(3)
             ->values();
-        $remainingWelcomeTrainings = max(0, $enrollments
-            ->filter(fn ($enrollment): bool => $enrollment->is_unlocked && $enrollment->block < 2)
-            ->count() - $welcomeTrainings->count());
+        $remainingWelcomeTrainings = $availableWelcomeTrainings->count() - $welcomeTrainings->count();
         $welcomeName = $manpower?->nama ?? auth()->user()->name;
         $welcomeSpeech = $welcomeTrainings->isEmpty()
-            ? "Selamat datang, {$welcomeName}. Saat ini tidak ada training aktif yang perlu Anda mulai."
-            : "Selamat datang, {$welcomeName}. Berdasarkan sistem, Anda memiliki " . $welcomeTrainings->count() . ' training yang perlu dilanjutkan: ' . $welcomeTrainings->implode(', ') . ($remainingWelcomeTrainings > 0 ? ", dan {$remainingWelcomeTrainings} training lainnya." : '.');
+            ? "Selamat datang, {$welcomeName}. Saat ini tidak ada training yang tersedia dan belum mencapai Balok 2."
+            : "Selamat datang, {$welcomeName}. Anda memiliki " . $availableWelcomeTrainings->count() . ' training yang belum mencapai Balok 2: ' . $welcomeTrainings->implode(', ') . ($remainingWelcomeTrainings > 0 ? ", dan {$remainingWelcomeTrainings} training lainnya." : '.');
     @endphp
 
     <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
