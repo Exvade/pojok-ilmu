@@ -32,7 +32,7 @@ test('sambutan menyebut jumlah training tanpa menganggap training sudah dimulai'
     }
 
     $this->get('/operator/dashboard')->assertOk()
-        ->assertSee('Anda memiliki 4 training yang belum mencapai Balok 2: Training 1, Training 2, Training 3, dan 1 training lainnya.')
+        ->assertSee('Berdasarkan sistem, Anda memiliki 4 training yang belum mencapai Balok 2: Training 1, Training 2, Training 3, dan 1 training lainnya.')
         ->assertDontSee('training yang perlu dilanjutkan');
 });
 
