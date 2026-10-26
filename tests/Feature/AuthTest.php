@@ -85,6 +85,43 @@ test('inactive operator cannot login through barcode scan', function () {
         ->assertJsonPath('success', false);
 });
 
+test('akun pengelola tidak dapat masuk melalui pindai tanpa kata sandi', function () {
+    $manpower = MManpower::create([
+        'mp_id' => 'MANAGER-SCAN', 'nik' => 'NIK-MANAGER-SCAN', 'nama' => 'Pengelola',
+        'departemen' => 'IT', 'bagian' => 'STAFF', 'status' => true,
+    ]);
+    User::create([
+        'user_id' => $manpower->mp_id, 'name' => $manpower->nama,
+        'password' => Hash::make('password123'), 'role' => 2, 'can_manage_curriculum' => true,
+    ]);
+
+    $this->postJson('/login/scan', ['token' => $manpower->nik])
+        ->assertForbidden()
+        ->assertJsonPath('message', 'Akun pengelola harus masuk menggunakan NIK atau ID akun dan kata sandi.');
+    $this->assertGuest();
+});
+
+test('akun pengelola tidak dapat melewati kata sandi menggunakan NIK berbeda dari ID akun', function () {
+    $manpower = MManpower::create([
+        'mp_id' => 'MANAGER-ID', 'nik' => 'MANAGER-NIK', 'nama' => 'Pengelola',
+        'departemen' => 'IT', 'bagian' => 'STAFF', 'status' => true,
+    ]);
+    User::create([
+        'user_id' => $manpower->mp_id, 'name' => $manpower->nama,
+        'password' => Hash::make('password123'), 'role' => 2, 'can_manage_curriculum' => true,
+    ]);
+
+    $this->post('/login', ['user_id' => $manpower->nik])->assertRedirect()->assertSessionHas('error');
+    $this->assertGuest();
+});
+
+test('halaman pindai menyediakan kamera dan tetap mendukung pemindai atau NIK', function () {
+    $this->get('/login/scan')->assertOk()
+        ->assertSee('Pindai QR dengan kamera')
+        ->assertSee('Barcode / NIK karyawan')
+        ->assertSee('Tutup kamera');
+});
+
 test('inactive operator session is removed before opening the operator portal', function () {
     $operator = MManpower::create([
         'mp_id' => 'OP000',
