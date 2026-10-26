@@ -37,9 +37,13 @@ class DemoPelatihanSeeder extends Seeder
                 throw new RuntimeException('Karyawan memiliki akun pengelola atau akun yang tidak aktif. Pilih karyawan dengan akses operator.');
             }
 
+            if (Training::withTrashed()->whereIn('kode_training', ['DEMO-HARIS-L1', 'DEMO-HARIS-L2', 'DEMO-HARIS-L3'])->exists()) {
+                throw new RuntimeException('Data seeder versi sebelumnya sudah ada. Periksa data tersebut sebelum membuat penugasan baru agar tidak terjadi duplikasi.');
+            }
+
             foreach ([1 => 'Pengenalan Produk', 2 => 'Proses Produk', 3 => 'Pemeriksaan Produk'] as $level => $title) {
-                $code = 'DEMO-HARIS-L' . $level;
-                $trainingTitle = 'DEMO - ' . $title;
+                $code = 'TRN-PRODUK-L' . $level;
+                $trainingTitle = $title;
                 $skill = MSkill::withTrashed()->where('kode_skill', $code)->first();
                 $training = Training::withTrashed()->where('kode_training', $code)->first();
                 if (($skill && ($skill->trashed() || $skill->nama_skill !== $trainingTitle)) || ($training && ($training->trashed() || $training->judul !== $trainingTitle || (int) $training->level !== $level || ! $skill || $training->skill_id !== $skill->id))) {
@@ -49,10 +53,10 @@ class DemoPelatihanSeeder extends Seeder
                     throw new RuntimeException('Departemen karyawan tidak sesuai dengan training demo yang sudah ada. Seeder dibatalkan tanpa mengubah data.');
                 }
 
-                $skill ??= MSkill::create(['kode_skill' => $code, 'nama_skill' => $trainingTitle, 'kategori' => 'DEMO PELATIHAN']);
+                $skill ??= MSkill::create(['kode_skill' => $code, 'nama_skill' => $trainingTitle, 'kategori' => 'Product Knowledge']);
                 $training ??= Training::create([
                     'kode_training' => $code, 'skill_id' => $skill->id, 'departemen' => $manpower->trainingDepartment(),
-                    'level' => $level, 'judul' => $trainingTitle, 'deskripsi' => 'Data contoh. Tambahkan materi video sebelum digunakan untuk demonstrasi.',
+                    'level' => $level, 'judul' => $trainingTitle, 'deskripsi' => 'Pelatihan pemahaman produk, proses kerja, dan pemeriksaan sesuai tingkat kompetensi.',
                     'passing_grade' => 80, 'max_retries' => 3, 'requires_ojt' => true,
                 ]);
                 TrainingEnrollment::firstOrCreate(['training_id' => $training->id, 'manpower_id' => $manpower->id], ['status' => 'enrolled', 'ojt_status' => 'not_started']);
