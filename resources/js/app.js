@@ -1,6 +1,7 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
 import Swal from 'sweetalert2';
+import { createQrCamera } from './qr-camera';
 
 window.Alpine = Alpine;
 window.Swal = Swal;
@@ -213,10 +214,35 @@ Alpine.data('modalDialog', (name, initiallyOpen) => ({
     destroy() { if (this.open) document.body.style.overflow = this.previousOverflow; }
 }));
 Alpine.data('scanLogin', url => ({
-    token: '', loading: false, error: '',
-    init() { this.$nextTick(() => this.$refs.barcodeInput.focus()); },
+    token: '', loading: false, error: '', cameraActive: false, cameraStarting: false, cameraAttempt: 0, camera: null, pageHideHandler: null,
+    init() {
+        this.camera = createQrCamera({
+            video: this.$refs.cameraVideo,
+            onDetected: code => { this.cameraActive = false; this.token = code; this.submitScan(); },
+            onError: message => { this.cameraActive = false; this.error = message; },
+        });
+        this.pageHideHandler = () => this.stopCamera();
+        window.addEventListener('pagehide', this.pageHideHandler);
+        this.$nextTick(() => this.$refs.barcodeInput.focus());
+    },
+    async startCamera() {
+        if (this.cameraStarting || this.cameraActive || this.loading) return;
+        this.error = ''; this.cameraStarting = true;
+        const attempt = ++this.cameraAttempt;
+        const started = await this.camera.start();
+        if (attempt !== this.cameraAttempt) return;
+        this.cameraActive = started;
+        this.cameraStarting = false;
+    },
+    stopCamera() {
+        this.cameraAttempt++;
+        this.camera?.stop();
+        this.cameraActive = false; this.cameraStarting = false;
+    },
+    destroy() { this.stopCamera(); window.removeEventListener('pagehide', this.pageHideHandler); },
     async submitScan() {
         if (this.loading || !this.token.trim()) return;
+        this.stopCamera();
         this.loading = true; this.error = '';
         window.lockPageInteraction();
         try {

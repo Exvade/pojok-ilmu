@@ -89,6 +89,10 @@ class LoginController extends Controller
             ]
         );
 
+        if ((int) $user->role !== 0 || $user->isManagement()) {
+            return back()->with('error', 'Akun pengelola harus masuk menggunakan ID akun dan kata sandi.')->withInput();
+        }
+
         Auth::login($user);
 
         session([
@@ -152,6 +156,13 @@ class LoginController extends Controller
                 'is_superadmin' => false,
             ]
         );
+
+        if ((int) $user->role !== 0 || $user->isManagement()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akun pengelola harus masuk menggunakan NIK atau ID akun dan kata sandi.',
+            ], 403);
+        }
 
         Auth::login($user);
 
