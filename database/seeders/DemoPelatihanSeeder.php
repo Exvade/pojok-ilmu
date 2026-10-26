@@ -21,33 +21,37 @@ class DemoPelatihanSeeder extends Seeder
             throw new RuntimeException('Data demo hanya boleh dibuat pada lingkungan nonproduksi.');
         }
 
-        DB::transaction(function (): void {
-            $existing = MManpower::withTrashed()->where('nik', 'DEMO-POJOK-001')->orWhere('mp_id', 'DEMO-POJOK-001')->first();
-            if ($existing && ($existing->trashed() || $existing->nik !== 'DEMO-POJOK-001' || $existing->mp_id !== 'DEMO-POJOK-001' || $existing->nama !== 'KARYAWAN DEMO POJOK ILMU')) {
-                throw new RuntimeException('Identitas demo sudah digunakan oleh data lain. Seeder dibatalkan tanpa mengubah data.');
-            }
-            $existingUser = User::withTrashed()->where('user_id', 'DEMO-POJOK-001')->first();
-            if ($existingUser && ($existingUser->trashed() || (int) $existingUser->role !== 0 || $existingUser->is_superadmin || $existingUser->name !== 'KARYAWAN DEMO POJOK ILMU')) {
-                throw new RuntimeException('Akun demo sudah digunakan oleh akun lain. Seeder dibatalkan tanpa mengubah data.');
+        $nik = trim((string) getenv('DEMO_NIK'));
+        if ($nik === '') {
+            throw new RuntimeException('Tentukan NIK karyawan HaRis melalui variabel DEMO_NIK sebelum menjalankan seeder.');
+        }
+
+        DB::transaction(function () use ($nik): void {
+            $manpower = MManpower::where('nik', $nik)->where('status', true)->whereNotNull('haris_synced_at')->first();
+            if (! $manpower || blank($manpower->trainingDepartment())) {
+                throw new RuntimeException('NIK tidak ditemukan, tidak aktif, belum tersinkron dari HaRis, atau belum memiliki departemen.');
             }
 
-            $manpower = MManpower::firstOrCreate(['nik' => 'DEMO-POJOK-001'], [
-                'mp_id' => 'DEMO-POJOK-001', 'nama' => 'KARYAWAN DEMO POJOK ILMU',
-                'departemen' => 'DEMO PELATIHAN', 'bagian' => 'OPERATOR DEMO', 'status' => true,
-            ]);
+            $users = User::withTrashed()->whereIn('user_id', [$nik, $manpower->mp_id])->get();
+            if ($users->contains(fn (User $user): bool => $user->trashed() || (int) $user->role !== 0 || $user->isManagement())) {
+                throw new RuntimeException('Karyawan memiliki akun pengelola atau akun yang tidak aktif. Pilih karyawan dengan akses operator.');
+            }
 
             foreach ([1 => 'Pengenalan Produk', 2 => 'Proses Produk', 3 => 'Pemeriksaan Produk'] as $level => $title) {
-                $code = 'DEMO-POJOK-L' . $level;
+                $code = 'DEMO-HARIS-L' . $level;
                 $trainingTitle = 'DEMO - ' . $title;
                 $skill = MSkill::withTrashed()->where('kode_skill', $code)->first();
                 $training = Training::withTrashed()->where('kode_training', $code)->first();
                 if (($skill && ($skill->trashed() || $skill->nama_skill !== $trainingTitle)) || ($training && ($training->trashed() || $training->judul !== $trainingTitle || (int) $training->level !== $level || ! $skill || $training->skill_id !== $skill->id))) {
                     throw new RuntimeException('Kode ' . $code . ' sudah digunakan oleh data lain. Seeder dibatalkan tanpa mengubah data.');
                 }
+                if ($training && ! $training->appliesToDepartment($manpower->trainingDepartment())) {
+                    throw new RuntimeException('Departemen karyawan tidak sesuai dengan training demo yang sudah ada. Seeder dibatalkan tanpa mengubah data.');
+                }
 
                 $skill ??= MSkill::create(['kode_skill' => $code, 'nama_skill' => $trainingTitle, 'kategori' => 'DEMO PELATIHAN']);
                 $training ??= Training::create([
-                    'kode_training' => $code, 'skill_id' => $skill->id, 'departemen' => 'DEMO PELATIHAN',
+                    'kode_training' => $code, 'skill_id' => $skill->id, 'departemen' => $manpower->trainingDepartment(),
                     'level' => $level, 'judul' => $trainingTitle, 'deskripsi' => 'Data contoh. Tambahkan materi video sebelum digunakan untuk demonstrasi.',
                     'passing_grade' => 80, 'max_retries' => 3, 'requires_ojt' => true,
                 ]);
