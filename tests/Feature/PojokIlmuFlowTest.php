@@ -12,6 +12,30 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
+test('sambutan menyebut jumlah training tanpa menganggap training sudah dimulai', function () {
+    $operator = MManpower::create([
+        'mp_id' => 'OP-WELCOME', 'nik' => '101010', 'nama' => 'Karyawan Uji',
+        'departemen' => 'IT', 'bagian' => 'STAFF', 'status' => true,
+    ]);
+    $user = User::create(['user_id' => $operator->mp_id, 'name' => $operator->nama, 'role' => 0]);
+    $skill = MSkill::create(['kode_skill' => 'SAMBUTAN', 'nama_skill' => 'Kompetensi', 'kategori' => 'Product Knowledge']);
+
+    $this->actingAs($user)->get('/operator/dashboard')
+        ->assertOk()->assertSee('Saat ini tidak ada training yang tersedia dan belum mencapai Balok 2.');
+
+    foreach (range(1, 4) as $number) {
+        $training = Training::create([
+            'kode_training' => "SAMBUTAN-{$number}", 'skill_id' => $skill->id,
+            'level' => 1, 'judul' => "Training {$number}", 'passing_grade' => 80,
+        ]);
+        TrainingEnrollment::create(['manpower_id' => $operator->id, 'training_id' => $training->id, 'status' => 'enrolled']);
+    }
+
+    $this->get('/operator/dashboard')->assertOk()
+        ->assertSee('Anda memiliki 4 training yang belum mencapai Balok 2: Training 1, Training 2, Training 3, dan 1 training lainnya.')
+        ->assertDontSee('training yang perlu dilanjutkan');
+});
+
 test('operator dashboard does not create automatic enrollment from legacy target data', function () {
     $operator = MManpower::create([
         'mp_id' => 'OP100',
