@@ -119,7 +119,7 @@
         $welcomeName = $manpower?->nama ?? auth()->user()->name;
         $welcomeSpeech = $welcomeTrainings->isEmpty()
             ? "Selamat datang, {$welcomeName}. Saat ini tidak ada training yang tersedia dan belum mencapai Balok 2."
-            : "Selamat datang, {$welcomeName}. Berdasarkan sistem, Anda memiliki " . $availableWelcomeTrainings->count() . ' training yang belum mencapai Balok 2: ' . $welcomeTrainings->implode(', ') . ($remainingWelcomeTrainings > 0 ? ", dan {$remainingWelcomeTrainings} training lainnya." : '.');
+            : "Selamat datang, {$welcomeName}. Berdasarkan sistem, Anda memiliki " . $availableWelcomeTrainings->count() . ' training yang belum mencapai Balok 2, yaitu ' . $welcomeTrainings->implode(', ') . ($remainingWelcomeTrainings > 0 ? ", dan {$remainingWelcomeTrainings} training lainnya." : '.');
     @endphp
 
     <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
