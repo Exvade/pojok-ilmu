@@ -7,17 +7,35 @@ function setup(overrides = {}) {
     let scheduled = null;
     const results = [];
     const errors = [];
+    const cameraSettings = [];
     const stream = { getTracks: () => [{ stop: () => stopped++ }] };
     const video = { srcObject: null, readyState: 2, videoWidth: 640, videoHeight: 480, play: async () => {} };
     const camera = createQrCamera({
         video, secure: true, mediaDevices: { getUserMedia: async () => stream },
         makeCanvas: () => ({ getContext: () => ({ drawImage() {}, getImageData: () => ({ data: new Uint8ClampedArray(4), width: 1, height: 1 }) }) }),
         schedule: callback => { scheduled = callback; return 1; }, cancel: () => { scheduled = null; },
-        decode: () => ({ data: ' NIK-123 ' }), onDetected: code => results.push(code), onError: error => errors.push(error),
+        decode: () => ({ data: ' NIK-123 ' }), onDetected: code => results.push(code), onError: error => errors.push(error), onCameraReady: settings => cameraSettings.push(settings),
         ...overrides,
     });
-    return { camera, stream, video, results, errors, stopped: () => stopped, scan: () => scheduled?.() };
+    return { camera, stream, video, results, errors, cameraSettings, stopped: () => stopped, scan: () => scheduled?.() };
 }
+
+test('mencerminkan kamera depan atau webcam tanpa informasi arah', async () => {
+    const fixture = setup();
+    assert.equal(await fixture.camera.start(), true);
+    assert.deepEqual(fixture.cameraSettings, [{ mirror: true }]);
+    fixture.scan();
+    assert.deepEqual(fixture.results, ['NIK-123']);
+});
+
+test('tidak mencerminkan kamera belakang', async () => {
+    const track = { getSettings: () => ({ facingMode: 'environment' }), stop() {} };
+    const stream = { getTracks: () => [track], getVideoTracks: () => [track] };
+    const fixture = setup({ mediaDevices: { getUserMedia: async () => stream } });
+    assert.equal(await fixture.camera.start(), true);
+    assert.deepEqual(fixture.cameraSettings, [{ mirror: false }]);
+    fixture.camera.stop();
+});
 
 test('memindai QR satu kali dan menutup kamera sebelum mengirim hasil', async () => {
     const fixture = setup();

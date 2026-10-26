@@ -119,6 +119,7 @@ test('halaman pindai menyediakan kamera dan tetap mendukung pemindai atau NIK', 
     $this->get('/login/scan')->assertOk()
         ->assertSee('Pindai QR dengan kamera')
         ->assertSee('Barcode / NIK karyawan')
+        ->assertSee('-scale-x-100')
         ->assertSee('Tutup kamera');
 });
 

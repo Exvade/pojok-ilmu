@@ -214,10 +214,11 @@ Alpine.data('modalDialog', (name, initiallyOpen) => ({
     destroy() { if (this.open) document.body.style.overflow = this.previousOverflow; }
 }));
 Alpine.data('scanLogin', url => ({
-    token: '', loading: false, error: '', cameraActive: false, cameraStarting: false, cameraAttempt: 0, camera: null, pageHideHandler: null,
+    token: '', loading: false, error: '', cameraActive: false, cameraStarting: false, cameraMirrored: true, cameraAttempt: 0, camera: null, pageHideHandler: null,
     init() {
         this.camera = createQrCamera({
             video: this.$refs.cameraVideo,
+            onCameraReady: ({ mirror }) => { this.cameraMirrored = mirror; },
             onDetected: code => { this.cameraActive = false; this.token = code; this.submitScan(); },
             onError: message => { this.cameraActive = false; this.error = message; },
         });

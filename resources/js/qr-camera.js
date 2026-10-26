@@ -1,4 +1,4 @@
-export function createQrCamera({ video, onDetected, onError, secure = globalThis.isSecureContext, mediaDevices = globalThis.navigator?.mediaDevices, makeCanvas = () => document.createElement('canvas'), schedule = setTimeout, cancel = clearTimeout, decode = null }) {
+export function createQrCamera({ video, onDetected, onError, onCameraReady = () => {}, secure = globalThis.isSecureContext, mediaDevices = globalThis.navigator?.mediaDevices, makeCanvas = () => document.createElement('canvas'), schedule = setTimeout, cancel = clearTimeout, decode = null }) {
     let stream = null;
     let timer = null;
     let generation = 0;
@@ -31,6 +31,8 @@ export function createQrCamera({ video, onDetected, onError, secure = globalThis
                 return false;
             }
             stream = captured;
+            const facingMode = captured.getVideoTracks?.()[0]?.getSettings?.()?.facingMode;
+            onCameraReady({ mirror: facingMode !== 'environment' });
             video.srcObject = captured;
             await video.play();
             if (current !== generation) return false;

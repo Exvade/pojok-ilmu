@@ -9,7 +9,7 @@
         <div class="mb-6 space-y-3">
             <x-button variant="secondary" class="w-full" x-show="! cameraActive && ! cameraStarting" @click="startCamera()" ::disabled="loading"><x-icon name="scan" class="h-4 w-4" />Pindai QR dengan kamera</x-button>
             <div x-show="cameraActive" x-cloak class="overflow-hidden rounded-lg border border-gray-200 bg-gray-950 dark:border-gray-700">
-                <video x-ref="cameraVideo" autoplay muted playsinline class="aspect-video w-full object-cover" aria-label="Tampilan kamera untuk membaca kode QR"></video>
+                <video x-ref="cameraVideo" autoplay muted playsinline class="aspect-video w-full object-cover" :class="{ '-scale-x-100': cameraMirrored }" aria-label="Tampilan kamera untuk membaca kode QR"></video>
                 <p class="px-4 py-3 text-center text-xs text-gray-100">Arahkan kode QR ke kamera. Kamera berhenti setelah kode terbaca.</p>
             </div>
             <x-button variant="outline" class="w-full" x-show="cameraActive || cameraStarting" x-cloak @click="stopCamera()"><x-icon name="close" class="h-4 w-4" /><span x-text="cameraStarting ? 'Batalkan permintaan kamera' : 'Tutup kamera'"></span></x-button>
