@@ -67,6 +67,26 @@ test('operator can login via barcode scan without password', function () {
     expect(User::where('user_id', 'OP999')->value('id'))->not->toBeNull();
 });
 
+test('operator can login via S2S QR payload containing name and NIK', function () {
+    MManpower::create([
+        'mp_id' => 'OP-S2S',
+        'nik' => '3734.250710.CKR',
+        'nama' => 'WAHAB FEBRIANSYAH',
+        'departemen' => 'PRODUKSI PLASTIK',
+        'bagian' => 'ASSEMBLY',
+        'status' => true,
+    ]);
+
+    $this->postJson('/login/scan', [
+        'token' => 'WAHAB FEBRIANSYAH|3734.250710.CKR',
+    ])->assertOk()
+        ->assertJsonPath('success', true);
+
+    $this->assertDatabaseHas('users', [
+        'user_id' => 'OP-S2S',
+        'role' => 0,
+    ]);
+});
 test('inactive operator cannot login through barcode scan', function () {
     MManpower::create([
         'mp_id' => 'OP000',

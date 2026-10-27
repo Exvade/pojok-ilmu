@@ -124,7 +124,7 @@ class LoginController extends Controller
             'token' => 'required|string',
         ]);
 
-        $scannedCode = trim($request->input('token'));
+        $scannedCode = $this->extractScanToken((string) $request->input('token'));
 
         // Cari manpower berdasarkan NIK, ID internal lama, atau kode QR.
         $manpower = MManpower::where('nik', $scannedCode)
@@ -181,6 +181,13 @@ class LoginController extends Controller
             'message' => 'Scan Berhasil! Selamat datang ' . $manpower->nama,
             'redirect' => $redirectUrl,
         ]);
+    }
+
+    private function extractScanToken(string $scannedCode): string
+    {
+        $segments = array_values(array_filter(array_map('trim', explode('|', $scannedCode))));
+
+        return end($segments) ?: trim($scannedCode);
     }
 
     /**
