@@ -6,6 +6,8 @@
     'disabled' => false,
     'error' => false,
     'multiple' => false,
+    'searchPlaceholder' => 'Cari pilihan...',
+    'emptyMessage' => 'Pilihan tidak ditemukan.',
 ])
 
 @php
@@ -104,7 +106,7 @@
         <div x-show="multiple" class="sticky top-0 z-10 bg-white px-1 pb-2 pt-1 dark:bg-gray-800">
             <div class="relative">
                 <x-icon name="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                <x-input type="search" x-ref="searchInput" x-model="search" @click.stop @keydown.enter.prevent placeholder="Cari departemen..." class="min-h-10 pl-9 text-sm" aria-label="Cari departemen" />
+                <x-input type="search" x-ref="searchInput" x-model="search" @click.stop @keydown.enter.prevent placeholder="{{ $searchPlaceholder }}" class="min-h-10 pl-9 text-sm" aria-label="{{ $searchPlaceholder }}" />
             </div>
         </div>
         <template x-for="item in filteredItems" :key="item.value">
@@ -120,7 +122,7 @@
                 <x-icon name="check" class="h-4 w-4 text-brand-dark dark:text-green-300" x-show="isSelected(item)" />
             </button>
         </template>
-        <p x-show="filteredItems.length === 0" class="px-3 py-4 text-center text-sm text-gray-500">Departemen tidak ditemukan.</p>
+        <p x-show="filteredItems.length === 0" class="px-3 py-4 text-center text-sm text-gray-500">{{ $emptyMessage }}</p>
     </div>
 </div>
 
