@@ -64,3 +64,13 @@ test('halaman produk s2s tersedia untuk pengelola kurikulum', function () {
         ->assertSee('Produk S2S')
         ->assertSee('BOX-BATTERY');
 });
+
+test('halaman training menampilkan pencarian produk dengan istilah yang tepat', function () {
+    $admin = User::create(['user_id' => 'ADMIN-S2S-TRAINING', 'name' => 'Pengelola Kurikulum', 'role' => 1, 'can_manage_curriculum' => true]);
+    S2sProduct::create(['kode_part' => 'BOX-BATTERY', 'nama_part' => 'Box Battery', 'status' => 'aktif']);
+
+    $this->actingAs($admin)->get(route('admin.trainings.index'))
+        ->assertOk()
+        ->assertSee('Cari kode atau nama produk...')
+        ->assertSee('Produk tidak ditemukan.');
+});
