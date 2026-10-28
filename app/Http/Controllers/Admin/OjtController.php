@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\OjtAssessment;
 use App\Models\TrainingEnrollment;
 use App\Services\ActivityLogger;
+use App\Services\S2sCompetencySyncService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,7 +15,7 @@ use Throwable;
 
 class OjtController extends Controller
 {
-    public function __construct(private ActivityLogger $activityLogger) {}
+    public function __construct(private ActivityLogger $activityLogger, private S2sCompetencySyncService $s2sCompetencySyncService) {}
     private const THEORY_QUESTIONS = [
         'part_name' => ['label' => 'Sebutkan nama part yang Anda proses.', 'maximum' => 8],
         'part_material' => ['label' => 'Sebutkan nama material part yang Anda proses.', 'maximum' => 8],
@@ -157,6 +158,10 @@ class OjtController extends Controller
                     'theory_score' => $theoryScore,
                     'practice_score' => $practiceScore,
                 ], $request->user());
+
+                if ($isPassed) {
+                    DB::afterCommit(fn () => $this->s2sCompetencySyncService->queueApprovedEnrollment($enrollment->id));
+                }
             });
         } catch (Throwable $exception) {
             report($exception);

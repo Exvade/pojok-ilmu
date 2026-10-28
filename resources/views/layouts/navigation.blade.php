@@ -21,6 +21,7 @@
             if ($user->canManageCompetency()) $items[] = ['admin.product-assignments.index', 'admin.product-assignments.*', 'user', 'Penugasan training'];
             if ($user->canManageCompetency()) $items[] = ['admin.training-reports.index', 'admin.training-reports.*', 'chart', 'Laporan training'];
             if ($user->canManageCompetency()) $items[] = ['admin.training-follow-ups.index', 'admin.training-follow-ups.*', 'clipboard', 'Tindak lanjut training'];
+            if ($user->canManageCompetency()) $items[] = ['admin.s2s-competency-syncs.index', 'admin.s2s-competency-syncs.*', 'reset', 'Sinkronisasi kompetensi'];
             if ($user->canManageCurriculum()) $items[] = ['admin.trainings.index', 'admin.trainings.*', 'book', 'Training'];
             if ($user->canManageCurriculum()) $items[] = ['admin.s2s-products.index', 'admin.s2s-products.*', 'grid', 'Produk S2S'];
             if ($user->canManageCurriculum()) $items[] = ['admin.training-audit.index', 'admin.training-audit.*', 'clipboard', 'Audit master training'];
