@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\QuizController as AdminQuizController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\S2sCompetencySyncController;
 use App\Http\Controllers\Admin\S2sProductController;
+use App\Http\Controllers\Admin\S2sProductMappingAuditController;
 use App\Http\Controllers\Admin\SkillController;
 use App\Http\Controllers\Admin\SkillMatrixController;
 use App\Http\Controllers\Admin\TrainingAuditController;
@@ -83,6 +84,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Trainings & Materials
     Route::get('/trainings', [TrainingController::class, 'index'])->middleware('management-permission:curriculum')->name('trainings.index');
     Route::get('/s2s-products', [S2sProductController::class, 'index'])->middleware('management-permission:curriculum')->name('s2s-products.index');
+    Route::get('/s2s-product-mapping-audit', [S2sProductMappingAuditController::class, 'index'])->middleware('management-permission:curriculum')->name('s2s-product-mapping-audit.index');
     Route::post('/s2s-products/sync', [S2sProductController::class, 'sync'])->middleware('management-permission:superadmin')->name('s2s-products.sync');
     Route::get('/s2s-competency-syncs', [S2sCompetencySyncController::class, 'index'])->middleware('management-permission:competency')->name('s2s-competency-syncs.index');
     Route::post('/s2s-competency-syncs/{sync}/retry', [S2sCompetencySyncController::class, 'retry'])->middleware('management-permission:competency')->name('s2s-competency-syncs.retry');

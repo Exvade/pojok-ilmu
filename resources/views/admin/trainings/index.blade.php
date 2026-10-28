@@ -145,6 +145,7 @@
             <p class="page-description">Atur level, isi materi, lalu tugaskan manpower yang perlu mempelajari setiap training.</p>
         </div>
         <div class="flex flex-wrap gap-2">
+            <x-button :href="route('admin.s2s-product-mapping-audit.index')" variant="outline"><x-icon name="clipboard" class="h-4 w-4" />Audit mapping</x-button>
             <x-button :href="route('admin.s2s-products.index')" variant="outline"><x-icon name="grid" class="h-4 w-4" />Produk S2S</x-button>
             <x-button :href="route('admin.imports.create', 'materials')" variant="outline"><x-icon name="download" class="h-4 w-4" />Impor materi</x-button>
             <x-button :href="route('admin.imports.create', 'trainings')" variant="secondary"><x-icon name="download" class="h-4 w-4" />Impor training</x-button>
@@ -177,7 +178,7 @@
                 </dl>
                 <x-slot name="footer"><div class="flex items-center justify-between gap-2"><x-button :href="route('admin.trainings.show', $training->id)" variant="secondary" size="sm">Atur isi <x-icon name="arrow" class="h-4 w-4" /></x-button><div class="flex items-center"><x-button type="button" variant="ghost" size="sm" class="text-brand-dark" @click="$dispatch('open-modal', 'edit-training-{{ $training->id }}')" aria-label="Ubah training" title="Ubah training"><x-icon name="pencil" class="h-4 w-4" /></x-button><form action="{{ route('admin.trainings.destroy', $training->id) }}" method="POST" data-confirm="Hapus training ini?">@csrf @method('DELETE')<x-button type="submit" variant="ghost" size="sm" class="text-red-600" aria-label="Hapus training" title="Hapus training"><x-icon name="trash" class="h-4 w-4" /></x-button></form></div></div></x-slot>
             </x-card>
-            <x-modal name="edit-training-{{ $training->id }}" :show="$errors->any() && old('_modal') === 'edit-training-'.$training->id" title="Ubah training" maxWidth="xl">
+            <x-modal name="edit-training-{{ $training->id }}" :show="($errors->any() && old('_modal') === 'edit-training-'.$training->id) || request('edit') === $training->id" title="Ubah training" maxWidth="xl">
                 <form action="{{ route('admin.trainings.update', $training->id) }}" method="POST" class="space-y-4">
                     @csrf
                     @method('PUT')
