@@ -38,6 +38,11 @@ return [
         'scope_plant_id' => env('HARIS_SCOPE_PLANT_ID', '3'),
     ],
 
+    's2s' => [
+        'base_url' => env('S2S_API_URL'),
+        'parts_token' => env('S2S_TO_POJOK_API_TOKEN'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

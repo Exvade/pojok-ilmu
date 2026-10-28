@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\OjtController;
 use App\Http\Controllers\Admin\ProductAssignmentController;
 use App\Http\Controllers\Admin\QuizController as AdminQuizController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\S2sProductController;
 use App\Http\Controllers\Admin\SkillController;
 use App\Http\Controllers\Admin\SkillMatrixController;
 use App\Http\Controllers\Admin\TrainingAuditController;
@@ -80,6 +81,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Trainings & Materials
     Route::get('/trainings', [TrainingController::class, 'index'])->middleware('management-permission:curriculum')->name('trainings.index');
+    Route::get('/s2s-products', [S2sProductController::class, 'index'])->middleware('management-permission:curriculum')->name('s2s-products.index');
+    Route::post('/s2s-products/sync', [S2sProductController::class, 'sync'])->middleware('management-permission:curriculum')->name('s2s-products.sync');
     Route::get('/training-audit', [TrainingAuditController::class, 'index'])->middleware('management-permission:curriculum')->name('training-audit.index');
     Route::post('/trainings', [TrainingController::class, 'store'])->middleware('management-permission:curriculum')->name('trainings.store');
     Route::put('/trainings/{id}', [TrainingController::class, 'update'])->middleware('management-permission:curriculum')->name('trainings.update');
