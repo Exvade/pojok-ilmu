@@ -82,3 +82,14 @@ test('hanya superadmin yang dapat menjalankan sinkronisasi produk s2s', function
         ->post(route('admin.s2s-products.sync'))
         ->assertRedirect(route('login'));
 });
+
+test('audit mapping menandai training yang belum dihubungkan ke produk s2s', function () {
+    $admin = User::create(['user_id' => 'ADMIN-S2S-AUDIT', 'name' => 'Pengelola Kurikulum', 'role' => 1, 'can_manage_curriculum' => true]);
+    $skill = MSkill::create(['kode_skill' => 'S2S-AUDIT', 'nama_skill' => 'Training Audit', 'kategori' => 'IT']);
+    Training::create(['kode_training' => 'S2S-AUDIT-L1', 'skill_id' => $skill->id, 'departemen' => 'IT', 'level' => 1, 'judul' => 'Training Belum Terhubung']);
+
+    $this->actingAs($admin)->get(route('admin.s2s-product-mapping-audit.index', ['status' => 'unmapped']))
+        ->assertOk()
+        ->assertSee('Training Belum Terhubung')
+        ->assertSee('Belum dihubungkan');
+});

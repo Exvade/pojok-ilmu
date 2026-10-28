@@ -36,6 +36,7 @@
                     $menuGroups['Kurikulum & produk'] = [
                         ['admin.trainings.index', 'admin.trainings.*', 'book', 'Training'],
                         ['admin.s2s-products.index', 'admin.s2s-products.*', 'grid', 'Produk S2S'],
+                        ['admin.s2s-product-mapping-audit.index', 'admin.s2s-product-mapping-audit.*', 'clipboard', 'Audit mapping Produk S2S'],
                         ['admin.training-audit.index', 'admin.training-audit.*', 'clipboard', 'Audit master training'],
                     ];
                 }
