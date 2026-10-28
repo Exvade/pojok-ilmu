@@ -10,9 +10,11 @@
             <h1 class="page-title mt-1">Produk S2S</h1>
             <p class="page-description">Katalog kode part dari S2S untuk dihubungkan ke training Pojok Ilmu.</p>
         </div>
-        <form action="{{ route('admin.s2s-products.sync') }}" method="POST">@csrf
-            <x-button type="submit"><x-icon name="reset" class="h-4 w-4" />Sinkronkan produk</x-button>
-        </form>
+        @if(auth()->user()->is_superadmin)
+            <form action="{{ route('admin.s2s-products.sync') }}" method="POST">@csrf
+                <x-button type="submit"><x-icon name="reset" class="h-4 w-4" />Sinkronkan produk</x-button>
+            </form>
+        @endif
     </div>
 
     <x-card>
