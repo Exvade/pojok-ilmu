@@ -10,7 +10,19 @@
     </div>
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         @foreach([['Total training', $summary['total'], 'Seluruh training aktif.', null], ['Sudah terhubung', $summary['mapped'], 'Siap mengirim kompetensi ke S2S.', 'green'], ['Belum dihubungkan', $summary['unmapped'], 'Training umum boleh dibiarkan tanpa produk.', 'amber'], ['Produk nonaktif', $summary['inactive'], 'Perlu dipetakan ulang ke produk aktif.', 'red']] as [$label, $value, $description, $tone])
-            <x-card bodyClass="p-5"><p class="text-xs font-semibold uppercase tracking-wider text-gray-500">{{ $label }}</p><p @class(['mt-2 text-3xl font-semibold', 'text-brand-dark dark:text-green-400' => $tone === 'green', 'text-amber-600 dark:text-amber-400' => $tone === 'amber', 'text-red-600 dark:text-red-400' => $tone === 'red', 'text-gray-900 dark:text-white' => $tone === null])>{{ $value }}</p><p class="mt-2 text-xs leading-5 text-gray-500">{{ $description }}</p></x-card>
+            @php
+                $valueClass = match ($tone) {
+                    'green' => 'text-brand-dark dark:text-green-400',
+                    'amber' => 'text-amber-600 dark:text-amber-400',
+                    'red' => 'text-red-600 dark:text-red-400',
+                    default => 'text-gray-900 dark:text-white',
+                };
+            @endphp
+            <x-card bodyClass="p-5">
+                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">{{ $label }}</p>
+                <p class="mt-2 text-3xl font-semibold {{ $valueClass }}">{{ $value }}</p>
+                <p class="mt-2 text-xs leading-5 text-gray-500">{{ $description }}</p>
+            </x-card>
         @endforeach
     </div>
     <form method="GET" class="grid gap-3 rounded-xl border border-gray-200 bg-white p-4 sm:grid-cols-[1fr_220px_auto] dark:border-gray-700 dark:bg-gray-800"><x-input name="search" :value="$search" placeholder="Cari kode atau nama training..." /><x-select-menu name="status" :options="['' => 'Semua status', 'mapped' => 'Sudah terhubung', 'unmapped' => 'Belum dihubungkan', 'inactive' => 'Produk nonaktif']" :selected="$filter" placeholder="Semua status" /><x-button type="submit" variant="secondary">Terapkan</x-button></form>
