@@ -41,6 +41,8 @@ return [
     's2s' => [
         'base_url' => env('S2S_API_URL'),
         'parts_token' => env('S2S_TO_POJOK_API_TOKEN'),
+        'competency_token' => env('POJOK_TO_S2S_API_TOKEN'),
+        'competency_sync_enabled' => env('S2S_COMPETENCY_SYNC_ENABLED', false),
     ],
 
     'slack' => [
