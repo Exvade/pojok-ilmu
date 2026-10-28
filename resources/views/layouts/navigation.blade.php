@@ -12,27 +12,63 @@
         <p class="mt-1 text-xs text-gray-500">Belajar. Berkembang. Berkontribusi.</p>
     </div>
     <nav x-ref="sidebarNavigation" class="flex-1 space-y-1 overflow-y-auto px-3" aria-label="Navigasi aplikasi">
-        <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-400">{{ auth()->user()->isManagement() ? 'Manajemen pembelajaran' : 'Pembelajaran' }}</p>
         @php
             $user = auth()->user();
-            $items = $user->isManagement() ? [['admin.dashboard', 'admin.dashboard', 'grid', 'Ringkasan']]
-                : [['operator.dashboard', 'operator.dashboard', 'book', 'Training saya']];
-            if ($user->isManagement()) $items[] = ['operator.dashboard', 'operator.*', 'book', 'Pratinjau training'];
-            if ($user->canManageCompetency()) $items[] = ['admin.product-assignments.index', 'admin.product-assignments.*', 'user', 'Penugasan training'];
-            if ($user->canManageCompetency()) $items[] = ['admin.training-reports.index', 'admin.training-reports.*', 'chart', 'Laporan training'];
-            if ($user->canManageCompetency()) $items[] = ['admin.training-follow-ups.index', 'admin.training-follow-ups.*', 'clipboard', 'Tindak lanjut training'];
-            if ($user->canManageCompetency()) $items[] = ['admin.s2s-competency-syncs.index', 'admin.s2s-competency-syncs.*', 'reset', 'Sinkronisasi kompetensi'];
-            if ($user->canManageCurriculum()) $items[] = ['admin.trainings.index', 'admin.trainings.*', 'book', 'Training'];
-            if ($user->canManageCurriculum()) $items[] = ['admin.s2s-products.index', 'admin.s2s-products.*', 'grid', 'Produk S2S'];
-            if ($user->canManageCurriculum()) $items[] = ['admin.training-audit.index', 'admin.training-audit.*', 'clipboard', 'Audit master training'];
-            if ($user->canAssessOjt()) $items[] = ['admin.ojt.index', 'admin.ojt.*', 'clipboard', 'Dashboard OJT'];
-            if ($user->is_superadmin) $items[] = ['admin.roles.index', 'admin.roles.*', 'user', 'Kelola akses'];
-            if ($user->is_superadmin) $items[] = ['admin.activity-logs.index', 'admin.activity-logs.*', 'clipboard', 'Riwayat aktivitas'];
-            if ($user->is_superadmin) $items[] = ['admin.haris-sync.index', 'admin.haris-sync.*', 'reset', 'Sinkronisasi HaRis'];
-            if ($user->is_superadmin) $items[] = ['admin.haris-data-quality.index', 'admin.haris-data-quality.*', 'clipboard', 'Kualitas data HaRis'];
+            $menuGroups = [];
+            if ($user->isManagement()) {
+                $menuGroups['Pembelajaran'] = [
+                    ['admin.dashboard', 'admin.dashboard', 'grid', 'Ringkasan'],
+                    ['operator.dashboard', 'operator.*', 'book', 'Pratinjau training'],
+                ];
+                if ($user->canManageCompetency()) {
+                    $menuGroups['Operasional training'] = [
+                        ['admin.product-assignments.index', 'admin.product-assignments.*', 'user', 'Penugasan training'],
+                        ['admin.training-reports.index', 'admin.training-reports.*', 'chart', 'Laporan training'],
+                        ['admin.training-follow-ups.index', 'admin.training-follow-ups.*', 'clipboard', 'Tindak lanjut training'],
+                        ['admin.ojt.index', 'admin.ojt.*', 'clipboard', 'Dashboard OJT'],
+                    ];
+                } elseif ($user->canAssessOjt()) {
+                    $menuGroups['Operasional training'] = [
+                        ['admin.ojt.index', 'admin.ojt.*', 'clipboard', 'Dashboard OJT'],
+                    ];
+                }
+                if ($user->canManageCurriculum()) {
+                    $menuGroups['Kurikulum & produk'] = [
+                        ['admin.trainings.index', 'admin.trainings.*', 'book', 'Training'],
+                        ['admin.s2s-products.index', 'admin.s2s-products.*', 'grid', 'Produk S2S'],
+                        ['admin.training-audit.index', 'admin.training-audit.*', 'clipboard', 'Audit master training'],
+                    ];
+                }
+                if ($user->canManageCompetency()) {
+                    $menuGroups['Integrasi'] = [
+                        ['admin.s2s-competency-syncs.index', 'admin.s2s-competency-syncs.*', 'reset', 'Sinkronisasi kompetensi'],
+                    ];
+                }
+                if ($user->is_superadmin) {
+                    $menuGroups['Administrasi sistem'] = [
+                        ['admin.roles.index', 'admin.roles.*', 'user', 'Kelola akses'],
+                        ['admin.activity-logs.index', 'admin.activity-logs.*', 'clipboard', 'Riwayat aktivitas'],
+                        ['admin.haris-sync.index', 'admin.haris-sync.*', 'reset', 'Sinkronisasi HaRis'],
+                        ['admin.haris-data-quality.index', 'admin.haris-data-quality.*', 'clipboard', 'Kualitas data HaRis'],
+                    ];
+                }
+            } else {
+                $menuGroups['Pembelajaran'] = [['operator.dashboard', 'operator.dashboard', 'book', 'Training saya']];
+            }
         @endphp
-        @foreach($items as [$route, $pattern, $icon, $label])
-            <a href="{{ route($route) }}" @click="persistSidebarScroll()" @if(request()->routeIs($pattern)) aria-current="page" @endif class="flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium transition-colors {{ request()->routeIs($pattern) ? 'bg-brand-dark text-white' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800' }}"><x-icon :name="$icon" />{{ $label }}</a>
+        @foreach($menuGroups as $group => $items)
+            @php($groupActive = collect($items)->contains(fn (array $item): bool => request()->routeIs($item[1])))
+            <section x-data="{ open: @js($groupActive) }" class="mb-1.5">
+                <button type="button" @click="open = !open" :aria-expanded="open.toString()" class="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300">
+                    <span>{{ $group }}</span>
+                    <x-icon name="chevron-down" class="h-3.5 w-3.5 transition-transform duration-150" x-bind:class="open ? 'rotate-180' : ''" />
+                </button>
+                <div x-show="open" class="mt-1 space-y-1">
+                    @foreach($items as [$route, $pattern, $icon, $label])
+                        <a href="{{ route($route) }}" @click="persistSidebarScroll()" @if(request()->routeIs($pattern)) aria-current="page" @endif class="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors {{ request()->routeIs($pattern) ? 'bg-brand-dark text-white' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800' }}"><x-icon :name="$icon" />{{ $label }}</a>
+                    @endforeach
+                </div>
+            </section>
         @endforeach
         <div class="mx-3 mt-7 border-t border-gray-100 pt-5 dark:border-gray-800">
             <p class="text-xs font-semibold text-gray-700 dark:text-gray-300">Dari pembelajaran ke leveling</p>

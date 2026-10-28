@@ -74,3 +74,11 @@ test('halaman training menampilkan pencarian produk dengan istilah yang tepat', 
         ->assertSee('Cari kode atau nama produk...')
         ->assertSee('Produk tidak ditemukan.');
 });
+
+test('hanya superadmin yang dapat menjalankan sinkronisasi produk s2s', function () {
+    $curriculumManager = User::create(['user_id' => 'ADMIN-S2S-TERBATAS', 'name' => 'Pengelola Kurikulum', 'role' => 1, 'can_manage_curriculum' => true]);
+
+    $this->actingAs($curriculumManager)
+        ->post(route('admin.s2s-products.sync'))
+        ->assertRedirect(route('login'));
+});
