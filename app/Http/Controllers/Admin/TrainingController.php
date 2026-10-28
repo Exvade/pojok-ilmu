@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\MManpower;
 use App\Models\MSkill;
+use App\Models\S2sProduct;
 use App\Models\Training;
 use App\Models\TrainingMaterial;
 use App\Services\DepartmentGroupService;
@@ -18,7 +19,7 @@ class TrainingController extends Controller
 {
     public function index()
     {
-        $trainings = Training::with(['materials', 'preTest', 'postTest'])
+        $trainings = Training::with(['materials', 'preTest', 'postTest', 's2sProducts'])
             ->withCount('enrollments')
             ->orderBy('departemen')
             ->orderBy('level')
@@ -33,13 +34,21 @@ class TrainingController extends Controller
             ->unique()
             ->sort()
             ->values();
+        $productOptions = S2sProduct::query()
+            ->orderBy('status')
+            ->orderBy('kode_part')
+            ->get()
+            ->mapWithKeys(fn (S2sProduct $product): array => [
+                $product->id => $product->kode_part . ($product->nama_part ? ' - ' . $product->nama_part : '') . ($product->status === 'aktif' ? '' : ' (nonaktif)'),
+            ])
+            ->all();
 
-        return view('admin.trainings.index', compact('trainings', 'departments'));
+        return view('admin.trainings.index', compact('trainings', 'departments', 'productOptions'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
             'kode_training' => 'required|string|unique:trainings,kode_training',
             'departemens' => ['required', 'array', 'min:1'],
             'departemens.*' => ['string', 'max:255'],
@@ -48,6 +57,8 @@ class TrainingController extends Controller
             'deskripsi' => 'nullable|string',
             'max_retries' => 'required|integer|min:1',
             'passing_grade' => 'required|integer|min:50|max:100',
+            's2s_product_ids' => ['nullable', 'array'],
+            's2s_product_ids.*' => ['uuid', 'exists:s2s_products,id'],
         ]);
 
         $skill = MSkill::firstOrCreate(
@@ -59,7 +70,7 @@ class TrainingController extends Controller
             ]
         );
 
-        Training::create([
+        $training = Training::create([
             'kode_training' => strtoupper($request->kode_training),
             'skill_id' => $skill->id,
             ...$this->departmentAttributes($request->input('departemens')),
@@ -70,6 +81,7 @@ class TrainingController extends Controller
             'passing_grade' => $request->passing_grade,
             'requires_ojt' => true,
         ]);
+        $training->s2sProducts()->sync($data['s2s_product_ids'] ?? []);
 
         return back()->with('success', 'Training berhasil dibuat.');
     }
@@ -93,6 +105,8 @@ class TrainingController extends Controller
             'deskripsi' => 'nullable|string',
             'max_retries' => 'required|integer|min:1',
             'passing_grade' => 'required|integer|min:50|max:100',
+            's2s_product_ids' => ['nullable', 'array'],
+            's2s_product_ids.*' => ['uuid', 'exists:s2s_products,id'],
         ]);
 
         try {
@@ -112,6 +126,7 @@ class TrainingController extends Controller
                 $training->postTest()->update([
                     'passing_grade' => $data['passing_grade'],
                 ]);
+                $training->s2sProducts()->sync($data['s2s_product_ids'] ?? []);
             });
         } catch (Throwable $exception) {
             report($exception);

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -109,5 +110,10 @@ class Training extends BaseModel
     public function assignmentLogs(): HasMany
     {
         return $this->hasMany(TrainingAssignmentLog::class, 'training_id', 'id');
+    }
+
+    public function s2sProducts(): BelongsToMany
+    {
+        return $this->belongsToMany(S2sProduct::class, 's2s_product_training');
     }
 }
