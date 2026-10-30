@@ -38,7 +38,7 @@
                     </div>
 
                     <!-- Question Media Preview (GDrive Video / Image) -->
-                    @if($q->tipe_media === 'video_gdrive' || $q->tipe_media === 'video_youtube')
+                    @if(($q->tipe_media === 'video_gdrive' || $q->tipe_media === 'video_youtube') && $q->embed_url)
                         <div class="sm:pl-11 pt-1">
                             <div class="relative w-full max-w-lg aspect-video rounded-lg bg-black overflow-hidden shadow-none">
                                 <iframe title="Video pembelajaran" loading="lazy" src="{{ $q->embed_url }}" class="w-full h-full border-0" allowfullscreen></iframe>

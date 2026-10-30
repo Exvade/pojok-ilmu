@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\TrustedMediaUrl;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,22 +21,6 @@ class QuizQuestion extends BaseModel
 
     public function getEmbedUrlAttribute(): ?string
     {
-        if ($this->tipe_media === 'video_gdrive' && ! empty($this->media_url)) {
-            if (preg_match('/(?:file\/d\/|id=)([a-zA-Z0-9_-]+)/', $this->media_url, $matches)) {
-                return 'https://drive.google.com/file/d/' . $matches[1] . '/preview';
-            }
-
-            return $this->media_url;
-        }
-
-        if ($this->tipe_media === 'video_youtube' && ! empty($this->media_url)) {
-            if (preg_match('/(?:v=|\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]+)/', $this->media_url, $matches)) {
-                return 'https://www.youtube.com/embed/' . $matches[1];
-            }
-
-            return $this->media_url;
-        }
-
-        return $this->media_url;
+        return TrustedMediaUrl::embedUrl($this->media_url, $this->tipe_media);
     }
 }

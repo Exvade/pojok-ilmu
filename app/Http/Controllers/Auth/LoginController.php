@@ -21,9 +21,7 @@ class LoginController extends Controller
             return redirect($this->redirectTo());
         }
 
-        $manpowers = MManpower::where('status', true)->select('mp_id', 'nama', 'nik')->get();
-
-        return view('auth.login', compact('manpowers'));
+        return view('auth.login');
     }
 
     /**

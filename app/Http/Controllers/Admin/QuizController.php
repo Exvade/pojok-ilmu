@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Quiz;
 use App\Models\QuizQuestion;
 use App\Models\Training;
+use App\Support\TrustedMediaUrl;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -99,7 +100,17 @@ class QuizController extends Controller
         $request->validate([
             'pertanyaan' => 'required|string',
             'tipe_media' => 'required|in:none,image,video_gdrive,video_youtube',
-            'media_url' => 'nullable|string',
+            'media_url' => [
+                'nullable',
+                'string',
+                'max:2048',
+                function (string $attribute, mixed $value, \Closure $fail) use ($request): void {
+                    $type = $request->input('tipe_media');
+                    if (in_array($type, ['video_gdrive', 'video_youtube'], true) && ! TrustedMediaUrl::isTrustedEmbedUrl((string) $value, $type)) {
+                        $fail('URL video harus berupa tautan HTTPS Google Drive atau YouTube yang valid.');
+                    }
+                },
+            ],
             'file_upload' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:3072',
             'opsi_a' => 'required|string',
             'opsi_b' => 'required|string',

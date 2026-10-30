@@ -15,6 +15,7 @@ use App\Models\TrainingMaterial;
 use App\Services\DepartmentAliasResolver;
 use App\Services\DepartmentGroupService;
 use App\Services\TrainingAssignmentTargetService;
+use App\Support\TrustedMediaUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -290,6 +291,11 @@ class ImportController extends Controller
                 }
                 if (in_array($mediaType, ['video_youtube', 'video_gdrive', 'image', 'pdf'], true) && blank($row['url_media'] ?? null)) {
                     $errors[] = 'Kolom URL media wajib diisi untuk video, gambar, atau PDF.';
+                }
+                if (in_array($mediaType, ['video_youtube', 'video_gdrive'], true)
+                    && filled($row['url_media'] ?? null)
+                    && ! TrustedMediaUrl::isTrustedEmbedUrl((string) $row['url_media'], $mediaType)) {
+                    $errors[] = 'URL video harus berupa tautan HTTPS Google Drive atau YouTube yang valid.';
                 }
             }
             if ($type === 'questions') {
