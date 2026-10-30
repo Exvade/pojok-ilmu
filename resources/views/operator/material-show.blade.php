@@ -68,7 +68,7 @@
                     @endif
 
                     <!-- Embedded Video Player (Google Drive / YouTube) -->
-                    @if($mat->tipe_media === 'video_gdrive' || $mat->tipe_media === 'video_youtube')
+                    @if(($mat->tipe_media === 'video_gdrive' || $mat->tipe_media === 'video_youtube') && $mat->embed_url)
                         <div class="pt-2">
                             <div class="relative w-full aspect-video rounded-lg bg-black overflow-hidden shadow-none border border-gray-800">
                                 <iframe title="Video pembelajaran" loading="lazy" src="{{ $mat->embed_url }}" class="w-full h-full border-0" allow="autoplay" allowfullscreen></iframe>

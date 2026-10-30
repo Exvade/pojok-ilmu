@@ -41,9 +41,9 @@ Route::get('/', function () {
 // Guest Auth Routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [LoginController::class, 'login'])->name('login.post');
+    Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:login')->name('login.post');
     Route::get('/login/scan', [LoginController::class, 'showScanner'])->name('login.scan');
-    Route::post('/login/scan', [LoginController::class, 'loginViaScan'])->name('login.scan.post');
+    Route::post('/login/scan', [LoginController::class, 'loginViaScan'])->middleware('throttle:login')->name('login.scan.post');
 });
 
 // Logout Route

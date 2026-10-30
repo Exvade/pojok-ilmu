@@ -9,6 +9,7 @@ use App\Models\S2sProduct;
 use App\Models\Training;
 use App\Models\TrainingMaterial;
 use App\Services\DepartmentGroupService;
+use App\Support\TrustedMediaUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -145,7 +146,17 @@ class TrainingController extends Controller
             'judul' => 'required|string',
             'tipe_media' => 'required|in:text,image,video_gdrive,video_youtube,pdf',
             'konten_teks' => 'nullable|string',
-            'media_url' => 'nullable|string',
+            'media_url' => [
+                'nullable',
+                'string',
+                'max:2048',
+                function (string $attribute, mixed $value, \Closure $fail) use ($request): void {
+                    $type = $request->input('tipe_media');
+                    if (in_array($type, ['video_gdrive', 'video_youtube'], true) && ! TrustedMediaUrl::isTrustedEmbedUrl((string) $value, $type)) {
+                        $fail('URL video harus berupa tautan HTTPS Google Drive atau YouTube yang valid.');
+                    }
+                },
+            ],
             'file_upload' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
         ]);
 
