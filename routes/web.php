@@ -107,6 +107,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/trainings/{trainingId}/evaluation-set', [AdminQuizController::class, 'prepareEvaluationSet'])->middleware('management-permission:curriculum')->name('trainings.evaluation-set.prepare');
     Route::post('/quizzes/{id}/questions', [AdminQuizController::class, 'storeQuestion'])->middleware('management-permission:curriculum')->name('quizzes.questions.store');
     Route::post('/questions', [AdminQuizController::class, 'storeQuestionGeneric'])->middleware('management-permission:curriculum')->name('questions.store');
+    Route::put('/questions/{id}', [AdminQuizController::class, 'updateQuestion'])->middleware('management-permission:curriculum')->name('questions.update');
     Route::delete('/questions/{id}', [AdminQuizController::class, 'destroyQuestion'])->middleware('management-permission:curriculum')->name('questions.destroy');
 
     Route::get('/roles', [RoleController::class, 'index'])->middleware('management-permission:superadmin')->name('roles.index');
