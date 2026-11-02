@@ -25,7 +25,7 @@
                     @php($searchValue = implode(' ', [$manpower->nama, $manpower->nik, $manpower->bagian, $manpower->trainingDepartment()]))
                     <label x-show="matches(@js($searchValue))" class="flex items-center gap-3 rounded-md p-3 {{ $canCancel ? 'hover:bg-gray-50 dark:hover:bg-gray-800' : 'bg-gray-50 dark:bg-gray-800/60' }}">
                         <input type="checkbox" name="manpower_ids[]" value="{{ $manpower->id }}" {{ $enrollment ? 'checked' : '' }} {{ ! $canCancel ? 'disabled' : '' }} class="rounded border-gray-300 text-brand-dark focus:ring-brand-light">
-                        <span><span class="block text-sm font-semibold">{{ $manpower->nama }}</span><span class="text-xs text-gray-500">{{ $manpower->nik }} · {{ $manpower->bagian }}@unless($canCancel) · Riwayat dipertahankan@endunless</span></span>
+                        <span><span class="block text-sm font-semibold">{{ $manpower->nama }}</span><span class="text-xs text-gray-500">{{ $manpower->nik }} - {{ $manpower->bagian }}{{ ! $canCancel ? ' - Riwayat dipertahankan' : '' }}</span></span>
                     </label>
                 @endforeach
                 @endif
