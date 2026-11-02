@@ -340,7 +340,7 @@ class ImportController extends Controller
                     }
                 }
                 if ($training && $manpower && $manpower->status && $manpower->haris_synced_at && ! $training->appliesToDepartment($manpower->trainingDepartment())) {
-                    $errors[] = 'Departemen ' . $manpower->nama . ' (' . ($manpower->trainingDepartment() ?: 'belum tersedia') . ') tidak sesuai. Training ' . $training->judul . ' ditujukan untuk: ' . $training->departmentLabel() . '.';
+                    $row['_participant_department_added'] = $manpower->trainingDepartment();
                 }
             }
 
@@ -487,6 +487,12 @@ class ImportController extends Controller
     {
         $training = Training::where('kode_training', $row['_resolved_kode_training'] ?? strtoupper((string) $row['kode_training']))->firstOrFail();
         $manpower = MManpower::where('nik', (string) $row['nik'])->firstOrFail();
+
+        $departments = $training->departmentList();
+        if ($departments !== [] && filled($manpower->trainingDepartment())) {
+            $departments = collect($departments)->push($manpower->trainingDepartment())->unique()->values()->all();
+            $training->update(['departemen' => count($departments) === 1 ? $departments[0] : null, 'departemens' => $departments]);
+        }
 
         TrainingEnrollment::firstOrCreate([
             'training_id' => $training->id,
