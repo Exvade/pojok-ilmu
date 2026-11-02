@@ -9,6 +9,7 @@ use App\Models\S2sProduct;
 use App\Models\Training;
 use App\Models\TrainingMaterial;
 use App\Services\DepartmentGroupService;
+use App\Services\TrainingAssignmentService;
 use App\Support\TrustedMediaUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,6 +19,8 @@ use Throwable;
 
 class TrainingController extends Controller
 {
+    public function __construct(private readonly TrainingAssignmentService $assignmentService) {}
+
     public function index()
     {
         $trainings = Training::with(['materials', 'preTest', 'postTest', 's2sProducts'])
@@ -44,7 +47,17 @@ class TrainingController extends Controller
             ])
             ->all();
 
-        return view('admin.trainings.index', compact('trainings', 'departments', 'productOptions'));
+        $manpowerOptions = MManpower::query()
+            ->where('status', true)
+            ->whereNotNull('haris_synced_at')
+            ->orderBy('nama')
+            ->get()
+            ->mapWithKeys(fn (MManpower $manpower): array => [
+                $manpower->id => trim($manpower->nama . ' · ' . $manpower->nik . ' · ' . ($manpower->trainingDepartment() ?: 'Tanpa departemen')),
+            ])
+            ->all();
+
+        return view('admin.trainings.index', compact('trainings', 'departments', 'productOptions', 'manpowerOptions'));
     }
 
     public function store(Request $request)
@@ -60,31 +73,36 @@ class TrainingController extends Controller
             'passing_grade' => 'required|integer|min:50|max:100',
             's2s_product_ids' => ['nullable', 'array'],
             's2s_product_ids.*' => ['uuid', 'exists:s2s_products,id'],
+            'manpower_ids' => ['nullable', 'array'],
+            'manpower_ids.*' => ['integer', 'exists:m_manpower,id'],
         ]);
 
-        $skill = MSkill::firstOrCreate(
-            ['kode_skill' => strtoupper($request->kode_training)],
-            [
-                'nama_skill' => $request->judul,
-                'kategori' => $this->departmentLabel($request->input('departemens')),
+        DB::transaction(function () use ($request, $data): void {
+            $skill = MSkill::firstOrCreate(
+                ['kode_skill' => strtoupper($request->kode_training)],
+                [
+                    'nama_skill' => $request->judul,
+                    'kategori' => $this->departmentLabel($request->input('departemens')),
+                    'deskripsi' => $request->deskripsi,
+                ]
+            );
+
+            $training = Training::create([
+                'kode_training' => strtoupper($request->kode_training),
+                'skill_id' => $skill->id,
+                ...$this->departmentAttributes($request->input('departemens')),
+                'level' => $request->level,
+                'judul' => $request->judul,
                 'deskripsi' => $request->deskripsi,
-            ]
-        );
+                'max_retries' => $request->max_retries,
+                'passing_grade' => $request->passing_grade,
+                'requires_ojt' => true,
+            ]);
+            $training->s2sProducts()->sync($data['s2s_product_ids'] ?? []);
+            $this->assignmentService->sync($training, $data['manpower_ids'] ?? [], 'Penugasan awal saat training dibuat.', $request->user());
+        });
 
-        $training = Training::create([
-            'kode_training' => strtoupper($request->kode_training),
-            'skill_id' => $skill->id,
-            ...$this->departmentAttributes($request->input('departemens')),
-            'level' => $request->level,
-            'judul' => $request->judul,
-            'deskripsi' => $request->deskripsi,
-            'max_retries' => $request->max_retries,
-            'passing_grade' => $request->passing_grade,
-            'requires_ojt' => true,
-        ]);
-        $training->s2sProducts()->sync($data['s2s_product_ids'] ?? []);
-
-        return back()->with('success', 'Training berhasil dibuat.');
+        return back()->with('success', 'Training dan penugasan awal berhasil disimpan.');
     }
 
     public function show(string $id)

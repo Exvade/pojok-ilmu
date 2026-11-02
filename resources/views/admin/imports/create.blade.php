@@ -6,13 +6,13 @@
     <div class="page-shell max-w-4xl">
         @php
             $templateRoute = $type === 'assignments'
-                ? route('admin.assignments.template')
+                ? route('admin.trainings.participants.template')
                 : route('admin.imports.template', $type);
             $storeRoute = $type === 'assignments'
-                ? route('admin.assignments.import.store')
+                ? route('admin.trainings.participants.import.store')
                 : route('admin.imports.store', $type);
             $confirmRoute = $type === 'assignments'
-                ? route('admin.assignments.import.confirm')
+                ? route('admin.trainings.participants.import.confirm')
                 : route('admin.imports.confirm', $type);
             $preview = $preview ?? null;
         @endphp

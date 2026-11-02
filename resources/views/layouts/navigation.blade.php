@@ -22,7 +22,6 @@
                 ];
                 if ($user->canManageCompetency()) {
                     $menuGroups['Operasional training'] = [
-                        ['admin.product-assignments.index', 'admin.product-assignments.*', 'user', 'Penugasan training'],
                         ['admin.training-reports.index', 'admin.training-reports.*', 'chart', 'Laporan training'],
                         ['admin.training-follow-ups.index', 'admin.training-follow-ups.*', 'clipboard', 'Tindak lanjut training'],
                         ['admin.ojt.index', 'admin.ojt.*', 'clipboard', 'Dashboard OJT'],
@@ -38,6 +37,10 @@
                         ['admin.s2s-products.index', 'admin.s2s-products.*', 'grid', 'Produk S2S'],
                         ['admin.s2s-product-mapping-audit.index', 'admin.s2s-product-mapping-audit.*', 'clipboard', 'Audit mapping Produk S2S'],
                         ['admin.training-audit.index', 'admin.training-audit.*', 'clipboard', 'Audit master training'],
+                    ];
+                } elseif ($user->canManageCompetency()) {
+                    $menuGroups['Kurikulum & produk'] = [
+                        ['admin.trainings.index', 'admin.trainings.*', 'book', 'Training'],
                     ];
                 }
                 if ($user->canManageCompetency()) {
