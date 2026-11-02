@@ -58,8 +58,11 @@ class ProductAssignmentController extends Controller
     public function edit(Training $training): View
     {
         $training->load('enrollments:id,training_id,manpower_id,status');
-        $manpowers = MManpower::query()->where('status', true)->whereNotNull('haris_synced_at')->orderBy('nama')->get()
-            ->filter(fn (MManpower $manpower): bool => $training->appliesToDepartment($manpower->trainingDepartment()))->values();
+        $manpowers = MManpower::query()
+            ->where('status', true)
+            ->whereNotNull('haris_synced_at')
+            ->orderBy('nama')
+            ->get();
 
         return view('admin.trainings.participants', compact('training', 'manpowers'));
     }

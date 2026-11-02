@@ -10,10 +10,10 @@
         <div class="flex gap-2"><x-button :href="route('admin.trainings.participants.history', $training)" variant="outline">Riwayat perubahan</x-button><x-button :href="route('admin.trainings.participants.import')" variant="secondary">Impor Excel</x-button></div>
     </div>
     <x-card bodyClass="p-5" class="mt-5">
-        <p class="text-sm font-semibold">Atur peserta</p><p class="mt-1 text-sm text-gray-500">Peserta aktif dari departemen yang sesuai dapat ditugaskan. Peserta yang sudah memulai training tidak dibatalkan agar riwayat kompetensinya tetap aman.</p>
+        <p class="text-sm font-semibold">Atur peserta</p><p class="mt-1 text-sm text-gray-500">Cari dan tambahkan manpower aktif dari departemen mana pun. Departemen peserta yang baru akan otomatis ditambahkan ke cakupan training. Peserta yang sudah memulai training tidak dibatalkan agar riwayat kompetensinya tetap aman.</p>
         <form action="{{ route('admin.trainings.participants.store', $training) }}" method="POST" class="mt-5 space-y-4">
             @csrf
-            <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800"><span class="text-sm text-gray-600 dark:text-gray-300">{{ $manpowers->count() }} manpower sesuai departemen training</span><div class="flex gap-2"><x-button type="button" size="sm" variant="secondary" @click="selectAll()">Pilih semua</x-button><x-button type="button" size="sm" variant="outline" @click="clearAll()">Kosongkan</x-button></div></div>
+            <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800"><span class="text-sm text-gray-600 dark:text-gray-300">{{ $manpowers->count() }} manpower aktif tersedia</span><div class="flex gap-2"><x-button type="button" size="sm" variant="secondary" @click="selectAll()">Pilih semua</x-button><x-button type="button" size="sm" variant="outline" @click="clearAll()">Kosongkan</x-button></div></div>
             <div><label for="participant-search" class="mb-1.5 block text-sm font-medium">Cari peserta</label><x-input id="participant-search" x-model="query" placeholder="Cari nama, NIK, atau bagian..." autocomplete="off" /></div>
             <div x-ref="people" class="max-h-[32rem] space-y-2 overflow-y-auto rounded-lg border border-gray-200 p-3 dark:border-gray-700">
                 @forelse($manpowers as $manpower)
@@ -25,7 +25,7 @@
                         <span><span class="block text-sm font-semibold">{{ $manpower->nama }}</span><span class="text-xs text-gray-500">{{ $manpower->nik }} · {{ $manpower->bagian }}@unless($canCancel) · Riwayat dipertahankan@endunless</span></span>
                     </label>
                 @empty
-                    <p class="p-4 text-center text-sm text-gray-500">Tidak ada manpower aktif yang sesuai dengan departemen training.</p>
+                    <p class="p-4 text-center text-sm text-gray-500">Tidak ada manpower aktif yang tersedia.</p>
                 @endforelse
             </div>
             <div><label for="reason" class="mb-1 block text-sm font-medium">Catatan perubahan <span class="font-normal text-gray-500">(opsional)</span></label><x-textarea id="reason" name="reason" rows="2" placeholder="Contoh: penugasan disesuaikan dengan kebutuhan lini produksi." /></div>
