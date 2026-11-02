@@ -17,3 +17,11 @@ test('rute ubah soal memanggil metode pembaruan soal evaluasi', function () {
         ->and($route->methods())->toContain('PUT')
         ->and($route->getActionName())->toBe(QuizController::class . '@updateQuestion');
 });
+
+test('rute ubah pengaturan evaluasi memanggil metode yang sesuai', function () {
+    $route = Route::getRoutes()->getByName('admin.trainings.evaluation-settings.update');
+
+    expect($route)->not->toBeNull()
+        ->and($route->methods())->toContain('PUT')
+        ->and($route->getActionName())->toBe(QuizController::class . '@updateEvaluationSettings');
+});
