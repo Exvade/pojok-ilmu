@@ -5,7 +5,7 @@
 @section('content')
 
 
-<div class="page-shell" x-data="{ activeSection: 'materials', selectedQuizId: @js(old('quiz_id', '')), selectedQuizLabel: '', openQuestion(quizId, label) { this.selectedQuizId = @js($training->postTest?->id) || quizId; this.selectedQuizLabel = 'Pre-test & post-test'; this.$dispatch('open-modal', 'add-question-modal'); } }">
+<div class="page-shell" x-data="{ activeSection: 'materials', openQuestion() { this.$dispatch('open-modal', 'add-question-modal'); } }">
     
     <!-- Back & Header -->
     <div>
@@ -30,12 +30,6 @@
                     <x-icon name="plus" class="h-4 w-4" />Tambah materi
                 </x-button>
                 <x-button :href="route('admin.imports.create', 'questions')" variant="outline" size="md"><x-icon name="download" class="h-4 w-4" />Impor soal</x-button>
-                @if(!$training->preTest || !$training->postTest)
-                    <form action="{{ route('admin.trainings.evaluation-set.prepare', $training->id) }}" method="POST">
-                        @csrf
-                        <x-button type="submit" variant="secondary" size="md"><x-icon name="document" class="h-4 w-4" />Siapkan pre-test & post-test</x-button>
-                    </form>
-                @endif
             </div>
         </div>
     </div>
@@ -112,9 +106,7 @@
         <x-slot name="header">
             <div class="flex items-center justify-between w-full">
                 <h3 class="font-bold font-heading text-lg">Pre-test diagnostik</h3>
-                @if($training->preTest)
-                    <x-button @click="openQuestion('{{ $training->preTest->id }}', 'Pre-test')" variant="primary" size="sm"><x-icon name="plus" class="h-4 w-4" />Tambah soal</x-button>
-                @endif
+                <x-button @click="openQuestion()" variant="primary" size="sm"><x-icon name="plus" class="h-4 w-4" />Tambah soal</x-button>
             </div>
         </x-slot>
         @if($training->preTest)
@@ -133,7 +125,7 @@
                 @endforelse
             </div>
         @else
-            <x-empty-state title="Pre-test belum dibuat" description="Opsional, namun direkomendasikan untuk memetakan kemampuan awal karyawan." />
+            <x-empty-state title="Belum ada soal pre-test" description="Klik Tambah soal. Sistem akan langsung membuat pre-test dan post-test." />
         @endif
     </x-card>
     </section>
@@ -144,11 +136,7 @@
         <x-slot name="header">
             <div class="flex items-center justify-between w-full">
                 <h3 class="font-bold font-heading text-lg">Post-test &amp; Bank Soal</h3>
-                @if($training->postTest)
-                    <x-button @click="openQuestion('{{ $training->postTest->id }}', 'Post-test')" variant="primary" size="sm"><x-icon name="plus" class="h-4 w-4" />
-                        Tambah Soal Kuis
-                    </x-button>
-                @endif
+                <x-button @click="openQuestion()" variant="primary" size="sm"><x-icon name="plus" class="h-4 w-4" />Tambah soal</x-button>
             </div>
         </x-slot>
 
@@ -208,7 +196,7 @@
                 </div>
             </div>
         @else
-            <x-empty-state title="Post-test belum dibuat" description="Buat post-test untuk mencapai Balok 1." />
+            <x-empty-state title="Belum ada soal post-test" description="Klik Tambah soal. Sistem akan langsung membuat pre-test dan post-test." />
         @endif
     </x-card>
     </section>
@@ -321,17 +309,17 @@
     @endif
 
     <!-- Modal Tambah Soal Kuis -->
-    @if($training->preTest || $training->postTest)
-        <x-modal name="add-question-modal" :show="$errors->any() && old('_modal') === 'add-question-modal'" title="Tambah Soal Kuis">
+        <x-modal name="add-question-modal" :show="$errors->any() && old('_modal') === 'add-question-modal'" title="Tambah soal pre-test & post-test">
             <form action="{{ route('admin.questions.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                 @csrf
-            <input type="hidden" name="_modal" value="add-question-modal">
+             <input type="hidden" name="_modal" value="add-question-modal">
+                <input type="hidden" name="training_id" value="{{ $training->id }}">
                 <div class="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-brand-dark dark:border-green-900 dark:bg-green-950/30 dark:text-green-200">
                     <span class="font-semibold">Bank soal bersama:</span> Satu soal otomatis digunakan untuk pre-test dan post-test.
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="add-question-modal-quiz_id">Jenis evaluasi</label>
-                    <x-select name="quiz_id" required id="add-question-modal-quiz_id" x-model="selectedQuizId" class="hidden">
+                    <x-select name="quiz_id" id="add-question-modal-quiz_id" class="hidden">
                         @if($training->preTest)<option value="{{ $training->preTest->id }}">Pre-test — {{ $training->preTest->judul }}</option>@endif
                         @if($training->postTest)<option value="{{ $training->postTest->id }}">Post-test — {{ $training->postTest->judul }}</option>@endif
                     </x-select>
@@ -376,6 +364,5 @@
                 </div>
             </form>
         </x-modal>
-    @endif
 </div>
 @endsection

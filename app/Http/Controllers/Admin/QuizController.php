@@ -8,6 +8,7 @@ use App\Models\QuizQuestion;
 use App\Models\Training;
 use App\Support\TrustedMediaUrl;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
@@ -17,25 +18,7 @@ class QuizController extends Controller
     public function prepareEvaluationSet(string $trainingId)
     {
         try {
-            DB::transaction(function () use ($trainingId): void {
-                $training = Training::findOrFail($trainingId);
-
-                foreach ([
-                    'pre_test' => ['Pre-test ' . $training->judul, 10, 80],
-                    'post_test' => ['Post-test ' . $training->judul, 15, $training->passing_grade],
-                ] as $type => [$title, $duration, $passingGrade]) {
-                    Quiz::firstOrCreate([
-                        'training_id' => $training->id,
-                        'tipe' => $type,
-                    ], [
-                        'judul' => $title,
-                        'durasi_menit' => $duration,
-                        'passing_grade' => $passingGrade,
-                        'max_retries' => $training->max_retries,
-                        'cooldown_hours' => 24,
-                    ]);
-                }
-            });
+            $this->ensureEvaluationSet(Training::findOrFail($trainingId));
         } catch (Throwable $exception) {
             report($exception);
 
@@ -90,9 +73,34 @@ class QuizController extends Controller
 
     public function storeQuestionGeneric(Request $request)
     {
-        $request->validate(['quiz_id' => 'required|exists:quizzes,id']);
+        $data = $request->validate(['training_id' => 'required|exists:trainings,id']);
+        $quizzes = $this->ensureEvaluationSet(Training::findOrFail($data['training_id']));
 
-        return $this->createQuestion($request, Quiz::findOrFail($request->quiz_id));
+        return $this->createQuestion($request, $quizzes->firstWhere('tipe', 'post_test'));
+    }
+
+    /** @return Collection<int, Quiz> */
+    private function ensureEvaluationSet(Training $training): Collection
+    {
+        return DB::transaction(function () use ($training) {
+            foreach ([
+                'pre_test' => ['Pre-test ' . $training->judul, 10, 80],
+                'post_test' => ['Post-test ' . $training->judul, 15, $training->passing_grade],
+            ] as $type => [$title, $duration, $passingGrade]) {
+                Quiz::firstOrCreate([
+                    'training_id' => $training->id,
+                    'tipe' => $type,
+                ], [
+                    'judul' => $title,
+                    'durasi_menit' => $duration,
+                    'passing_grade' => $passingGrade,
+                    'max_retries' => $training->max_retries,
+                    'cooldown_hours' => 24,
+                ]);
+            }
+
+            return $training->quizzes()->whereIn('tipe', ['pre_test', 'post_test'])->get();
+        });
     }
 
     private function createQuestion(Request $request, Quiz $quiz)

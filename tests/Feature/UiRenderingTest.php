@@ -21,10 +21,10 @@ test('management pages render shared sidebar and training forms', function () {
     foreach (['/admin/dashboard', '/admin/skills', '/admin/trainings'] as $url) {
         $this->get($url)->assertOk()->assertSee('id="app-sidebar"', false)->assertSee('x-ref="sidebarNavigation"', false)->assertSee('Training', false);
     }
-    $this->get('/admin/trainings/' . $training->id)->assertOk()->assertSee('Siapkan pre-test & post-test', false)->assertSee('activeSection', false)->assertSee('x-teleport="body"', false);
+    $this->get('/admin/trainings/' . $training->id)->assertOk()->assertDontSee('Siapkan pre-test & post-test', false)->assertSee('Tambah soal', false)->assertSee('activeSection', false)->assertSee('x-teleport="body"', false);
     $quiz = Quiz::create(['training_id' => $training->id, 'tipe' => 'post_test', 'judul' => 'Evaluasi keselamatan', 'durasi_menit' => 15, 'passing_grade' => 80]);
     QuizQuestion::create(['quiz_id' => $quiz->id, 'pertanyaan' => 'Apa langkah pertama?', 'opsi_a' => 'Periksa alat', 'opsi_b' => 'Mulai bekerja', 'opsi_c' => 'Abaikan', 'opsi_d' => 'Pulang', 'kunci_jawaban' => 'a']);
-    $this->get('/admin/trainings/' . $training->id)->assertOk()->assertSee('Tambah Soal Kuis')->assertSee('Apa langkah pertama?');
+    $this->get('/admin/trainings/' . $training->id)->assertOk()->assertSee('Tambah soal')->assertSee('Apa langkah pertama?');
     $skill->delete();
     $this->get('/admin/trainings/' . $training->id)->assertOk()->assertSee('Training Level 1');
     $this->get('/admin/trainings')->assertOk()->assertSee('Training', false)->assertDontSee('Level 4');
