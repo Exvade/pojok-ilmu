@@ -126,7 +126,7 @@ class ImportController extends Controller
 
         if (! is_array($preview) || ($preview['type'] ?? null) !== $type || empty($preview['rows'])) {
             return redirect()
-                ->route($type === 'assignments' ? 'admin.assignments.import' : 'admin.imports.create', $type === 'assignments' ? [] : ['type' => $type])
+                ->route($type === 'assignments' ? 'admin.trainings.participants.import' : 'admin.imports.create', $type === 'assignments' ? [] : ['type' => $type])
                 ->withErrors(['file' => 'Pratinjau impor sudah tidak tersedia. Unggah file kembali untuk divalidasi.']);
         }
 
@@ -143,7 +143,7 @@ class ImportController extends Controller
         }
 
         return redirect()
-            ->route($type === 'assignments' ? 'admin.assignments.import' : 'admin.imports.create', $type === 'assignments' ? [] : ['type' => $type])
+            ->route($type === 'assignments' ? 'admin.trainings.participants.import' : 'admin.imports.create', $type === 'assignments' ? [] : ['type' => $type])
             ->with('success', count($preview['rows']) . ' baris ' . strtolower($definition['label']) . ' berhasil diimpor.');
     }
 

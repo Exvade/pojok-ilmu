@@ -145,11 +145,16 @@
             <p class="page-description">Atur level, isi materi, lalu tugaskan manpower yang perlu mempelajari setiap training.</p>
         </div>
         <div class="flex flex-wrap gap-2">
+            @if(auth()->user()->canManageCurriculum())
             <x-button :href="route('admin.s2s-product-mapping-audit.index')" variant="outline"><x-icon name="clipboard" class="h-4 w-4" />Audit mapping</x-button>
             <x-button :href="route('admin.s2s-products.index')" variant="outline"><x-icon name="grid" class="h-4 w-4" />Produk S2S</x-button>
             <x-button :href="route('admin.imports.create', 'materials')" variant="outline"><x-icon name="download" class="h-4 w-4" />Impor materi</x-button>
             <x-button :href="route('admin.imports.create', 'trainings')" variant="secondary"><x-icon name="download" class="h-4 w-4" />Impor training</x-button>
-            <x-button @click="$dispatch('open-modal', 'add-product-modal')"><x-icon name="plus" class="h-4 w-4" />Tambah training</x-button>
+            @endif
+            @if(auth()->user()->canManageCompetency())
+                <x-button :href="route('admin.trainings.participants.import')" variant="outline"><x-icon name="user" class="h-4 w-4" />Impor peserta</x-button>
+            @endif
+            @if(auth()->user()->canManageCurriculum())<x-button @click="$dispatch('open-modal', 'add-product-modal')"><x-icon name="plus" class="h-4 w-4" />Tambah training</x-button>@endif
         </div>
     </div>
 
@@ -157,7 +162,7 @@
         <div class="grid gap-5 md:grid-cols-3">
             <div class="flex gap-3"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-green-100 text-xs font-bold text-brand-dark dark:bg-green-950 dark:text-green-300">1</span><div><p class="text-sm font-semibold">Buat training</p><p class="mt-1 text-xs leading-5 text-gray-500">Contoh: BOX BATTERY berada pada Level 1.</p></div></div>
             <div class="flex gap-3"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-green-100 text-xs font-bold text-brand-dark dark:bg-green-950 dark:text-green-300">2</span><div><p class="text-sm font-semibold">Isi training</p><p class="mt-1 text-xs leading-5 text-gray-500">Tambahkan pre-test, materi, dan post-test.</p></div></div>
-            <div class="flex gap-3"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-green-100 text-xs font-bold text-brand-dark dark:bg-green-950 dark:text-green-300">3</span><div><p class="text-sm font-semibold">Tugaskan manpower</p><p class="mt-1 text-xs leading-5 text-gray-500">Tentukan siapa yang perlu belajar pada menu Penugasan training.</p></div></div>
+            <div class="flex gap-3"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-green-100 text-xs font-bold text-brand-dark dark:bg-green-950 dark:text-green-300">3</span><div><p class="text-sm font-semibold">Pilih peserta</p><p class="mt-1 text-xs leading-5 text-gray-500">Tentukan peserta saat membuat training atau lewat tombol Kelola peserta.</p></div></div>
         </div>
     </x-card>
 
@@ -176,7 +181,7 @@
                     <div class="flex justify-between gap-3"><dt class="text-gray-500">Isi training</dt><dd class="font-semibold">{{ $training->materials->count() }} materi · {{ $training->preTest ? 'Pre-test' : 'Tanpa pre-test' }} · {{ $training->postTest ? 'Post-test' : 'Post-test belum ada' }}</dd></div>
                     <div class="flex justify-between gap-3"><dt class="text-gray-500">Ditugaskan</dt><dd class="font-semibold">{{ $training->enrollments_count }} manpower</dd></div>
                 </dl>
-                <x-slot name="footer"><div class="flex items-center justify-between gap-2"><x-button :href="route('admin.trainings.show', $training->id)" variant="secondary" size="sm">Atur isi <x-icon name="arrow" class="h-4 w-4" /></x-button><div class="flex items-center"><x-button type="button" variant="ghost" size="sm" class="text-brand-dark" @click="$dispatch('open-modal', 'edit-training-{{ $training->id }}')" aria-label="Ubah training" title="Ubah training"><x-icon name="pencil" class="h-4 w-4" /></x-button><form action="{{ route('admin.trainings.destroy', $training->id) }}" method="POST" data-confirm="Hapus training ini?">@csrf @method('DELETE')<x-button type="submit" variant="ghost" size="sm" class="text-red-600" aria-label="Hapus training" title="Hapus training"><x-icon name="trash" class="h-4 w-4" /></x-button></form></div></div></x-slot>
+                <x-slot name="footer"><div class="flex flex-wrap items-center justify-between gap-2">@if(auth()->user()->canManageCompetency())<x-button :href="route('admin.trainings.participants.edit', $training)" variant="outline" size="sm">Kelola peserta</x-button>@endif @if(auth()->user()->canManageCurriculum())<div class="flex items-center gap-1"><x-button :href="route('admin.trainings.show', $training->id)" variant="secondary" size="sm">Atur isi <x-icon name="arrow" class="h-4 w-4" /></x-button><x-button type="button" variant="ghost" size="sm" class="text-brand-dark" @click="$dispatch('open-modal', 'edit-training-{{ $training->id }}')" aria-label="Ubah training" title="Ubah training"><x-icon name="pencil" class="h-4 w-4" /></x-button><form action="{{ route('admin.trainings.destroy', $training->id) }}" method="POST" data-confirm="Hapus training ini?">@csrf @method('DELETE')<x-button type="submit" variant="ghost" size="sm" class="text-red-600" aria-label="Hapus training" title="Hapus training"><x-icon name="trash" class="h-4 w-4" /></x-button></form></div>@endif</div></x-slot>
             </x-card>
             <x-modal name="edit-training-{{ $training->id }}" :show="($errors->any() && old('_modal') === 'edit-training-'.$training->id) || request('edit') === $training->id" title="Ubah training" maxWidth="xl">
                 <form action="{{ route('admin.trainings.update', $training->id) }}" method="POST" class="space-y-4">
@@ -196,6 +201,7 @@
         @endforelse
     </div>
 
+    @if(auth()->user()->canManageCurriculum())
     <x-modal name="add-product-modal" :show="$errors->any() && old('_modal') === 'add-product-modal'" title="Tambah training" maxWidth="xl">
         <form action="{{ route('admin.trainings.store') }}" method="POST" class="space-y-4">
             @csrf
@@ -203,11 +209,13 @@
             <div class="grid gap-4 sm:grid-cols-2"><div><label class="mb-1 block text-sm font-medium" for="kode_training">Kode training</label><x-input id="kode_training" name="kode_training" placeholder="Contoh: TRN-BOX-01" required class="uppercase" /></div><div><label class="mb-1 block text-sm font-medium" for="departemen">Departemen</label><x-select-menu id="departemen" name="departemens" :options="['__all__' => 'Semua departemen (training umum)'] + $departments->mapWithKeys(fn ($department) => [$department => $department])->all()" placeholder="Pilih departemen" multiple /><p class="mt-1.5 text-xs text-gray-500">Bisa memilih beberapa departemen atau semua departemen untuk training umum.</p></div></div>
             <div class="grid gap-4 sm:grid-cols-2"><div><label class="mb-1 block text-sm font-medium" for="judul">Nama training</label><x-input id="judul" name="judul" placeholder="Contoh: BOX BATTERY" required /></div><div><label class="mb-1 block text-sm font-medium" for="level">Level training</label><x-select-menu id="level" name="level" :options="[1 => 'Level 1', 2 => 'Level 2', 3 => 'Level 3']" selected="1" placeholder="Pilih level" /></div></div>
             <div><label class="mb-1 block text-sm font-medium" for="produk-s2s">Produk S2S terkait</label><x-select-menu id="produk-s2s" name="s2s_product_ids" :options="$productOptions" placeholder="Pilih produk yang dikuasai melalui training ini" searchPlaceholder="Cari kode atau nama produk..." emptyMessage="Produk tidak ditemukan." multiple /><p class="mt-1.5 text-xs text-gray-500">Boleh dikosongkan untuk training umum seperti 5R. Sinkronkan produk S2S lebih dahulu jika pilihan belum tersedia.</p></div>
+            <div><label class="mb-1 block text-sm font-medium" for="peserta-awal">Peserta awal <span class="font-normal text-gray-500">(opsional)</span></label><x-select-menu id="peserta-awal" name="manpower_ids" :options="$manpowerOptions" placeholder="Cari dan pilih peserta training" searchPlaceholder="Cari nama, NIK, atau departemen..." emptyMessage="Manpower tidak ditemukan." multiple /><p class="mt-1.5 text-xs text-gray-500">Hanya manpower aktif dari departemen training yang dapat disimpan. Peserta dapat diubah kembali melalui Kelola peserta.</p></div>
             <div><label class="mb-1 block text-sm font-medium" for="deskripsi">Keterangan training</label><x-textarea id="deskripsi" name="deskripsi" rows="3" placeholder="Contoh: Training BOX BATTERY untuk lini produksi A."></x-textarea></div>
             <div class="grid gap-4 sm:grid-cols-2"><div><label class="mb-1 block text-sm font-medium" for="passing_grade">Nilai lulus post-test</label><x-input id="passing_grade" type="number" name="passing_grade" value="80" min="50" max="100" required /></div><div><label class="mb-1 block text-sm font-medium" for="max_retries">Batas percobaan</label><x-input id="max_retries" type="number" name="max_retries" value="3" min="1" required /></div></div>
             <div class="rounded-md border border-green-200 bg-green-50 p-3 text-xs leading-5 text-gray-700 dark:border-green-900 dark:bg-green-950/30 dark:text-gray-300">Alur yang dipakai: pre-test, materi, post-test (Balok 1), lalu OJT (Balok 2). Assessment dan Balok 3–4 belum digunakan.</div>
             <div class="flex justify-end gap-2 pt-2"><x-button type="button" variant="outline" @click="$dispatch('close-modal', 'add-product-modal')"><x-icon name="close" class="h-4 w-4" />Batal</x-button><x-button type="submit"><x-icon name="save" class="h-4 w-4" />Simpan training</x-button></div>
         </form>
     </x-modal>
+    @endif
 </div>
 @endsection

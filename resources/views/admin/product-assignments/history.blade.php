@@ -10,7 +10,7 @@
                 <h1 class="page-title mt-1">{{ $training->judul }}</h1>
                 <p class="page-description">{{ $training->kode_training }} · {{ $training->departmentLabel() }} · Level {{ $training->level }}</p>
             </div>
-            <x-button :href="route('admin.product-assignments.index')" variant="outline">
+            <x-button :href="route('admin.trainings.participants.edit', $training)" variant="outline">
                 <x-icon name="back" class="h-4 w-4" />Kembali ke penugasan
             </x-button>
         </div>

@@ -5,18 +5,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\MManpower;
 use App\Models\Training;
-use App\Models\TrainingAssignmentLog;
-use App\Models\TrainingEnrollment;
-use App\Services\ActivityLogger;
+use App\Services\TrainingAssignmentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use Throwable;
 
 class ProductAssignmentController extends Controller
 {
-    public function __construct(private ActivityLogger $activityLogger) {}
+    public function __construct(private readonly TrainingAssignmentService $assignmentService) {}
     public function index(Request $request): View
     {
         $department = $request->string('departemen')->toString();
@@ -55,83 +52,23 @@ class ProductAssignmentController extends Controller
             'reason' => 'nullable|string|max:1000',
         ]);
 
-        $training = Training::findOrFail($data['training_id']);
-        $requestedManpowerIds = $data['manpower_ids'] ?? [];
-        $validManpowerIds = MManpower::query()
-            ->whereIn('id', $requestedManpowerIds)
-            ->where('status', true)
-            ->whereNotNull('haris_synced_at')
-            ->get()
-            ->filter(fn (MManpower $manpower): bool => $training->appliesToDepartment($manpower->trainingDepartment()))
-            ->pluck('id')
-            ->all();
+        return $this->save($request, Training::findOrFail($data['training_id']), $data);
+    }
 
-        if (count($validManpowerIds) !== count(array_unique($requestedManpowerIds))) {
-            return back()->with('error', 'Penugasan hanya dapat diberikan kepada manpower aktif dari departemen yang dipilih pada training.');
-        }
+    public function edit(Training $training): View
+    {
+        $training->load('enrollments:id,training_id,manpower_id,status');
+        $manpowers = MManpower::query()->where('status', true)->whereNotNull('haris_synced_at')->orderBy('nama')->get()
+            ->filter(fn (MManpower $manpower): bool => $training->appliesToDepartment($manpower->trainingDepartment()))->values();
 
-        try {
-            DB::beginTransaction();
-            $canceledEnrollments = TrainingEnrollment::query()
-                ->where('training_id', $training->id)
-                ->where('status', 'enrolled')
-                ->when($validManpowerIds !== [], fn ($query) => $query->whereNotIn('manpower_id', $validManpowerIds))
-                ->get();
+        return view('admin.trainings.participants', compact('training', 'manpowers'));
+    }
 
-            foreach ($canceledEnrollments as $enrollment) {
-                $enrollment->delete();
-                $this->logAssignmentChange(
-                    $training,
-                    $enrollment,
-                    'canceled',
-                    'enrolled',
-                    'dibatalkan',
-                    $data['reason'] ?? null,
-                    $request->user()->id,
-                );
-            }
+    public function storeForTraining(Request $request, Training $training): RedirectResponse
+    {
+        $data = $request->validate(['manpower_ids' => 'nullable|array', 'manpower_ids.*' => 'exists:m_manpower,id', 'reason' => 'nullable|string|max:1000']);
 
-            foreach ($validManpowerIds as $manpowerId) {
-                $enrollment = TrainingEnrollment::withTrashed()->firstOrNew([
-                    'training_id' => $data['training_id'],
-                    'manpower_id' => $manpowerId,
-                ]);
-
-                if ($enrollment->exists && ! $enrollment->trashed()) {
-                    continue;
-                }
-
-                $previousStatus = $enrollment->exists ? 'dibatalkan' : null;
-
-                if ($enrollment->exists) {
-                    $enrollment->restore();
-                }
-
-                $enrollment->forceFill([
-                    'status' => 'enrolled',
-                    'ojt_status' => 'not_started',
-                ]);
-                $enrollment->save();
-
-                $this->logAssignmentChange(
-                    $training,
-                    $enrollment,
-                    'assigned',
-                    $previousStatus,
-                    'enrolled',
-                    $data['reason'] ?? null,
-                    $request->user()->id,
-                );
-            }
-            DB::commit();
-        } catch (Throwable $exception) {
-            DB::rollBack();
-            report($exception);
-
-            return back()->with('error', 'Penugasan training belum dapat disimpan. Silakan coba kembali.');
-        }
-
-        return back()->with('success', 'Penugasan training berhasil diperbarui.');
+        return $this->save($request, $training, $data);
     }
 
     public function history(Training $training): View
@@ -144,32 +81,18 @@ class ProductAssignmentController extends Controller
         return view('admin.product-assignments.history', compact('training', 'logs'));
     }
 
-    private function logAssignmentChange(
-        Training $training,
-        TrainingEnrollment $enrollment,
-        string $action,
-        ?string $statusBefore,
-        string $statusAfter,
-        ?string $reason,
-        string $actorUserId,
-    ): void {
-        TrainingAssignmentLog::create([
-            'training_id' => $training->id,
-            'manpower_id' => $enrollment->manpower_id,
-            'enrollment_id' => $enrollment->id,
-            'actor_user_id' => $actorUserId,
-            'action' => $action,
-            'status_before' => $statusBefore,
-            'status_after' => $statusAfter,
-            'reason' => filled($reason) ? $reason : null,
-        ]);
-        $this->activityLogger->record('assignment', "assignment.{$action}", $enrollment, [
-            'training_title' => $training->judul,
-            'manpower_name' => $enrollment->manpower?->nama,
-            'manpower_nik' => $enrollment->manpower?->nik,
-            'status_before' => $statusBefore,
-            'status_after' => $statusAfter,
-            'reason' => $reason,
-        ]);
+    private function save(Request $request, Training $training, array $data): RedirectResponse
+    {
+        try {
+            $this->assignmentService->sync($training, $data['manpower_ids'] ?? [], $data['reason'] ?? null, $request->user());
+        } catch (ValidationException $exception) {
+            return back()->withErrors($exception->errors());
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return back()->with('error', 'Penugasan training belum dapat disimpan. Silakan coba kembali.');
+        }
+
+        return back()->with('success', 'Peserta training berhasil diperbarui.');
     }
 }
