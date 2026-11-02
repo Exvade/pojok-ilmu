@@ -38,8 +38,7 @@
         <nav class="flex gap-1 overflow-x-auto" aria-label="Bagian pengelolaan sub-course">
             <x-button type="button" variant="ghost" @click="activeSection = 'materials'" class="rounded-b-none border-b-2 px-4" x-bind:class="activeSection === 'materials' ? 'border-brand-dark text-brand-dark dark:border-green-400 dark:text-green-300' : 'border-transparent'">Materi ({{ $training->materials->count() }})</x-button>
             <x-button type="button" variant="ghost" @click="activeSection = 'bank'" class="rounded-b-none border-b-2 px-4" x-bind:class="activeSection === 'bank' ? 'border-brand-dark text-brand-dark dark:border-green-400 dark:text-green-300' : 'border-transparent'">Bank soal ({{ $training->postTest?->questions->count() ?? 0 }})</x-button>
-            <x-button type="button" variant="ghost" @click="activeSection = 'pre-test'" class="rounded-b-none border-b-2 px-4" x-bind:class="activeSection === 'pre-test' ? 'border-brand-dark text-brand-dark dark:border-green-400 dark:text-green-300' : 'border-transparent'">Pre-test ({{ $training->preTest?->questions->count() ?? 0 }})</x-button>
-            <x-button type="button" variant="ghost" @click="activeSection = 'post-test'" class="rounded-b-none border-b-2 px-4" x-bind:class="activeSection === 'post-test' ? 'border-brand-dark text-brand-dark dark:border-green-400 dark:text-green-300' : 'border-transparent'">Post-test</x-button>
+            <x-button type="button" variant="ghost" @click="activeSection = 'settings'" class="rounded-b-none border-b-2 px-4" x-bind:class="activeSection === 'settings' ? 'border-brand-dark text-brand-dark dark:border-green-400 dark:text-green-300' : 'border-transparent'">Pengaturan evaluasi</x-button>
         </nav>
     </div>
 
@@ -101,43 +100,19 @@
     </x-card>
     </section>
 
-    <!-- Assessment setup: pre-test is diagnostic; post-test determines the level. -->
-    <section x-show="activeSection === 'pre-test'" x-cloak>
+    <section x-show="activeSection === 'settings'" x-cloak>
     <x-card>
-        <x-slot name="header">
-            <div class="flex items-center justify-between w-full">
-                <h3 class="font-bold font-heading text-lg">Pre-test diagnostik</h3>
-                <x-button @click="activeSection = 'bank'" variant="outline" size="sm">Kelola bank soal</x-button>
-            </div>
-        </x-slot>
-        @if($training->preTest)
-            <div class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/30">
-                <p class="font-semibold text-blue-950 dark:text-blue-100">{{ $training->preTest->judul }}</p>
-                <p class="mt-1 text-xs text-blue-800 dark:text-blue-200">Bank {{ $training->preTest->questions->count() }} soal &bull; Peserta menerima {{ min($training->preTest->question_count, $training->preTest->questions->count()) }} soal acak dalam {{ $training->preTest->durasi_menit }} menit. Nilainya hanya untuk pemetaan awal.</p>
-            </div>
-            <div class="mt-4 space-y-2">
-                @forelse($training->preTest->questions as $index => $question)
-                    <div class="flex items-start justify-between gap-3 rounded-md border border-gray-200 p-3 text-sm dark:border-gray-700">
-                        <span><strong>{{ $index + 1 }}.</strong> {{ $question->pertanyaan }}</span>
-                        <form action="{{ route('admin.questions.destroy', $question->id) }}" method="POST" data-confirm="Hapus soal ini?">@csrf @method('DELETE')<x-button type="submit" variant="ghost" size="sm" class="text-red-600" aria-label="Hapus"><x-icon name="trash" class="h-4 w-4" /></x-button></form>
-                    </div>
-                @empty
-                    <x-empty-state title="Belum ada soal pre-test" description="Tambahkan soal untuk pemetaan awal sebelum materi dibuka." />
-                @endforelse
-            </div>
-        @else
-            <x-empty-state title="Belum ada soal pre-test" description="Klik Tambah soal. Sistem akan langsung membuat pre-test dan post-test." />
-        @endif
-    </x-card>
-    </section>
-
-    <section x-show="activeSection === 'post-test'" x-cloak>
-    <x-card>
-        <x-slot name="header"><h3 class="font-bold font-heading text-lg">Pengaturan post-test</h3></x-slot>
+        <x-slot name="header"><h3 class="font-bold font-heading text-lg">Pengaturan evaluasi</h3></x-slot>
         @if($training->postTest)
             <div class="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/30">
-                <p class="font-semibold text-brand-dark dark:text-green-300">Post-test menggunakan bank soal</p>
-                <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">Setiap peserta menerima {{ min($training->postTest->question_count, $training->postTest->questions->count()) }} soal acak dari {{ $training->postTest->questions->count() }} soal yang tersedia. Nilai lulus {{ $training->postTest->passing_grade }}%, maksimal {{ $training->postTest->max_retries }} percobaan, dan masa tunggu {{ $training->postTest->cooldown_hours }} jam.</p>
+                <p class="font-semibold text-brand-dark dark:text-green-300">Satu bank soal untuk dua tahap evaluasi</p>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">Pre-test dan post-test menggunakan pertanyaan yang sama dari bank soal. Setiap peserta menerima {{ min($training->postTest->question_count, $training->postTest->questions->count()) }} soal acak dari {{ $training->postTest->questions->count() }} soal yang tersedia.</p>
+                <dl class="mt-4 grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-4">
+                    <div class="rounded-md bg-white/70 p-3 dark:bg-gray-900/30"><dt class="text-gray-500 dark:text-gray-400">Durasi pre-test</dt><dd class="mt-1 font-bold">{{ $training->preTest?->durasi_menit ?? $training->postTest->durasi_menit }} menit</dd></div>
+                    <div class="rounded-md bg-white/70 p-3 dark:bg-gray-900/30"><dt class="text-gray-500 dark:text-gray-400">Durasi post-test</dt><dd class="mt-1 font-bold">{{ $training->postTest->durasi_menit }} menit</dd></div>
+                    <div class="rounded-md bg-white/70 p-3 dark:bg-gray-900/30"><dt class="text-gray-500 dark:text-gray-400">Nilai lulus post-test</dt><dd class="mt-1 font-bold">{{ $training->postTest->passing_grade }}%</dd></div>
+                    <div class="rounded-md bg-white/70 p-3 dark:bg-gray-900/30"><dt class="text-gray-500 dark:text-gray-400">Batas percobaan</dt><dd class="mt-1 font-bold">{{ $training->postTest->max_retries }} kali</dd></div>
+                </dl>
                 <div class="mt-4"><x-button type="button" @click="activeSection = 'bank'" variant="primary">Kelola bank soal</x-button></div>
             </div>
         @else
@@ -174,11 +149,14 @@
                                     <span>{{ $idx + 1 }}.</span>
                                     <div>{!! nl2br(e($q->pertanyaan)) !!}</div>
                                 </div>
-                                <form action="{{ route('admin.questions.destroy', $q->id) }}" method="POST" data-confirm="Hapus soal ini?">
-                                    @csrf
-                                    @method('DELETE')
-                                    <x-button type="submit" variant="ghost" size="sm" class="text-red-600" aria-label="Hapus" title="Hapus"><x-icon name="trash" class="h-4 w-4" /></x-button>
-                                </form>
+                                <div class="flex items-center gap-1">
+                                    <x-button type="button" variant="ghost" size="sm" class="text-brand-dark" @click="$dispatch('open-modal', 'edit-question-{{ $q->id }}')" aria-label="Ubah soal" title="Ubah soal"><x-icon name="pencil" class="h-4 w-4" /></x-button>
+                                    <form action="{{ route('admin.questions.destroy', $q->id) }}" method="POST" data-confirm="Hapus soal ini?">
+                                        @csrf
+                                        @method('DELETE')
+                                        <x-button type="submit" variant="ghost" size="sm" class="text-red-600" aria-label="Hapus" title="Hapus"><x-icon name="trash" class="h-4 w-4" /></x-button>
+                                    </form>
+                                </div>
                             </div>
 
                             <!-- Media preview if any -->
@@ -206,6 +184,31 @@
                                 </div>
                             </div>
                         </div>
+                        <x-modal name="edit-question-{{ $q->id }}" :show="$errors->any() && old('_modal') === 'edit-question-'.$q->id" title="Ubah soal bank">
+                            <form action="{{ route('admin.questions.update', $q->id) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                                @csrf
+                                @method('PUT')
+                                <input type="hidden" name="_modal" value="edit-question-{{ $q->id }}">
+                                <input type="hidden" name="existing_media_url" value="{{ $q->media_url }}">
+                                <p class="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-brand-dark dark:border-green-900 dark:bg-green-950/30 dark:text-green-200">Perubahan ini otomatis diterapkan pada soal yang sama di pre-test dan post-test.</p>
+                                <div><label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300" for="edit-question-{{ $q->id }}-pertanyaan">Pertanyaan</label><x-textarea name="pertanyaan" rows="3" required id="edit-question-{{ $q->id }}-pertanyaan">{{ old('_modal') === 'edit-question-'.$q->id ? old('pertanyaan') : $q->pertanyaan }}</x-textarea></div>
+                                <div>
+                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300" for="edit-question-{{ $q->id }}-tipe-media">Media pendukung (opsional)</label>
+                                    <x-select-menu name="tipe_media" id="edit-question-{{ $q->id }}-tipe-media" :options="['none' => 'Tanpa media', 'video_gdrive' => 'Video Google Drive Embed', 'video_youtube' => 'Video YouTube', 'image' => 'Unggah foto gambar']" :selected="old('_modal') === 'edit-question-'.$q->id ? old('tipe_media') : $q->tipe_media" />
+                                    <label class="mb-1 mt-3 block text-sm text-gray-600 dark:text-gray-300" for="edit-question-{{ $q->id }}-media-url">URL video</label>
+                                    <x-input type="text" name="media_url" :value="old('_modal') === 'edit-question-'.$q->id ? old('media_url') : $q->media_url" placeholder="URL Google Drive / YouTube" id="edit-question-{{ $q->id }}-media-url" />
+                                    <label class="mb-1 mt-3 block text-sm text-gray-600 dark:text-gray-300" for="edit-question-{{ $q->id }}-file">Ganti gambar</label>
+                                    <x-input type="file" name="file_upload" accept="image/*" id="edit-question-{{ $q->id }}-file" />
+                                </div>
+                                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                    @foreach(['a', 'b', 'c', 'd'] as $option)
+                                        <div><label class="mb-1 block text-xs font-bold text-gray-600" for="edit-question-{{ $q->id }}-opsi-{{ $option }}">Pilihan {{ strtoupper($option) }}</label><x-input type="text" name="opsi_{{ $option }}" :value="old('_modal') === 'edit-question-'.$q->id ? old('opsi_'.$option) : $q->{'opsi_'.$option}" required id="edit-question-{{ $q->id }}-opsi-{{ $option }}" /></div>
+                                    @endforeach
+                                </div>
+                                <div><label class="mb-1 block text-sm font-bold text-brand-dark dark:text-green-400" for="edit-question-{{ $q->id }}-kunci">Kunci jawaban</label><x-select-menu name="kunci_jawaban" id="edit-question-{{ $q->id }}-kunci" :options="['a' => 'Jawaban A', 'b' => 'Jawaban B', 'c' => 'Jawaban C', 'd' => 'Jawaban D']" :selected="old('_modal') === 'edit-question-'.$q->id ? old('kunci_jawaban') : $q->kunci_jawaban" /></div>
+                                <div class="flex justify-end gap-2 pt-2"><x-button type="button" @click="$dispatch('close-modal', 'edit-question-{{ $q->id }}')" variant="outline">Batal</x-button><x-button type="submit" variant="primary"><x-icon name="save" class="h-4 w-4" />Simpan perubahan</x-button></div>
+                            </form>
+                        </x-modal>
                     @empty
                         <x-empty-state title="Belum Ada Soal" description="Klik Tambah Soal Kuis untuk membuat soal pilihan ganda." />
                     @endforelse

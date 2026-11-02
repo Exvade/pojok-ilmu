@@ -180,4 +180,62 @@ class QuizController extends Controller
 
         return back()->with('success', 'Soal berhasil dihapus dari pre-test dan post-test.');
     }
+
+    public function updateQuestion(Request $request, string $id)
+    {
+        $question = QuizQuestion::findOrFail($id);
+        $question->load('quiz.training.quizzes');
+
+        $request->validate([
+            'pertanyaan' => 'required|string',
+            'tipe_media' => 'required|in:none,image,video_gdrive,video_youtube',
+            'media_url' => [
+                'nullable', 'string', 'max:2048',
+                function (string $attribute, mixed $value, \Closure $fail) use ($request): void {
+                    $type = $request->input('tipe_media');
+                    if (in_array($type, ['video_gdrive', 'video_youtube'], true) && ! TrustedMediaUrl::isTrustedEmbedUrl((string) $value, $type)) {
+                        $fail('URL video harus berupa tautan HTTPS Google Drive atau YouTube yang valid.');
+                    }
+                },
+            ],
+            'file_upload' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:3072',
+            'opsi_a' => 'required|string',
+            'opsi_b' => 'required|string',
+            'opsi_c' => 'required|string',
+            'opsi_d' => 'required|string',
+            'kunci_jawaban' => 'required|in:a,b,c,d',
+        ]);
+
+        $mediaUrl = $request->filled('media_url') ? $request->media_url : $request->input('existing_media_url');
+
+        if ($request->hasFile('file_upload')) {
+            $path = $request->file('file_upload')->store('quiz_questions', 'public');
+            $mediaUrl = Storage::url($path);
+        }
+
+        $siblingQuizIds = $question->quiz->training->quizzes
+            ->whereIn('tipe', ['pre_test', 'post_test'])
+            ->pluck('id');
+        $siblingQuestionIds = QuizQuestion::query()
+            ->whereIn('quiz_id', $siblingQuizIds)
+            ->where('pertanyaan', $question->pertanyaan)
+            ->where('opsi_a', $question->opsi_a)
+            ->where('opsi_b', $question->opsi_b)
+            ->where('opsi_c', $question->opsi_c)
+            ->where('opsi_d', $question->opsi_d)
+            ->pluck('id');
+
+        QuizQuestion::whereIn('id', $siblingQuestionIds)->update([
+            'pertanyaan' => $request->pertanyaan,
+            'tipe_media' => $request->tipe_media,
+            'media_url' => $mediaUrl,
+            'opsi_a' => $request->opsi_a,
+            'opsi_b' => $request->opsi_b,
+            'opsi_c' => $request->opsi_c,
+            'opsi_d' => $request->opsi_d,
+            'kunci_jawaban' => strtolower($request->kunci_jawaban),
+        ]);
+
+        return back()->with('success', 'Soal bank berhasil diperbarui untuk pre-test dan post-test.');
+    }
 }

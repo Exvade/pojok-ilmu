@@ -180,9 +180,9 @@ class ImportController extends Controller
             'questions' => [
                 'label' => 'bank soal',
                 'description' => 'Satu baris adalah satu soal bank. Peserta menerima soal acak dari bank ini saat pre-test dan post-test.',
-                'headings' => ['kode_training', 'durasi_menit', 'nilai_lulus', 'batas_percobaan', 'masa_tunggu_jam', 'jumlah_soal_pretest', 'jumlah_soal_posttest', 'pertanyaan', 'opsi_a', 'opsi_b', 'opsi_c', 'opsi_d', 'kunci_jawaban'],
-                'samples' => [['SE-L1-01', 15, 80, 3, 24, 5, 5, 'Apa fungsi Git?', 'Mengelola versi source code', 'Membuat database', 'Mengirim email', 'Menghapus server', 'a']],
-                'notes' => ['Import dapat memuat lebih banyak soal daripada jumlah yang dikerjakan peserta.', 'Jumlah soal pre-test dan post-test menentukan banyaknya soal acak per percobaan.', 'Kunci jawaban hanya boleh: a, b, c, atau d.'],
+                'headings' => ['kode_training', 'durasi_menit', 'nilai_lulus', 'batas_percobaan', 'masa_tunggu_jam', 'jumlah_soal', 'pertanyaan', 'opsi_a', 'opsi_b', 'opsi_c', 'opsi_d', 'kunci_jawaban'],
+                'samples' => [['SE-L1-01', 15, 80, 3, 24, 5, 'Apa fungsi Git?', 'Mengelola versi source code', 'Membuat database', 'Mengirim email', 'Menghapus server', 'a']],
+                'notes' => ['Import dapat memuat lebih banyak soal daripada jumlah yang dikerjakan peserta.', 'Jumlah soal menentukan banyaknya soal acak yang sama untuk pre-test dan post-test pada setiap percobaan.', 'Kunci jawaban hanya boleh: a, b, c, atau d.'],
             ],
             'assignments' => [
                 'label' => 'penugasan training',
@@ -306,7 +306,7 @@ class ImportController extends Controller
             foreach (match ($type) {
                 'trainings' => ['nilai_lulus', 'batas_percobaan'],
                 'materials' => ['urutan'],
-                'questions' => ['durasi_menit', 'nilai_lulus', 'batas_percobaan', 'masa_tunggu_jam', 'jumlah_soal_pretest', 'jumlah_soal_posttest'],
+                'questions' => ['durasi_menit', 'nilai_lulus', 'batas_percobaan', 'masa_tunggu_jam', 'jumlah_soal'],
                 default => [],
             } as $field) {
                 $value = $row[$field] ?? null;
@@ -474,7 +474,7 @@ class ImportController extends Controller
                 'judul' => ($type === 'pre_test' ? 'Pre-test' : 'Post-test') . ' ' . $training->judul,
                 'durasi_menit' => (int) ($row['durasi_menit'] ?: 15), 'passing_grade' => $type === 'post_test' ? (int) ($row['nilai_lulus'] ?: $training->passing_grade) : 80,
                 'max_retries' => (int) ($row['batas_percobaan'] ?: $training->max_retries), 'cooldown_hours' => (int) ($row['masa_tunggu_jam'] ?: 24),
-                'question_count' => (int) ($row[$type === 'pre_test' ? 'jumlah_soal_pretest' : 'jumlah_soal_posttest'] ?: 5),
+                'question_count' => (int) ($row['jumlah_soal'] ?: 5),
             ]);
             QuizQuestion::create([
                 'quiz_id' => $quiz->id, 'pertanyaan' => $row['pertanyaan'], 'tipe_media' => 'none', 'opsi_a' => $row['opsi_a'], 'opsi_b' => $row['opsi_b'],
