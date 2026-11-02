@@ -130,9 +130,10 @@ class TrainingController extends Controller
 
         try {
             DB::transaction(function () use ($training, $data): void {
+                $departments = $this->departmentsWithParticipants($training, $data['departemens']);
                 $training->update([
                     'kode_training' => strtoupper($data['kode_training']),
-                    ...$this->departmentAttributes($data['departemens']),
+                    ...$this->departmentAttributes($departments),
                     'level' => $data['level'],
                     'judul' => $data['judul'],
                     'deskripsi' => $data['deskripsi'] ?? null,
@@ -240,5 +241,22 @@ class TrainingController extends Controller
         $departments = $this->departmentAttributes($departmentValues)['departemens'];
 
         return $departments === [] ? 'Semua departemen' : implode(', ', $departments);
+    }
+
+    /** @param array<int, string> $departments */
+    private function departmentsWithParticipants(Training $training, array $departments): array
+    {
+        if (in_array('__all__', $departments, true)) {
+            return $departments;
+        }
+
+        $participantDepartments = MManpower::query()
+            ->whereIn('id', $training->enrollments()->pluck('manpower_id'))
+            ->get()
+            ->map(fn (MManpower $manpower): ?string => $manpower->trainingDepartment())
+            ->filter()
+            ->all();
+
+        return collect($departments)->merge($participantDepartments)->unique()->values()->all();
     }
 }

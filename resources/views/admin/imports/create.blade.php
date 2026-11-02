@@ -136,7 +136,9 @@
                             @endforeach
                             <td class="min-w-64 align-top text-xs leading-5 {{ $row['is_valid'] ? 'text-gray-500' : 'font-medium text-red-700 dark:text-red-300' }}">
                                 @if ($row['is_valid'])
-                                    @if ($row['inherited_training'] ?? false)
+                                    @if (! empty($row['data']['_participant_department_added']))
+                                        NIK valid. Departemen {{ $row['data']['_participant_department_added'] }} akan otomatis ditambahkan ke training.
+                                    @elseif ($row['inherited_training'] ?? false)
                                         Mengikuti kode training: {{ $row['resolved_training_code'] }}.
                                     @elseif (! empty($row['department_resolution']))
                                         Akan disimpan dengan departemen: {{ $row['department_resolution'] }}.

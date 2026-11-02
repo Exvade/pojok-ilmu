@@ -7,6 +7,7 @@ use App\Models\Training;
 use App\Models\TrainingAssignmentLog;
 use App\Models\TrainingEnrollment;
 use App\Models\User;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -18,18 +19,20 @@ class TrainingAssignmentService
     public function sync(Training $training, array $requestedManpowerIds, ?string $reason, User $actor): void
     {
         $requestedManpowerIds = array_values(array_unique(array_map('intval', $requestedManpowerIds)));
-        $validManpowerIds = MManpower::query()->whereIn('id', $requestedManpowerIds)
-            ->where('status', true)->whereNotNull('haris_synced_at')->get()
-            ->filter(fn (MManpower $manpower): bool => $training->appliesToDepartment($manpower->trainingDepartment()))
-            ->pluck('id')->all();
+        $manpowers = MManpower::query()->whereIn('id', $requestedManpowerIds)
+            ->where('status', true)->whereNotNull('haris_synced_at')->get();
+        $validManpowerIds = $manpowers->pluck('id')->all();
 
         if (count($validManpowerIds) !== count($requestedManpowerIds)) {
             throw ValidationException::withMessages([
-                'manpower_ids' => 'Peserta harus merupakan manpower aktif dari departemen yang dipilih pada training.',
+                'manpower_ids' => 'Peserta harus merupakan manpower aktif dan telah tersinkron dari HaRis.',
             ]);
         }
 
-        DB::transaction(fn () => $this->syncRecords($training, $validManpowerIds, $reason, $actor));
+        DB::transaction(function () use ($training, $manpowers, $validManpowerIds, $reason, $actor): void {
+            $this->includeParticipantDepartments($training, $manpowers);
+            $this->syncRecords($training, $validManpowerIds, $reason, $actor);
+        });
     }
 
     /** @param array<int, int> $validManpowerIds */
@@ -59,5 +62,21 @@ class TrainingAssignmentService
     {
         TrainingAssignmentLog::create(['training_id' => $training->id, 'manpower_id' => $enrollment->manpower_id, 'enrollment_id' => $enrollment->id, 'actor_user_id' => $actor->id, 'action' => $action, 'status_before' => $before, 'status_after' => $after, 'reason' => filled($reason) ? $reason : null]);
         $this->activityLogger->record('assignment', "assignment.{$action}", $enrollment, ['training_title' => $training->judul, 'manpower_name' => $enrollment->manpower?->nama, 'manpower_nik' => $enrollment->manpower?->nik, 'status_before' => $before, 'status_after' => $after, 'reason' => $reason]);
+    }
+
+    /** @param Collection<int, MManpower> $manpowers */
+    private function includeParticipantDepartments(Training $training, Collection $manpowers): void
+    {
+        $currentDepartments = $training->departmentList();
+        if ($currentDepartments === []) {
+            return;
+        }
+
+        $departments = $manpowers->map(fn (MManpower $manpower): ?string => $manpower->trainingDepartment())
+            ->filter()->merge($currentDepartments)->unique()->values()->all();
+        $training->update([
+            'departemen' => count($departments) === 1 ? $departments[0] : null,
+            'departemens' => $departments,
+        ]);
     }
 }
