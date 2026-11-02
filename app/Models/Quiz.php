@@ -18,6 +18,7 @@ class Quiz extends BaseModel
     {
         return [
             'cooldown_hours' => 'integer',
+            'question_count' => 'integer',
         ];
     }
 

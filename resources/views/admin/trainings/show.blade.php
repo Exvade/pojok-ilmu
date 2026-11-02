@@ -112,7 +112,7 @@
         @if($training->preTest)
             <div class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/30">
                 <p class="font-semibold text-blue-950 dark:text-blue-100">{{ $training->preTest->judul }}</p>
-                <p class="mt-1 text-xs text-blue-800 dark:text-blue-200">Durasi {{ $training->preTest->durasi_menit }} menit &bull; {{ $training->preTest->questions->count() }} soal. Nilainya hanya untuk pemetaan awal dan tidak mengubah level.</p>
+                <p class="mt-1 text-xs text-blue-800 dark:text-blue-200">Bank {{ $training->preTest->questions->count() }} soal &bull; Peserta menerima {{ min($training->preTest->question_count, $training->preTest->questions->count()) }} soal acak dalam {{ $training->preTest->durasi_menit }} menit. Nilainya hanya untuk pemetaan awal.</p>
             </div>
             <div class="mt-4 space-y-2">
                 @forelse($training->preTest->questions as $index => $question)
@@ -145,7 +145,7 @@
                 <div class="p-4 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h4 class="font-bold text-brand-dark dark:text-green-400 text-lg">{{ $training->postTest->judul }}</h4>
-                        <p class="text-xs text-gray-600 dark:text-gray-300">Durasi: {{ $training->postTest->durasi_menit }} Menit &bull; Nilai kelulusan: {{ $training->postTest->passing_grade }}% &bull; Masa tunggu: {{ $training->postTest->cooldown_hours }} jam &bull; Total Soal: {{ $training->postTest->questions->count() }} Soal</p>
+                        <p class="text-xs text-gray-600 dark:text-gray-300">Bank {{ $training->postTest->questions->count() }} soal &bull; Peserta menerima {{ min($training->postTest->question_count, $training->postTest->questions->count()) }} soal acak &bull; Nilai kelulusan {{ $training->postTest->passing_grade }}% &bull; Masa tunggu {{ $training->postTest->cooldown_hours }} jam</p>
                     </div>
                 </div>
 

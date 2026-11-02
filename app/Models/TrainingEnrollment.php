@@ -23,6 +23,7 @@ class TrainingEnrollment extends BaseModel
             'next_attempt_at' => 'datetime',
             'assessment_started_at' => 'datetime',
             'assessment_expires_at' => 'datetime',
+            'active_question_ids' => 'array',
             'post_test_completed_at' => 'datetime',
             'assessment_completed_at' => 'datetime',
             'ojt_assessed_at' => 'datetime',

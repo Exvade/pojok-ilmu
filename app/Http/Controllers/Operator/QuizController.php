@@ -21,7 +21,7 @@ class QuizController extends Controller
             return redirect()->route('operator.dashboard')->with('error', 'Data karyawan tidak ditemukan.');
         }
 
-        $quiz = Quiz::with(['training', 'questions'])->findOrFail($quizId);
+        $quiz = Quiz::with('training')->findOrFail($quizId);
         $enrollment = TrainingEnrollment::where('manpower_id', $manpower->id)
             ->where('training_id', $quiz->training_id)->firstOrFail();
 
@@ -38,13 +38,19 @@ class QuizController extends Controller
         }
 
         if ($enrollment->active_quiz_id !== $quiz->id) {
+            $questionIds = $quiz->questions()->inRandomOrder()->limit($quiz->question_count ?: 5)->pluck('id')->all();
+            if ($questionIds === []) {
+                return back()->with('error', 'Evaluasi belum memiliki soal.');
+            }
             $enrollment->forceFill([
                 'active_quiz_id' => $quiz->id,
+                'active_question_ids' => $questionIds,
                 'assessment_started_at' => now(),
                 'assessment_expires_at' => now()->addMinutes($quiz->durasi_menit),
             ])->save();
             $enrollment->refresh();
         }
+        $quiz->setRelation('questions', $this->activeQuestions($quiz, $enrollment));
 
         return view('operator.quiz-show', compact('quiz', 'enrollment'));
     }
@@ -56,10 +62,7 @@ class QuizController extends Controller
             return redirect()->route('operator.dashboard')->with('error', 'Data karyawan tidak terdaftar.');
         }
 
-        $quiz = Quiz::with(['training', 'questions'])->findOrFail($quizId);
-        if ($quiz->questions->isEmpty()) {
-            return back()->with('error', 'Evaluasi belum memiliki soal.');
-        }
+        $quiz = Quiz::with('training')->findOrFail($quizId);
 
         $answers = $request->input('answers', []);
 
@@ -73,6 +76,10 @@ class QuizController extends Controller
 
             if ($enrollment->active_quiz_id !== $quiz->id || ! $enrollment->assessment_expires_at) {
                 return back()->with('error', 'Sesi evaluasi tidak ditemukan. Mulai kembali dari halaman materi.');
+            }
+            $quiz->setRelation('questions', $this->activeQuestions($quiz, $enrollment));
+            if ($quiz->questions->isEmpty()) {
+                return back()->with('error', 'Soal untuk sesi ini tidak ditemukan. Mulai evaluasi kembali.');
             }
 
             if ($enrollment->assessment_expires_at->isPast()) {
@@ -167,6 +174,7 @@ class QuizController extends Controller
 
         $enrollment->forceFill([
             'active_quiz_id' => null,
+            'active_question_ids' => null,
             'assessment_started_at' => null,
             'assessment_expires_at' => null,
         ]);
@@ -198,5 +206,19 @@ class QuizController extends Controller
         }
 
         return [$attempt, $isPassed, $passingGrade];
+    }
+
+    private function activeQuestions(Quiz $quiz, TrainingEnrollment $enrollment): IlluminateDatabaseEloquentCollection
+    {
+        $ids = collect($enrollment->active_question_ids ?? [])->values();
+        if ($ids->isEmpty()) {
+            return new IlluminateDatabaseEloquentCollection;
+        }
+
+        $questions = $quiz->questions()->whereIn('id', $ids)->get()->keyBy('id');
+
+        return new IlluminateDatabaseEloquentCollection(
+            $ids->map(fn (string $id) => $questions->get($id))->filter()->values()->all()
+        );
     }
 }
