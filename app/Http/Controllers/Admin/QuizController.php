@@ -93,6 +93,7 @@ class QuizController extends Controller
                 ], [
                     'judul' => $title,
                     'durasi_menit' => $duration,
+                    'question_count' => 5,
                     'passing_grade' => $passingGrade,
                     'max_retries' => $training->max_retries,
                     'cooldown_hours' => 24,
