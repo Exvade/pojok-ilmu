@@ -79,6 +79,55 @@ class QuizController extends Controller
         return $this->createQuestion($request, $quizzes->firstWhere('tipe', 'post_test'));
     }
 
+    public function updateEvaluationSettings(Request $request, string $trainingId)
+    {
+        $data = $request->validate([
+            'durasi_pretest' => 'required|integer|min:1|max:240',
+            'durasi_posttest' => 'required|integer|min:1|max:240',
+            'jumlah_soal' => 'required|integer|min:1|max:100',
+            'nilai_lulus' => 'required|integer|min:50|max:100',
+            'batas_percobaan' => 'required|integer|min:1|max:20',
+            'masa_tunggu_jam' => 'required|integer|min:1|max:168',
+        ]);
+
+        $training = Training::findOrFail($trainingId);
+        $availableQuestions = $training->quizzes()
+            ->where('tipe', 'post_test')
+            ->first()?->questions()
+            ->count() ?? 0;
+
+        if ($data['jumlah_soal'] > $availableQuestions) {
+            return back()->withInput()->withErrors([
+                'jumlah_soal' => "Jumlah soal tidak boleh melebihi bank soal yang tersedia ({$availableQuestions} soal).",
+            ]);
+        }
+
+        DB::transaction(function () use ($training, $data): void {
+            $quizzes = $this->ensureEvaluationSet($training);
+
+            $training->update([
+                'passing_grade' => $data['nilai_lulus'],
+                'max_retries' => $data['batas_percobaan'],
+            ]);
+
+            $quizzes->firstWhere('tipe', 'pre_test')?->update([
+                'durasi_menit' => $data['durasi_pretest'],
+                'question_count' => $data['jumlah_soal'],
+                'max_retries' => $data['batas_percobaan'],
+                'cooldown_hours' => $data['masa_tunggu_jam'],
+            ]);
+            $quizzes->firstWhere('tipe', 'post_test')?->update([
+                'durasi_menit' => $data['durasi_posttest'],
+                'question_count' => $data['jumlah_soal'],
+                'passing_grade' => $data['nilai_lulus'],
+                'max_retries' => $data['batas_percobaan'],
+                'cooldown_hours' => $data['masa_tunggu_jam'],
+            ]);
+        });
+
+        return back()->with('success', 'Pengaturan evaluasi berhasil diperbarui.');
+    }
+
     /** @return Collection<int, Quiz> */
     private function ensureEvaluationSet(Training $training): Collection
     {

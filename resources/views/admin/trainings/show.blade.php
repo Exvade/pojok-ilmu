@@ -113,12 +113,35 @@
                     <div class="rounded-md bg-white/70 p-3 dark:bg-gray-900/30"><dt class="text-gray-500 dark:text-gray-400">Nilai lulus post-test</dt><dd class="mt-1 font-bold">{{ $training->postTest->passing_grade }}%</dd></div>
                     <div class="rounded-md bg-white/70 p-3 dark:bg-gray-900/30"><dt class="text-gray-500 dark:text-gray-400">Batas percobaan</dt><dd class="mt-1 font-bold">{{ $training->postTest->max_retries }} kali</dd></div>
                 </dl>
-                <div class="mt-4"><x-button type="button" @click="activeSection = 'bank'" variant="primary">Kelola bank soal</x-button></div>
+                <div class="mt-4 flex flex-wrap gap-2">
+                    <x-button type="button" @click="$dispatch('open-modal', 'edit-evaluation-settings-modal')" variant="primary"><x-icon name="pencil" class="h-4 w-4" />Ubah pengaturan</x-button>
+                    <x-button type="button" @click="activeSection = 'bank'" variant="outline">Kelola bank soal</x-button>
+                </div>
             </div>
         @else
             <x-empty-state title="Bank soal belum tersedia" description="Tambahkan soal pada tab Bank soal untuk menyiapkan pre-test dan post-test otomatis." />
         @endif
     </x-card>
+
+    @if($training->postTest)
+        <x-modal name="edit-evaluation-settings-modal" :show="$errors->any() && old('_modal') === 'edit-evaluation-settings-modal'" title="Ubah pengaturan evaluasi">
+            <form action="{{ route('admin.trainings.evaluation-settings.update', $training->id) }}" method="POST" class="space-y-4">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="_modal" value="edit-evaluation-settings-modal">
+                <p class="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-brand-dark dark:border-green-900 dark:bg-green-950/30 dark:text-green-200">Jumlah soal berlaku sama untuk pre-test dan post-test. Pertanyaan tetap diambil acak dari satu bank soal.</p>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div><label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300" for="evaluation-duration-pre">Durasi pre-test (menit)</label><x-input type="number" name="durasi_pretest" id="evaluation-duration-pre" min="1" max="240" :value="old('durasi_pretest', $training->preTest?->durasi_menit ?? 10)" required /></div>
+                    <div><label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300" for="evaluation-duration-post">Durasi post-test (menit)</label><x-input type="number" name="durasi_posttest" id="evaluation-duration-post" min="1" max="240" :value="old('durasi_posttest', $training->postTest->durasi_menit)" required /></div>
+                    <div><label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300" for="evaluation-question-count">Jumlah soal acak</label><x-input type="number" name="jumlah_soal" id="evaluation-question-count" min="1" max="{{ $training->postTest->questions->count() }}" :value="old('jumlah_soal', min($training->postTest->question_count, $training->postTest->questions->count()))" required /><p class="mt-1 text-xs text-gray-500">Tidak boleh melebihi jumlah soal di bank.</p></div>
+                    <div><label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300" for="evaluation-passing-grade">Nilai lulus post-test (%)</label><x-input type="number" name="nilai_lulus" id="evaluation-passing-grade" min="50" max="100" :value="old('nilai_lulus', $training->postTest->passing_grade)" required /></div>
+                    <div><label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300" for="evaluation-max-retries">Batas percobaan</label><x-input type="number" name="batas_percobaan" id="evaluation-max-retries" min="1" max="20" :value="old('batas_percobaan', $training->postTest->max_retries)" required /></div>
+                    <div><label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300" for="evaluation-cooldown">Masa tunggu setelah gagal (jam)</label><x-input type="number" name="masa_tunggu_jam" id="evaluation-cooldown" min="1" max="168" :value="old('masa_tunggu_jam', $training->postTest->cooldown_hours)" required /></div>
+                </div>
+                <div class="flex justify-end gap-2 pt-2"><x-button type="button" @click="$dispatch('close-modal', 'edit-evaluation-settings-modal')" variant="outline">Batal</x-button><x-button type="submit" variant="primary"><x-icon name="save" class="h-4 w-4" />Simpan pengaturan</x-button></div>
+            </form>
+        </x-modal>
+    @endif
     </section>
 
     <!-- Bank soal menjadi tempat utama untuk mengelola seluruh soal evaluasi. -->

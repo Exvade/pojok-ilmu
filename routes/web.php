@@ -105,6 +105,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Quizzes & Questions
     Route::post('/quizzes', [AdminQuizController::class, 'store'])->middleware('management-permission:curriculum')->name('quizzes.store');
     Route::post('/trainings/{trainingId}/evaluation-set', [AdminQuizController::class, 'prepareEvaluationSet'])->middleware('management-permission:curriculum')->name('trainings.evaluation-set.prepare');
+    Route::put('/trainings/{trainingId}/evaluation-settings', [AdminQuizController::class, 'updateEvaluationSettings'])->middleware('management-permission:curriculum')->name('trainings.evaluation-settings.update');
     Route::post('/quizzes/{id}/questions', [AdminQuizController::class, 'storeQuestion'])->middleware('management-permission:curriculum')->name('quizzes.questions.store');
     Route::post('/questions', [AdminQuizController::class, 'storeQuestionGeneric'])->middleware('management-permission:curriculum')->name('questions.store');
     Route::put('/questions/{id}', [AdminQuizController::class, 'updateQuestion'])->middleware('management-permission:curriculum')->name('questions.update');
