@@ -106,7 +106,7 @@
         <div x-show="multiple" class="sticky top-0 z-10 bg-white px-1 pb-2 pt-1 dark:bg-gray-800">
             <div class="relative">
                 <x-icon name="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                <x-input type="search" x-ref="searchInput" x-model="search" @click.stop @keydown.enter.prevent placeholder="{{ $searchPlaceholder }}" class="min-h-10 pl-9 text-sm" aria-label="{{ $searchPlaceholder }}" />
+                <x-input type="search" x-ref="searchInput" x-model="search" x-on:click.stop="$event.stopPropagation()" x-on:keydown.enter.prevent="$event.preventDefault()" placeholder="{{ $searchPlaceholder }}" class="min-h-10 pl-9 text-sm" aria-label="{{ $searchPlaceholder }}" />
             </div>
         </div>
         <template x-for="item in filteredItems" :key="item.value">
