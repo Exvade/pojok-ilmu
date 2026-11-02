@@ -37,8 +37,9 @@
     <div class="border-b border-gray-200 dark:border-gray-700">
         <nav class="flex gap-1 overflow-x-auto" aria-label="Bagian pengelolaan sub-course">
             <x-button type="button" variant="ghost" @click="activeSection = 'materials'" class="rounded-b-none border-b-2 px-4" x-bind:class="activeSection === 'materials' ? 'border-brand-dark text-brand-dark dark:border-green-400 dark:text-green-300' : 'border-transparent'">Materi ({{ $training->materials->count() }})</x-button>
+            <x-button type="button" variant="ghost" @click="activeSection = 'bank'" class="rounded-b-none border-b-2 px-4" x-bind:class="activeSection === 'bank' ? 'border-brand-dark text-brand-dark dark:border-green-400 dark:text-green-300' : 'border-transparent'">Bank soal ({{ $training->postTest?->questions->count() ?? 0 }})</x-button>
             <x-button type="button" variant="ghost" @click="activeSection = 'pre-test'" class="rounded-b-none border-b-2 px-4" x-bind:class="activeSection === 'pre-test' ? 'border-brand-dark text-brand-dark dark:border-green-400 dark:text-green-300' : 'border-transparent'">Pre-test ({{ $training->preTest?->questions->count() ?? 0 }})</x-button>
-            <x-button type="button" variant="ghost" @click="activeSection = 'post-test'" class="rounded-b-none border-b-2 px-4" x-bind:class="activeSection === 'post-test' ? 'border-brand-dark text-brand-dark dark:border-green-400 dark:text-green-300' : 'border-transparent'">Post-test ({{ $training->postTest?->questions->count() ?? 0 }})</x-button>
+            <x-button type="button" variant="ghost" @click="activeSection = 'post-test'" class="rounded-b-none border-b-2 px-4" x-bind:class="activeSection === 'post-test' ? 'border-brand-dark text-brand-dark dark:border-green-400 dark:text-green-300' : 'border-transparent'">Post-test</x-button>
         </nav>
     </div>
 
@@ -106,7 +107,7 @@
         <x-slot name="header">
             <div class="flex items-center justify-between w-full">
                 <h3 class="font-bold font-heading text-lg">Pre-test diagnostik</h3>
-                <x-button @click="openQuestion()" variant="primary" size="sm"><x-icon name="plus" class="h-4 w-4" />Tambah soal</x-button>
+                <x-button @click="activeSection = 'bank'" variant="outline" size="sm">Kelola bank soal</x-button>
             </div>
         </x-slot>
         @if($training->preTest)
@@ -130,12 +131,27 @@
     </x-card>
     </section>
 
-    <!-- Section 2: Post-test & bank soal -->
     <section x-show="activeSection === 'post-test'" x-cloak>
+    <x-card>
+        <x-slot name="header"><h3 class="font-bold font-heading text-lg">Pengaturan post-test</h3></x-slot>
+        @if($training->postTest)
+            <div class="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/30">
+                <p class="font-semibold text-brand-dark dark:text-green-300">Post-test menggunakan bank soal</p>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">Setiap peserta menerima {{ min($training->postTest->question_count, $training->postTest->questions->count()) }} soal acak dari {{ $training->postTest->questions->count() }} soal yang tersedia. Nilai lulus {{ $training->postTest->passing_grade }}%, maksimal {{ $training->postTest->max_retries }} percobaan, dan masa tunggu {{ $training->postTest->cooldown_hours }} jam.</p>
+                <div class="mt-4"><x-button type="button" @click="activeSection = 'bank'" variant="primary">Kelola bank soal</x-button></div>
+            </div>
+        @else
+            <x-empty-state title="Bank soal belum tersedia" description="Tambahkan soal pada tab Bank soal untuk menyiapkan pre-test dan post-test otomatis." />
+        @endif
+    </x-card>
+    </section>
+
+    <!-- Bank soal menjadi tempat utama untuk mengelola seluruh soal evaluasi. -->
+    <section x-show="activeSection === 'bank'" x-cloak>
     <x-card>
         <x-slot name="header">
             <div class="flex items-center justify-between w-full">
-                <h3 class="font-bold font-heading text-lg">Post-test &amp; Bank Soal</h3>
+                <div><h3 class="font-bold font-heading text-lg">Bank soal</h3><p class="mt-1 text-xs text-gray-500">Soal di bawah ini menjadi sumber acak untuk pre-test dan post-test.</p></div>
                 <x-button @click="openQuestion()" variant="primary" size="sm"><x-icon name="plus" class="h-4 w-4" />Tambah soal</x-button>
             </div>
         </x-slot>
