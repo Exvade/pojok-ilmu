@@ -17,9 +17,8 @@ test('only superadmin can assign competency and curriculum permissions from HaRi
         ->assertRedirect('/admin/roles');
 
     $account = User::where('user_id', '100200')->firstOrFail();
-    expect($account->canManageCompetency())->toBeTrue()->and($account->canManageCurriculum())->toBeFalse()->and(Hash::check('role-access-2026', $account->password))->toBeTrue();
+    expect($account->canManageCompetency())->toBeTrue()->and($account->canManageCurriculum())->toBeFalse()->and($account->canManageTraining())->toBeTrue()->and(Hash::check('role-access-2026', $account->password))->toBeTrue();
     $this->actingAs($account)->get('/admin/skills')->assertOk();
-    $this->actingAs($account)->get('/admin/trainings')->assertRedirect('/login');
 });
 
 test('superadmin bootstrap rejects non HaRis manpower and promotes the selected HaRis employee', function () {

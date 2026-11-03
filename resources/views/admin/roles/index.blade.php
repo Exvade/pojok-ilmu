@@ -34,8 +34,8 @@
                             <span class="inline-flex rounded-md bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800">Akses penuh</span>
                         @elseif($person->user?->can_manage_competency || $person->user?->can_manage_curriculum || $person->user?->can_assess_ojt)
                             <div class="flex flex-wrap gap-1">
-                                @if($person->user->can_manage_competency)<span class="rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">Kompetensi & penugasan</span>@endif
-                                @if($person->user->can_manage_curriculum)<span class="rounded-md bg-green-100 px-2 py-1 text-xs font-medium text-green-800">Materi & evaluasi</span>@endif
+                                @if($person->user->can_manage_competency)<span class="rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">Peserta & kompetensi</span>@endif
+                                @if($person->user->can_manage_curriculum)<span class="rounded-md bg-green-100 px-2 py-1 text-xs font-medium text-green-800">Training, materi & evaluasi</span>@endif
                                 @if($person->user->can_assess_ojt)<span class="rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">Nilai OJT</span>@endif
                             </div>
                         @else
