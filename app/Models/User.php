@@ -73,6 +73,11 @@ class User extends Authenticatable
         return $this->is_superadmin || $this->can_manage_curriculum;
     }
 
+    public function canManageTraining(): bool
+    {
+        return $this->canManageCurriculum() || $this->canManageCompetency();
+    }
+
     public function canAssessOjt(): bool
     {
         return $this->is_superadmin || $this->can_assess_ojt;
@@ -84,6 +89,7 @@ class User extends Authenticatable
             'superadmin' => (bool) $this->is_superadmin,
             'competency' => $this->canManageCompetency(),
             'curriculum' => $this->canManageCurriculum(),
+            'training' => $this->canManageTraining(),
             'ojt' => $this->canAssessOjt(),
             default => false,
         };

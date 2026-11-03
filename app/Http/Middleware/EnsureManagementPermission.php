@@ -10,9 +10,7 @@ class EnsureManagementPermission
 {
     public function handle(Request $request, Closure $next, string $permission): Response
     {
-        $hasPermission = auth()->check() && ($permission === 'training'
-            ? (auth()->user()->canManageCurriculum() || auth()->user()->canManageCompetency())
-            : auth()->user()->hasManagementPermission($permission));
+        $hasPermission = auth()->check() && auth()->user()->hasManagementPermission($permission);
         if (! $hasPermission) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Anda tidak memiliki akses ke fitur ini.'], 403);

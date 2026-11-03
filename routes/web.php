@@ -56,10 +56,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::delete('/department-aliases/{departmentAlias}', [DepartmentAliasController::class, 'destroy'])->middleware('management-permission:curriculum')->name('department-aliases.destroy');
     Route::get('/dashboard', [SkillMatrixController::class, 'index'])->name('dashboard');
     Route::get('/manpower/{id}/training-profile', [SkillMatrixController::class, 'showManpower'])->middleware('management-permission:competency')->name('manpower.training-profile');
-    Route::get('/imports/assignments', [ImportController::class, 'createAssignments'])->middleware('management-permission:competency')->name('assignments.import');
-    Route::get('/imports/assignments/template', [ImportController::class, 'assignmentTemplate'])->middleware('management-permission:competency')->name('assignments.template');
-    Route::post('/imports/assignments', [ImportController::class, 'storeAssignments'])->middleware('management-permission:competency')->name('assignments.import.store');
-    Route::post('/imports/assignments/confirm', [ImportController::class, 'confirmAssignments'])->middleware('management-permission:competency')->name('assignments.import.confirm');
+    Route::get('/imports/assignments', [ImportController::class, 'createAssignments'])->middleware('management-permission:training')->name('assignments.import');
+    Route::get('/imports/assignments/template', [ImportController::class, 'assignmentTemplate'])->middleware('management-permission:training')->name('assignments.template');
+    Route::post('/imports/assignments', [ImportController::class, 'storeAssignments'])->middleware('management-permission:training')->name('assignments.import.store');
+    Route::post('/imports/assignments/confirm', [ImportController::class, 'confirmAssignments'])->middleware('management-permission:training')->name('assignments.import.confirm');
     Route::get('/imports/{type}', [ImportController::class, 'create'])->middleware('management-permission:curriculum')->name('imports.create');
     Route::get('/imports/{type}/template', [ImportController::class, 'template'])->middleware('management-permission:curriculum')->name('imports.template');
     Route::post('/imports/{type}', [ImportController::class, 'store'])->middleware('management-permission:curriculum')->name('imports.store');
@@ -82,10 +82,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Trainings & Materials
     Route::get('/trainings', [TrainingController::class, 'index'])->middleware('management-permission:training')->name('trainings.index');
-    Route::get('/trainings/import-participants', [ImportController::class, 'createAssignments'])->middleware('management-permission:competency')->name('trainings.participants.import');
-    Route::get('/trainings/import-participants/template', [ImportController::class, 'assignmentTemplate'])->middleware('management-permission:competency')->name('trainings.participants.template');
-    Route::post('/trainings/import-participants', [ImportController::class, 'storeAssignments'])->middleware('management-permission:competency')->name('trainings.participants.import.store');
-    Route::post('/trainings/import-participants/confirm', [ImportController::class, 'confirmAssignments'])->middleware('management-permission:competency')->name('trainings.participants.import.confirm');
+    Route::get('/trainings/import-participants', [ImportController::class, 'createAssignments'])->middleware('management-permission:training')->name('trainings.participants.import');
+    Route::get('/trainings/import-participants/template', [ImportController::class, 'assignmentTemplate'])->middleware('management-permission:training')->name('trainings.participants.template');
+    Route::post('/trainings/import-participants', [ImportController::class, 'storeAssignments'])->middleware('management-permission:training')->name('trainings.participants.import.store');
+    Route::post('/trainings/import-participants/confirm', [ImportController::class, 'confirmAssignments'])->middleware('management-permission:training')->name('trainings.participants.import.confirm');
     Route::get('/s2s-products', [S2sProductController::class, 'index'])->middleware('management-permission:curriculum')->name('s2s-products.index');
     Route::get('/s2s-product-mapping-audit', [S2sProductMappingAuditController::class, 'index'])->middleware('management-permission:curriculum')->name('s2s-product-mapping-audit.index');
     Route::post('/s2s-products/sync', [S2sProductController::class, 'sync'])->middleware('management-permission:superadmin')->name('s2s-products.sync');
@@ -93,9 +93,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/s2s-competency-syncs/{sync}/retry', [S2sCompetencySyncController::class, 'retry'])->middleware('management-permission:competency')->name('s2s-competency-syncs.retry');
     Route::get('/training-audit', [TrainingAuditController::class, 'index'])->middleware('management-permission:curriculum')->name('training-audit.index');
     Route::post('/trainings', [TrainingController::class, 'store'])->middleware('management-permission:curriculum')->name('trainings.store');
-    Route::get('/trainings/{training}/participants', [ProductAssignmentController::class, 'edit'])->middleware('management-permission:competency')->name('trainings.participants.edit');
-    Route::post('/trainings/{training}/participants', [ProductAssignmentController::class, 'storeForTraining'])->middleware('management-permission:competency')->name('trainings.participants.store');
-    Route::get('/trainings/{training}/assignment-history', [ProductAssignmentController::class, 'history'])->middleware('management-permission:competency')->name('trainings.participants.history');
+    Route::get('/trainings/{training}/participants', [ProductAssignmentController::class, 'edit'])->middleware('management-permission:training')->name('trainings.participants.edit');
+    Route::post('/trainings/{training}/participants', [ProductAssignmentController::class, 'storeForTraining'])->middleware('management-permission:training')->name('trainings.participants.store');
+    Route::get('/trainings/{training}/assignment-history', [ProductAssignmentController::class, 'history'])->middleware('management-permission:training')->name('trainings.participants.history');
     Route::put('/trainings/{id}', [TrainingController::class, 'update'])->middleware('management-permission:curriculum')->name('trainings.update');
     Route::get('/trainings/{id}', [TrainingController::class, 'show'])->middleware('management-permission:curriculum')->name('trainings.show');
     Route::post('/trainings/{id}/materials', [TrainingController::class, 'storeMaterial'])->middleware('management-permission:curriculum')->name('trainings.materials.store');
