@@ -41,7 +41,17 @@ class MManpower extends BaseModel
         $plantCode = strtoupper(trim((string) config('services.haris.scope_plant_code')));
 
         if ($plantId !== '') {
-            return $query->where('haris_plant_id', $plantId);
+            $query->where('haris_plant_id', $plantId);
+
+            if ($plantCode !== '') {
+                $query->where(function (Builder $scopedQuery) use ($plantCode): void {
+                    $scopedQuery
+                        ->whereNull('kode_departemen')
+                        ->orWhere('kode_departemen', 'like', $plantCode . '.%');
+                });
+            }
+
+            return $query;
         }
 
         if ($plantCode !== '') {
