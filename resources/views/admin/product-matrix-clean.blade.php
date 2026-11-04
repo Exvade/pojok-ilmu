@@ -4,8 +4,8 @@
 
 @section('content')
     @php
-        $totalBalokSatu = $enrollments->where('block', 1)->count();
-        $totalBalokDua = $enrollments->where('block', 2)->count();
+        $totalBalokSatu = (int) ($blockSummary->balok_satu ?? 0);
+        $totalBalokDua = (int) ($blockSummary->balok_dua ?? 0);
         $levels = collect(range(1, 3));
     @endphp
 
@@ -16,7 +16,7 @@
         </div>
 
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <x-card><p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Manpower aktif</p><p class="mt-2 text-3xl font-semibold">{{ $manpowerIds->count() }}</p></x-card>
+            <x-card><p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Manpower aktif</p><p class="mt-2 text-3xl font-semibold">{{ $totalManpower }}</p></x-card>
             <x-card><p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Training ditugaskan</p><p class="mt-2 text-3xl font-semibold">{{ $products->count() }}</p></x-card>
             <x-card><p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Balok 1</p><p class="mt-2 text-3xl font-semibold text-amber-600">{{ $totalBalokSatu }}</p><p class="mt-1 text-xs text-gray-500">Lulus post-test.</p></x-card>
             <x-card><p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Balok 2</p><p class="mt-2 text-3xl font-semibold text-brand-dark dark:text-green-400">{{ $totalBalokDua }}</p><p class="mt-1 text-xs text-gray-500">Mampu mengerjakan dengan bimbingan.</p></x-card>

@@ -26,6 +26,7 @@ class TrainingReportController extends Controller
         $departments = MManpower::query()
             ->where('status', true)
             ->whereNotNull('haris_synced_at')
+            ->inHarisScope()
             ->get()
             ->map(fn (MManpower $manpower): ?string => $manpower->trainingDepartment())
             ->filter()
@@ -110,7 +111,10 @@ class TrainingReportController extends Controller
     private function baseQuery(array $filters): Builder
     {
         return TrainingEnrollment::query()
-            ->whereHas('manpower', fn (Builder $manpower) => $manpower->where('status', true)->whereNotNull('haris_synced_at'))
+            ->whereHas('manpower', fn (Builder $manpower) => $manpower
+                ->where('status', true)
+                ->whereNotNull('haris_synced_at')
+                ->inHarisScope())
             ->when($filters['departemen'] !== '', fn (Builder $query) => $query->whereHas('manpower', fn (Builder $manpower) => $manpower->forTrainingDepartment($filters['departemen'])))
             ->when($filters['search'] !== '', function (Builder $query) use ($filters): void {
                 $query->where(function (Builder $nestedQuery) use ($filters): void {
@@ -129,13 +133,22 @@ class TrainingReportController extends Controller
     /** @return array{total: int, not_started: int, in_progress: int, pending_ojt: int, retry_ojt: int, block_two: int} */
     private function summary(Builder $query): array
     {
+        $summary = (clone $query)
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw("SUM(CASE WHEN status = 'enrolled' THEN 1 ELSE 0 END) as not_started")
+            ->selectRaw("SUM(CASE WHEN status = 'in_progress' AND post_test_completed_at IS NULL AND next_attempt_at IS NULL THEN 1 ELSE 0 END) as in_progress")
+            ->selectRaw("SUM(CASE WHEN post_test_completed_at IS NOT NULL AND ojt_status = 'pending' THEN 1 ELSE 0 END) as pending_ojt")
+            ->selectRaw("SUM(CASE WHEN ojt_status = 'rejected' THEN 1 ELSE 0 END) as retry_ojt")
+            ->selectRaw("SUM(CASE WHEN status = 'passed' AND ojt_status = 'approved' THEN 1 ELSE 0 END) as block_two")
+            ->first();
+
         return [
-            'total' => (clone $query)->count(),
-            'not_started' => (clone $query)->where('status', 'enrolled')->count(),
-            'in_progress' => $this->report->applyStatusFilter(clone $query, 'dalam_proses')->count(),
-            'pending_ojt' => $this->report->applyStatusFilter(clone $query, 'menunggu_ojt')->count(),
-            'retry_ojt' => $this->report->applyStatusFilter(clone $query, 'ojt_ulang')->count(),
-            'block_two' => $this->report->applyStatusFilter(clone $query, 'balok_2')->count(),
+            'total' => (int) ($summary->total ?? 0),
+            'not_started' => (int) ($summary->not_started ?? 0),
+            'in_progress' => (int) ($summary->in_progress ?? 0),
+            'pending_ojt' => (int) ($summary->pending_ojt ?? 0),
+            'retry_ojt' => (int) ($summary->retry_ojt ?? 0),
+            'block_two' => (int) ($summary->block_two ?? 0),
         ];
     }
 
