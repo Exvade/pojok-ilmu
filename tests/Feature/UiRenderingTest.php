@@ -88,8 +88,9 @@ test('flash messages safely encode script markup and apostrophes', function () {
 
 test('skill matrix department filter excludes inactive and unsynchronized manpower', function () {
     $admin = User::create(['user_id' => 'UI-ADMIN', 'name' => 'UI Admin', 'role' => 1, 'is_superadmin' => true, 'can_manage_competency' => true, 'can_manage_curriculum' => true]);
-    $activeManpower = MManpower::create(['mp_id' => 'ACTIVE-P3', 'nik' => 'ACTIVE-P3', 'nama' => 'Aktif', 'departemen' => 'IT', 'bagian' => 'STAFF', 'status' => true, 'haris_synced_at' => now()]);
-    MManpower::create(['mp_id' => 'INACTIVE-OUTSIDE', 'nik' => 'INACTIVE-OUTSIDE', 'nama' => 'Nonaktif', 'departemen' => 'WELDING - CIKARANG', 'bagian' => 'OPERATOR', 'status' => false, 'haris_synced_at' => now()]);
+    $activeManpower = MManpower::create(['mp_id' => 'ACTIVE-P3', 'nik' => 'ACTIVE-P3', 'nama' => 'Aktif', 'departemen' => 'IT', 'bagian' => 'STAFF', 'status' => true, 'haris_plant_id' => '3', 'haris_synced_at' => now()]);
+    MManpower::create(['mp_id' => 'ACTIVE-P4', 'nik' => 'ACTIVE-P4', 'nama' => 'Plant lain', 'departemen' => 'HRD', 'bagian' => 'KOORDINATOR', 'status' => true, 'haris_plant_id' => '4', 'haris_synced_at' => now()]);
+    MManpower::create(['mp_id' => 'INACTIVE-OUTSIDE', 'nik' => 'INACTIVE-OUTSIDE', 'nama' => 'Nonaktif', 'departemen' => 'WELDING - CIKARANG', 'bagian' => 'OPERATOR', 'status' => false, 'haris_plant_id' => '3', 'haris_synced_at' => now()]);
     MManpower::create(['mp_id' => 'LOCAL-DUMMY', 'nik' => 'LOCAL-DUMMY', 'nama' => 'Lokal', 'departemen' => 'DUMMY', 'bagian' => 'STAFF', 'status' => true]);
 
     $skill = MSkill::create(['kode_skill' => 'UI-PRODUCT', 'nama_skill' => 'Software Engineering', 'kategori' => 'IT']);
@@ -102,6 +103,7 @@ test('skill matrix department filter excludes inactive and unsynchronized manpow
         ->assertSee('Training Software Engineering')
         ->assertSee('Balok 2')
         ->assertDontSee('Training Quality Control')
+        ->assertDontSee('Plant lain')
         ->assertDontSee('WELDING - CIKARANG')
         ->assertDontSee('DUMMY');
 });
