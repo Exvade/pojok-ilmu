@@ -26,6 +26,7 @@ class SkillMatrixController extends Controller
         $manpowerQuery = MManpower::query()
             ->where('status', true)
             ->whereNotNull('haris_synced_at')
+            ->inHarisScope()
             ->when($departemenFilter !== '', fn ($query) => $query->forTrainingDepartment($departemenFilter))
             ->when($search !== '', function ($query) use ($search): void {
                 $query->where(function ($nestedQuery) use ($search): void {
@@ -62,6 +63,7 @@ class SkillMatrixController extends Controller
         $departemens = MManpower::query()
             ->where('status', true)
             ->whereNotNull('haris_synced_at')
+            ->inHarisScope()
             ->get()
             ->map(fn (MManpower $manpower): ?string => $manpower->trainingDepartment())
             ->filter()
