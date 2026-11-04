@@ -36,18 +36,23 @@ class SkillMatrixController extends Controller
                 });
             });
 
-        $manpowerIds = (clone $manpowerQuery)->pluck('id');
+        // Gunakan subquery agar dashboard tetap ringan saat jumlah manpower bertambah.
+        // Sebelumnya seluruh ID dan enrollment dalam cakupan filter dimuat ke memori.
+        $manpowerScope = (clone $manpowerQuery)->select('id');
+        $totalManpower = (clone $manpowerQuery)->count();
         $products = Training::query()
-            ->whereHas('enrollments', fn ($query) => $query->whereIn('manpower_id', $manpowerIds))
+            ->whereHas('enrollments', fn ($query) => $query->whereIn('manpower_id', clone $manpowerScope))
             ->when($departemenFilter !== '', fn ($query) => $query->forDepartment($departemenFilter))
             ->orderBy('level')
             ->orderBy('judul')
             ->get();
         $productIds = $products->pluck('id');
-        $enrollments = TrainingEnrollment::query()
-            ->whereIn('manpower_id', $manpowerIds)
+        $blockSummary = TrainingEnrollment::query()
+            ->whereIn('manpower_id', clone $manpowerScope)
             ->whereIn('training_id', $productIds)
-            ->get();
+            ->selectRaw("SUM(CASE WHEN post_test_completed_at IS NOT NULL AND NOT (status = 'passed' AND ojt_status = 'approved') THEN 1 ELSE 0 END) as balok_satu")
+            ->selectRaw("SUM(CASE WHEN status = 'passed' AND ojt_status = 'approved' THEN 1 ELSE 0 END) as balok_dua")
+            ->first();
 
         $manpowers = $manpowerQuery
             ->with(['enrollments' => fn ($query) => $query->whereIn('training_id', $productIds)->with('training')])
@@ -72,10 +77,10 @@ class SkillMatrixController extends Controller
             ->values();
 
         return view('admin.product-matrix-clean', compact(
-            'manpowerIds',
+            'totalManpower',
             'manpowers',
             'products',
-            'enrollments',
+            'blockSummary',
             'departemens',
             'departemenFilter',
             'search'
