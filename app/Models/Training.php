@@ -11,12 +11,29 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Training extends BaseModel
 {
     use HasFactory, HasUuids, SoftDeletes;
 
     protected $table = 'trainings';
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Training $training): void {
+            if ($training->isForceDeleting() || $training->trashed()) {
+                return;
+            }
+
+            $suffix = '--DIHAPUS--' . $training->id;
+            $originalCode = strtoupper(trim((string) $training->kode_training));
+            $archivedCode = Str::substr($originalCode, 0, 255 - Str::length($suffix)) . $suffix;
+
+            // Soft delete menyimpan riwayat, tetapi kode aktif harus dapat dipakai ulang.
+            $training->forceFill(['kode_training' => $archivedCode])->saveQuietly();
+        });
+    }
 
     protected function casts(): array
     {

@@ -15,6 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Throwable;
 
 class TrainingController extends Controller
@@ -62,8 +63,10 @@ class TrainingController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge(['kode_training' => strtoupper(trim($request->string('kode_training')->toString()))]);
+
         $data = $request->validate([
-            'kode_training' => 'required|string|unique:trainings,kode_training',
+            'kode_training' => ['required', 'string', 'max:255', Rule::unique('trainings', 'kode_training')->whereNull('deleted_at')],
             'departemens' => ['required', 'array', 'min:1'],
             'departemens.*' => ['string', 'max:255'],
             'level' => 'required|integer|min:1|max:3',
@@ -115,8 +118,9 @@ class TrainingController extends Controller
     public function update(Request $request, string $id): RedirectResponse
     {
         $training = Training::findOrFail($id);
+        $request->merge(['kode_training' => strtoupper(trim($request->string('kode_training')->toString()))]);
         $data = $request->validate([
-            'kode_training' => 'required|string|unique:trainings,kode_training,' . $training->id,
+            'kode_training' => ['required', 'string', 'max:255', Rule::unique('trainings', 'kode_training')->ignore($training->id)->whereNull('deleted_at')],
             'departemens' => ['required', 'array', 'min:1'],
             'departemens.*' => ['string', 'max:255'],
             'level' => 'required|integer|min:1|max:3',
