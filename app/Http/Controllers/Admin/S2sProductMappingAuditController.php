@@ -16,8 +16,7 @@ class S2sProductMappingAuditController extends Controller
         $trainings = Training::query()
             ->with('s2sProducts')
             ->when($search !== '', fn ($query) => $query->where(fn ($training) => $training->where('kode_training', 'like', "%{$search}%")->orWhere('judul', 'like', "%{$search}%")))
-            ->orderBy('level')
-            ->orderBy('judul')
+            ->orderBy('kode_training')
             ->get()
             ->map(function (Training $training): Training {
                 $status = $training->s2sProducts->isEmpty()

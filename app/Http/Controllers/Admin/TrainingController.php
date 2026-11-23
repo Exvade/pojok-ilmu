@@ -26,9 +26,7 @@ class TrainingController extends Controller
     {
         $trainings = Training::with(['materials', 'preTest', 'postTest', 's2sProducts'])
             ->withCount('enrollments')
-            ->orderBy('departemen')
-            ->orderBy('level')
-            ->orderBy('judul')
+            ->orderBy('kode_training')
             ->get();
         $departments = MManpower::query()
             ->where('status', true)
