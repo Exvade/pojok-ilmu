@@ -26,7 +26,7 @@ class TrainingReportController extends Controller
         $departments = MManpower::query()
             ->where('status', true)
             ->whereNotNull('haris_synced_at')
-            ->inHarisScope()
+            ->inHarisScope()->forActivePlant()
             ->get()
             ->map(fn (MManpower $manpower): ?string => $manpower->trainingDepartment())
             ->filter()
@@ -114,7 +114,7 @@ class TrainingReportController extends Controller
             ->whereHas('manpower', fn (Builder $manpower) => $manpower
                 ->where('status', true)
                 ->whereNotNull('haris_synced_at')
-                ->inHarisScope())
+                ->inHarisScope()->forActivePlant())
             ->when($filters['departemen'] !== '', fn (Builder $query) => $query->whereHas('manpower', fn (Builder $manpower) => $manpower->forTrainingDepartment($filters['departemen'])))
             ->when($filters['search'] !== '', function (Builder $query) use ($filters): void {
                 $query->where(function (Builder $nestedQuery) use ($filters): void {

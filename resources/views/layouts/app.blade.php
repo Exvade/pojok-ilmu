@@ -39,6 +39,17 @@
                 <p class="truncate text-xs font-medium text-gray-500 dark:text-gray-400">Pojok Ilmu <span class="mx-2 text-gray-300">/</span> {{ auth()->user()->isManagement() ? 'Administrasi pelatihan' : 'Ruang belajar' }}</p>
             </div>
             <div class="flex shrink-0 items-center gap-3">
+                @if(($plantSwitcher['visible'] ?? false))
+                    <form method="POST" action="{{ route('admin.active-plant.update') }}" data-plant-switcher>
+                        @csrf
+                        <label for="active-plant" class="sr-only">Plant aktif</label>
+                        <select id="active-plant" name="plant" onchange="this.form.submit()" class="h-9 rounded-lg border border-gray-300 bg-white py-1 pl-3 pr-8 text-xs font-medium text-gray-700 focus:border-brand-light focus:ring-brand-light dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
+                            @foreach($plantSwitcher['options'] as $value => $label)
+                                <option value="{{ $value }}" @selected((string) $value === (string) $plantSwitcher['current'])>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </form>
+                @endif
                 <span class="hidden text-xs text-gray-500 sm:block">{{ auth()->user()->isManagement() ? 'Pengelola' : 'Karyawan' }}</span>
                 <x-button variant="ghost" size="sm" @click="toggleTheme()" aria-label="Ganti tema terang atau gelap" ::aria-pressed="darkMode"><x-icon name="moon" /></x-button>
             </div>

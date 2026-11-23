@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\DepartmentGroupService;
+use App\Services\PlantContext;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -59,6 +60,16 @@ class MManpower extends BaseModel
         }
 
         return $query;
+    }
+
+    /**
+     * Batasi ke plant aktif pengelola. Tidak menyaring apa pun dalam mode satu plant.
+     */
+    public function scopeForActivePlant(Builder $query): Builder
+    {
+        $plant = PlantContext::isolationPlant();
+
+        return $plant === null ? $query : $query->where($query->qualifyColumn('haris_plant_id'), (string) $plant);
     }
 
     public function user(): HasOne

@@ -325,7 +325,7 @@ class ImportController extends Controller
             if ($type === 'assignments') {
                 $resolvedTrainingCode = $row['_resolved_kode_training'] ?? null;
                 $training = $resolvedTrainingCode ? Training::where('kode_training', $resolvedTrainingCode)->first() : null;
-                $manpower = filled($row['nik'] ?? null) ? MManpower::where('nik', (string) $row['nik'])->first() : null;
+                $manpower = filled($row['nik'] ?? null) ? MManpower::forActivePlant()->where('nik', (string) $row['nik'])->first() : null;
 
                 if ($resolvedTrainingCode && ! $training) {
                     $errors[] = 'Kode training ' . $resolvedTrainingCode . ' tidak ditemukan. Periksa kode atau buat training terlebih dahulu.';
@@ -363,6 +363,7 @@ class ImportController extends Controller
     {
         $rows = collect($previewRows)->filter(fn (array $row): bool => $row['is_valid']);
         $manpowers = MManpower::query()
+            ->forActivePlant()
             ->whereIn('nik', $rows->pluck('data.nik')->filter()->unique())
             ->get();
         $manpowersByNik = $manpowers->keyBy('nik');
@@ -487,7 +488,7 @@ class ImportController extends Controller
     private function saveAssignment(array $row): void
     {
         $training = Training::where('kode_training', $row['_resolved_kode_training'] ?? strtoupper((string) $row['kode_training']))->firstOrFail();
-        $manpower = MManpower::where('nik', (string) $row['nik'])->firstOrFail();
+        $manpower = MManpower::forActivePlant()->where('nik', (string) $row['nik'])->firstOrFail();
 
         $departments = $training->departmentList();
         if ($departments !== [] && filled($manpower->trainingDepartment())) {

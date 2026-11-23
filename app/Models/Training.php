@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\IsolatesPlant;
 use App\Services\DepartmentGroupService;
-use App\Services\PlantContext;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,16 +16,12 @@ use Illuminate\Support\Str;
 
 class Training extends BaseModel
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory, HasUuids, IsolatesPlant, SoftDeletes;
 
     protected $table = 'trainings';
 
     protected static function booted(): void
     {
-        static::creating(function (Training $training): void {
-            $training->plant ??= PlantContext::plantForWrite();
-        });
-
         static::deleting(function (Training $training): void {
             if ($training->isForceDeleting() || $training->trashed()) {
                 return;

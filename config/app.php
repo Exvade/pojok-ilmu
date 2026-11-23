@@ -81,6 +81,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Active Plants
+    |--------------------------------------------------------------------------
+    |
+    | Daftar ID plant HaRis yang memakai Pojok Ilmu, dipisah koma (contoh:
+    | "3" atau "1,3"). Isolasi data per plant dan pilihan plant di header
+    | hanya aktif bila terdapat lebih dari satu plant.
+    |
+    */
+
+    'active_plants' => array_values(array_unique(array_filter(array_map(
+        'intval',
+        explode(',', (string) env('ACTIVE_PLANTS', (string) env('DEFAULT_PLANT', 3))),
+    )))),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
     |

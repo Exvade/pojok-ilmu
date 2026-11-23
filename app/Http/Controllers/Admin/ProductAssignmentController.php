@@ -25,12 +25,14 @@ class ProductAssignmentController extends Controller
         $manpowers = MManpower::query()
             ->where('status', true)
             ->whereNotNull('haris_synced_at')
+            ->forActivePlant()
             ->when($department !== '', fn ($query) => $query->forTrainingDepartment($department))
             ->orderBy('nama')
             ->get();
         $departments = MManpower::query()
             ->where('status', true)
             ->whereNotNull('haris_synced_at')
+            ->forActivePlant()
             ->get()
             ->map(fn (MManpower $manpower): ?string => $manpower->trainingDepartment())
             ->filter()
@@ -59,6 +61,7 @@ class ProductAssignmentController extends Controller
         $manpowers = MManpower::query()
             ->where('status', true)
             ->whereNotNull('haris_synced_at')
+            ->forActivePlant()
             ->orderBy('nama')
             ->get();
 
