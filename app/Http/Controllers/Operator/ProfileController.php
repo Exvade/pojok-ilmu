@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
+use App\Models\Training;
 use App\Models\TrainingEnrollment;
 use App\Services\ProductTrainingProgressService;
 use Illuminate\Contracts\View\View;
@@ -18,7 +19,8 @@ class ProfileController extends Controller
 
         $enrollments = TrainingEnrollment::with(['training', 'attempts.quiz', 'ojtAssessment.assessor'])
             ->where('manpower_id', $manpower->id)
-            ->orderBy('created_at')
+            ->orderBy(Training::select('kode_training')
+                ->whereColumn('trainings.id', 'training_enrollments.training_id'))
             ->get();
         $enrollments->each(function (TrainingEnrollment $enrollment) use ($enrollments, $progress): void {
             $blockingEnrollments = $progress->blockingEnrollments($enrollment, $enrollments);

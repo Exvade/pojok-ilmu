@@ -19,9 +19,7 @@ class TrainingAuditController extends Controller
         $trainings = Training::query()
             ->with(['preTest.questions', 'postTest.questions'])
             ->withCount(['materials', 'enrollments'])
-            ->orderBy('departemen')
-            ->orderBy('level')
-            ->orderBy('judul')
+            ->orderBy('kode_training')
             ->get()
             ->map(fn (Training $training): Training => $this->decorate($training));
 

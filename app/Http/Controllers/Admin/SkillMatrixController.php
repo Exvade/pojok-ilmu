@@ -43,8 +43,7 @@ class SkillMatrixController extends Controller
         $products = Training::query()
             ->whereHas('enrollments', fn ($query) => $query->whereIn('manpower_id', clone $manpowerScope))
             ->when($departemenFilter !== '', fn ($query) => $query->forDepartment($departemenFilter))
-            ->orderBy('level')
-            ->orderBy('judul')
+            ->orderBy('kode_training')
             ->get();
         $productIds = $products->pluck('id');
         $blockSummary = TrainingEnrollment::query()

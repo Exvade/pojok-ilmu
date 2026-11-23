@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
+use App\Models\Training;
 use App\Models\TrainingEnrollment;
 use App\Services\ProductTrainingProgressService;
 use Illuminate\Support\Facades\Auth;
@@ -24,7 +25,8 @@ class DashboardController extends Controller
 
         $enrollments = TrainingEnrollment::with(['training.materials', 'training.preTest', 'training.postTest', 'ojtAssessment'])
             ->where('manpower_id', $manpower->id)
-            ->orderBy('created_at')
+            ->orderBy(Training::select('kode_training')
+                ->whereColumn('trainings.id', 'training_enrollments.training_id'))
             ->get();
         $enrollments->each(function (TrainingEnrollment $enrollment) use ($enrollments, $progress): void {
             $blockingEnrollments = $progress->blockingEnrollments($enrollment, $enrollments);

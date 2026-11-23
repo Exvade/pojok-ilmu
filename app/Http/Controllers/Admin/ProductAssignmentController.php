@@ -20,9 +20,7 @@ class ProductAssignmentController extends Controller
         $products = Training::with('enrollments:id,training_id,manpower_id,status')
             ->withCount('enrollments')
             ->when($department !== '', fn ($query) => $query->forDepartment($department))
-            ->orderBy('departemen')
-            ->orderBy('level')
-            ->orderBy('judul')
+            ->orderBy('kode_training')
             ->get();
         $manpowers = MManpower::query()
             ->where('status', true)
