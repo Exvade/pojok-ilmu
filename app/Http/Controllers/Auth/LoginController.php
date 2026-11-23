@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\MManpower;
 use App\Models\User;
+use App\Services\PlantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -58,6 +59,7 @@ class LoginController extends Controller
                 'role' => (int) $user->role,
                 'user_name' => $user->name,
                 'departemen' => $manpower ? $manpower->departemen : 'MANAGEMENT',
+                'active_plant' => PlantContext::initialValue($user),
             ]);
 
             return redirect('/admin/dashboard')->with('success', 'Selamat datang, ' . $user->name . '!');

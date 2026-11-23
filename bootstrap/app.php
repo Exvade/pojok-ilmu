@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureActiveOperator;
+use App\Http\Middleware\EnsureActivePlant;
 use App\Http\Middleware\EnsureManagementPermission;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Foundation\Application;
@@ -16,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
+            'active-plant' => EnsureActivePlant::class,
             'active-operator' => EnsureActiveOperator::class,
             'management-permission' => EnsureManagementPermission::class,
         ]);

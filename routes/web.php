@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ActivePlantController;
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\DepartmentAliasController;
 use App\Http\Controllers\Admin\HarisDataQualityController;
@@ -50,7 +51,8 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
 // Admin & Management Routes
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'admin', 'active-plant'])->prefix('admin')->name('admin.')->group(function () {
+    Route::post('/active-plant', [ActivePlantController::class, 'update'])->name('active-plant.update');
     Route::get('/department-aliases', [DepartmentAliasController::class, 'index'])->middleware('management-permission:curriculum')->name('department-aliases.index');
     Route::post('/department-aliases', [DepartmentAliasController::class, 'store'])->middleware('management-permission:curriculum')->name('department-aliases.store');
     Route::delete('/department-aliases/{departmentAlias}', [DepartmentAliasController::class, 'destroy'])->middleware('management-permission:curriculum')->name('department-aliases.destroy');

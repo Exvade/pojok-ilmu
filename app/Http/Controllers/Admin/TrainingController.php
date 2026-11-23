@@ -31,6 +31,7 @@ class TrainingController extends Controller
         $departments = MManpower::query()
             ->where('status', true)
             ->whereNotNull('haris_synced_at')
+            ->forActivePlant()
             ->get()
             ->map(fn (MManpower $manpower): ?string => $manpower->trainingDepartment())
             ->filter()
@@ -49,6 +50,7 @@ class TrainingController extends Controller
         $manpowerOptions = MManpower::query()
             ->where('status', true)
             ->whereNotNull('haris_synced_at')
+            ->forActivePlant()
             ->orderBy('nama')
             ->get()
             ->mapWithKeys(fn (MManpower $manpower): array => [

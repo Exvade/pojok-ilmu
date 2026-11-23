@@ -19,7 +19,7 @@ class TrainingAssignmentService
     public function sync(Training $training, array $requestedManpowerIds, ?string $reason, User $actor): void
     {
         $requestedManpowerIds = array_values(array_unique(array_map('intval', $requestedManpowerIds)));
-        $manpowers = MManpower::query()->whereIn('id', $requestedManpowerIds)
+        $manpowers = MManpower::query()->forActivePlant()->whereIn('id', $requestedManpowerIds)
             ->where('status', true)->whereNotNull('haris_synced_at')->get();
         $validManpowerIds = $manpowers->pluck('id')->all();
 
