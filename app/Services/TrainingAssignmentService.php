@@ -72,7 +72,7 @@ class TrainingAssignmentService
             return;
         }
 
-        $departments = $manpowers->map(fn (MManpower $manpower): ?string => $manpower->trainingDepartment())
+        $departments = $manpowers->toBase()->map(fn (MManpower $manpower): ?string => $manpower->trainingDepartment())
             ->filter()->merge($currentDepartments)->unique()->values()->all();
         $training->update([
             'departemen' => count($departments) === 1 ? $departments[0] : null,

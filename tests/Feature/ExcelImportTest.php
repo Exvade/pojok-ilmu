@@ -91,7 +91,7 @@ test('question spreadsheet import rejects a training code that does not exist', 
     expect(QuizQuestion::count())->toBe(0);
 });
 
-test('assignment preview explains department mismatches and imports valid rows only', function () {
+test('assignment import menerima peserta departemen lain dan menyesuaikan departemen training', function () {
     $admin = curriculumAdmin();
     $training = importTraining('IT-01', 'Dasar IT');
     $valid = MManpower::create(['mp_id' => 'MP-VALID', 'nik' => 'NIK-VALID', 'nama' => 'Karyawan IT', 'departemen' => 'IT', 'bagian' => 'STAFF', 'status' => true, 'haris_synced_at' => now()]);
@@ -100,12 +100,12 @@ test('assignment preview explains department mismatches and imports valid rows o
 
     $preview = $this->actingAs($admin)->post(route('admin.assignments.import.store'), ['file' => $file])
         ->assertOk()
-        ->assertSee('Departemen Karyawan Produksi (PRODUKSI) tidak sesuai. Training Dasar IT ditujukan untuk: IT.')
-        ->assertViewHas('preview', fn (array $preview): bool => $preview['valid_count'] === 1);
+        ->assertViewHas('preview', fn (array $preview): bool => $preview['valid_count'] === 2);
 
     $this->post(route('admin.assignments.import.confirm'), ['preview_token' => $preview->viewData('preview')['token']])->assertSessionHas('success');
-    expect(TrainingEnrollment::where('training_id', $training->id)->where('manpower_id', $valid->id)->exists())->toBeTrue();
-    expect(TrainingEnrollment::where('training_id', $training->id)->where('manpower_id', $other->id)->exists())->toBeFalse();
+    expect(TrainingEnrollment::where('training_id', $training->id)->where('manpower_id', $valid->id)->exists())->toBeTrue()
+        ->and(TrainingEnrollment::where('training_id', $training->id)->where('manpower_id', $other->id)->exists())->toBeTrue()
+        ->and($training->fresh()->departmentList())->toContain('IT', 'PRODUKSI');
 });
 
 test('assignment preview distinguishes unknown inactive and unsynchronized employees', function () {

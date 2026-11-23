@@ -7,6 +7,7 @@ use App\Models\Quiz;
 use App\Models\QuizAttempt;
 use App\Models\TrainingEnrollment;
 use App\Services\ProductTrainingProgressService;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -208,16 +209,16 @@ class QuizController extends Controller
         return [$attempt, $isPassed, $passingGrade];
     }
 
-    private function activeQuestions(Quiz $quiz, TrainingEnrollment $enrollment): IlluminateDatabaseEloquentCollection
+    private function activeQuestions(Quiz $quiz, TrainingEnrollment $enrollment): EloquentCollection
     {
         $ids = collect($enrollment->active_question_ids ?? [])->values();
         if ($ids->isEmpty()) {
-            return new IlluminateDatabaseEloquentCollection;
+            return new EloquentCollection;
         }
 
         $questions = $quiz->questions()->whereIn('id', $ids)->get()->keyBy('id');
 
-        return new IlluminateDatabaseEloquentCollection(
+        return new EloquentCollection(
             $ids->map(fn (string $id) => $questions->get($id))->filter()->values()->all()
         );
     }
