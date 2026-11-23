@@ -69,6 +69,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Default Plant
+    |--------------------------------------------------------------------------
+    |
+    | Plant bawaan (mengikuti ID plant HaRis) untuk data yang dibuat tanpa
+    | konteks plant aktif. Plant 3 = Pasir Gombong.
+    |
+    */
+
+    'default_plant' => (int) env('DEFAULT_PLANT', 3),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
     |

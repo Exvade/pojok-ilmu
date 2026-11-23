@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\DepartmentGroupService;
+use App\Services\PlantContext;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -21,6 +22,10 @@ class Training extends BaseModel
 
     protected static function booted(): void
     {
+        static::creating(function (Training $training): void {
+            $training->plant ??= PlantContext::plantForWrite();
+        });
+
         static::deleting(function (Training $training): void {
             if ($training->isForceDeleting() || $training->trashed()) {
                 return;
@@ -40,6 +45,7 @@ class Training extends BaseModel
         return [
             'departemens' => 'array',
             'requires_ojt' => 'boolean',
+            'plant' => 'integer',
         ];
     }
 
