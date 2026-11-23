@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -38,6 +39,17 @@ class User extends Authenticatable
     public function manpower(): BelongsTo
     {
         return $this->belongsTo(MManpower::class, 'user_id', 'mp_id');
+    }
+
+    public function plants(): HasMany
+    {
+        return $this->hasMany(UserPlant::class);
+    }
+
+    /** @return array<int, int> */
+    public function plantIds(): array
+    {
+        return $this->plants()->orderBy('plant')->pluck('plant')->map(fn (mixed $plant): int => (int) $plant)->all();
     }
 
     /**

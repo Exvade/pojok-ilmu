@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\MManpower;
 use App\Models\User;
 use App\Services\ActivityLogger;
+use App\Services\PlantContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -86,6 +87,11 @@ class RoleController extends Controller
         }
 
         $user->save();
+
+        if ($hasAccess && ! $user->plants()->exists()) {
+            $user->plants()->create(['plant' => PlantContext::plantForManpower($manpower)]);
+        }
+
         $this->activityLogger->record('access', 'access.updated', $user, [
             'manpower_name' => $manpower->nama,
             'manpower_nik' => $manpower->nik,
