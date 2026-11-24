@@ -178,7 +178,7 @@
                             <th scope="col">Nama part</th>
                             <th scope="col" class="w-36">No part</th>
                             <th scope="col" class="w-36 text-center">Level kompetensi</th>
-                            <th scope="col" class="w-36">Acceptance level</th>
+                            <th scope="col" class="w-36 text-center">Acceptance level</th>
                             <th scope="col" class="w-64">Aksi</th>
                         </x-slot>
                         @foreach($rows as $row)
@@ -191,7 +191,7 @@
                                 </td>
                                 <td class="font-mono text-sm">{{ $row['part_number'] ?? '–' }}</td>
                                 <td class="text-center text-base font-semibold">{{ $row['competency_level'] }}</td>
-                                <td><x-competency-blocks :value="$enrollment->block" :show-label="false" /><span class="sr-only">{{ $enrollment->block_label }}</span></td>
+                                <td class="text-center text-base font-semibold">{{ $enrollment->block }}</td>
                                 <td>
                                     @if(! $enrollment->is_unlocked)
                                         <span class="text-xs leading-5 text-gray-500">Terkunci. Selesaikan Balok 2 untuk: {{ implode(', ', $enrollment->blocking_training_titles ?? []) }}.</span>
