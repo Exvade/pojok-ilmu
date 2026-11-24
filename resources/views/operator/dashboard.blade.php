@@ -178,7 +178,7 @@
                             <th scope="col">Nama part</th>
                             <th scope="col" class="w-36">No part</th>
                             <th scope="col" class="w-36 text-center">Level kompetensi</th>
-                            <th scope="col" class="w-28">Status</th>
+                            <th scope="col" class="w-36">Acceptance level</th>
                             <th scope="col" class="w-64">Aksi</th>
                         </x-slot>
                         @foreach($rows as $row)
