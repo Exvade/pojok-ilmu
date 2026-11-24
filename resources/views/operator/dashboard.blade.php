@@ -166,44 +166,57 @@
         </div>
     </x-card>
 
-    <section>
-        <div class="mb-4"><h2 class="text-lg font-semibold">Training yang ditugaskan</h2><p class="mt-1 text-xs text-gray-500">Training Level 2 dan seterusnya terbuka setelah seluruh training tugas pada level sebelumnya mencapai Balok 2.</p></div>
-        <div class="grid gap-4 xl:grid-cols-2">
-            @forelse($enrollments as $enrollment)
-                @php($blockingTrainingTitles = $enrollment->blocking_training_titles ?? [])
-                <x-card class="{{ $enrollment->is_unlocked ? '' : 'opacity-70' }}">
-                    <div class="flex items-start justify-between gap-3">
-                        <div><p class="font-mono text-xs font-semibold text-brand-dark dark:text-green-400">{{ $enrollment->training->kode_training }}</p><h3 class="mt-1 text-lg font-semibold">{{ $enrollment->training->judul }}</h3><p class="mt-2 text-xs text-gray-500">{{ $enrollment->training->departemen }} · Training Level {{ $enrollment->training->level }}</p></div>
-                        <x-competency-blocks :value="$enrollment->block" :show-label="false" />
-                    </div>
-                    <p class="mt-4 text-sm text-gray-600 dark:text-gray-300">{{ $enrollment->block_label }}</p>
-                    <x-competency-blocks :value="$enrollment->block" class="mt-4" />
-                    <x-slot name="footer">
-                        <div class="flex flex-wrap items-center justify-between gap-3">
-                            @if(! $enrollment->is_unlocked)
-                                <span class="text-xs leading-5 text-gray-500">Terkunci. Selesaikan Balok 2 untuk: {{ implode(', ', $blockingTrainingTitles) }}.</span>
-                            @elseif($enrollment->block === 2)
-                                <span class="text-xs font-semibold text-brand-dark dark:text-green-300">Anda telah mencapai Balok 2 pada training ini.</span>
-                                <x-button :href="route('operator.materials.show', $enrollment->training_id)" variant="outline" size="sm"><x-icon name="eye" class="h-4 w-4" />Lihat training</x-button>
-                            @elseif($enrollment->block === 1)
-                                @if($enrollment->ojtAssessment)
-                                    <span class="text-xs text-amber-800 dark:text-amber-200">Hasil OJT sudah tersedia.</span>
-                                    <x-button :href="route('operator.ojt-result', $enrollment->id)" variant="outline" size="sm"><x-icon name="eye" class="h-4 w-4" />Lihat hasil OJT</x-button>
-                                @else
-                                    <span class="text-xs text-amber-800 dark:text-amber-200">Post-test lulus. Menunggu OJT dari penilai.</span>
-                                @endif
-                            @elseif($enrollment->training->preTest && ! $enrollment->pre_test_completed_at)
-                                <x-button :href="route('operator.quizzes.show', $enrollment->training->preTest->id)" size="sm">Mulai pre-test <x-icon name="arrow" class="h-4 w-4" /></x-button>
-                            @elseif($enrollment->next_attempt_at?->isFuture())
-                                <span class="text-xs text-amber-800 dark:text-amber-200">Bisa mencoba lagi {{ $enrollment->next_attempt_at->translatedFormat('d M, H:i') }}</span>
-                            @else
-                                <x-button :href="route('operator.materials.show', $enrollment->training_id)" size="sm">Buka training <x-icon name="arrow" class="h-4 w-4" /></x-button>
-                            @endif
-                        </div>
-                    </x-slot>
-                </x-card>
+    <section aria-labelledby="assigned-training-heading">
+        <div class="mb-4"><h2 id="assigned-training-heading" class="text-lg font-semibold">Training yang ditugaskan</h2><p class="mt-1 text-xs text-gray-500">Training Level 2 dan seterusnya terbuka setelah seluruh training tugas pada level sebelumnya mencapai Balok 2.</p></div>
+        <div class="space-y-6">
+            @forelse($levelRows as $level => $rows)
+                <div data-training-level="{{ $level }}">
+                    <h3 class="mb-2 text-sm font-semibold uppercase tracking-wider text-brand-dark dark:text-green-400">Level {{ $level }}</h3>
+                    <x-table class="[&_table]:min-w-[56rem] [&_table]:table-fixed">
+                        <x-slot name="thead">
+                            <th scope="col" class="w-14">No</th>
+                            <th scope="col">Nama part</th>
+                            <th scope="col" class="w-36">No part</th>
+                            <th scope="col" class="w-36 text-center">Level kompetensi</th>
+                            <th scope="col" class="w-28">Status</th>
+                            <th scope="col" class="w-64">Aksi</th>
+                        </x-slot>
+                        @foreach($rows as $row)
+                            @php($enrollment = $row['enrollment'])
+                            <tr class="{{ $enrollment->is_unlocked ? '' : 'opacity-60' }}">
+                                <td class="text-gray-500">{{ $loop->iteration }}</td>
+                                <td>
+                                    <p class="font-semibold">{{ $row['part_name'] }}</p>
+                                    <p class="mt-0.5 text-xs text-gray-500"><span class="font-mono">{{ $enrollment->training->kode_training }}</span> · {{ $enrollment->training->judul }}</p>
+                                </td>
+                                <td class="font-mono text-sm">{{ $row['part_number'] ?? '–' }}</td>
+                                <td class="text-center text-base font-semibold">{{ $row['competency_level'] }}</td>
+                                <td><x-competency-blocks :value="$enrollment->block" :show-label="false" /><span class="sr-only">{{ $enrollment->block_label }}</span></td>
+                                <td>
+                                    @if(! $enrollment->is_unlocked)
+                                        <span class="text-xs leading-5 text-gray-500">Terkunci. Selesaikan Balok 2 untuk: {{ implode(', ', $enrollment->blocking_training_titles ?? []) }}.</span>
+                                    @elseif($enrollment->block === 2)
+                                        <x-button :href="route('operator.materials.show', $enrollment->training_id)" variant="outline" size="sm"><x-icon name="eye" class="h-4 w-4" />Lihat training</x-button>
+                                    @elseif($enrollment->block === 1)
+                                        @if($enrollment->ojtAssessment)
+                                            <x-button :href="route('operator.ojt-result', $enrollment->id)" variant="outline" size="sm"><x-icon name="eye" class="h-4 w-4" />Lihat hasil OJT</x-button>
+                                        @else
+                                            <span class="text-xs text-amber-800 dark:text-amber-200">Menunggu OJT dari penilai.</span>
+                                        @endif
+                                    @elseif($enrollment->training->preTest && ! $enrollment->pre_test_completed_at)
+                                        <x-button :href="route('operator.quizzes.show', $enrollment->training->preTest->id)" size="sm">Training sekarang <x-icon name="arrow" class="h-4 w-4" /></x-button>
+                                    @elseif($enrollment->next_attempt_at?->isFuture())
+                                        <span class="text-xs text-amber-800 dark:text-amber-200">Bisa mencoba lagi {{ $enrollment->next_attempt_at->translatedFormat('d M, H:i') }}</span>
+                                    @else
+                                        <x-button :href="route('operator.materials.show', $enrollment->training_id)" size="sm">Training sekarang <x-icon name="arrow" class="h-4 w-4" /></x-button>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </x-table>
+                </div>
             @empty
-                <div class="xl:col-span-2"><x-empty-state title="Belum ada training yang ditugaskan" description="Pengelola belum menugaskan training untuk Anda. Hubungi atasan atau pengelola training bila diperlukan." /></div>
+                <x-empty-state title="Belum ada training yang ditugaskan" description="Pengelola belum menugaskan training untuk Anda. Hubungi atasan atau pengelola training bila diperlukan." />
             @endforelse
         </div>
     </section>
