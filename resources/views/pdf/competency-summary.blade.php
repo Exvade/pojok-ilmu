@@ -115,7 +115,7 @@
                                 <div class="part-name">{{ $row['part_name'] }}</div>
                                 <div class="muted"><span class="mono">{{ $enrollment->training->kode_training }}</span> · {{ $enrollment->training->judul }}</div>
                             </td>
-                            <td class="mono">{{ $row['part_number'] ?? '-' }}</td>
+                            <td class="mono">{{ $row['part_number'] ?? ($enrollment->training->is_general ? 'Umum' : '-') }}</td>
                             <td class="level-value">{{ $row['competency_level'] }}</td>
                             <td class="level-value">{{ $enrollment->training->acceptance_level }}</td>
                             <td class="status {{ $enrollment->is_competent ? 'status-competent' : 'status-not-competent' }}">{{ $enrollment->is_competent ? 'Kompeten' : 'Belum kompeten' }}</td>
@@ -139,6 +139,7 @@
             <tr><td class="term">Acceptance level</td><td>Level kompetensi minimal yang ditetapkan pada training agar manpower dinyatakan kompeten.</td></tr>
             <tr><td class="term">Status</td><td>Kompeten bila level kompetensi sudah mencapai acceptance level; selain itu belum kompeten.</td></tr>
             <tr><td class="term">Next progress</td><td>Target progres berikutnya, satu bulan setelah tanggal capaian level kompetensi terakhir. Tidak berlaku setelah level 4.</td></tr>
+            <tr><td class="term">No part "Umum"</td><td>Training umum yang tidak terkait produk tertentu, misalnya Budaya Kerja 5R.</td></tr>
             <tr><td class="term">Baris abu-abu</td><td>Training level berikutnya masih terkunci sampai seluruh training pada level sebelumnya mencapai level kompetensi 2.</td></tr>
         </table>
     </div>

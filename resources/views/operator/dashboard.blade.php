@@ -189,7 +189,7 @@
                                     <p class="font-semibold">{{ $row['part_name'] }}</p>
                                     <p class="mt-0.5 text-xs text-gray-500"><span class="font-mono">{{ $enrollment->training->kode_training }}</span> · {{ $enrollment->training->judul }}</p>
                                 </td>
-                                <td class="font-mono text-sm">{{ $row['part_number'] ?? '–' }}</td>
+                                <td class="font-mono text-sm">{{ $row['part_number'] ?? ($enrollment->training->is_general ? 'Umum' : '–') }}</td>
                                 <td class="text-center text-base font-semibold">{{ $row['competency_level'] }}</td>
                                 <td class="text-center text-base font-semibold">{{ $enrollment->training->acceptance_level }}</td>
                                 <td>

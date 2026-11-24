@@ -91,6 +91,8 @@ Route::middleware(['auth', 'admin', 'active-plant'])->prefix('admin')->name('adm
     Route::post('/trainings/import-participants/confirm', [ImportController::class, 'confirmAssignments'])->middleware('management-permission:training')->name('trainings.participants.import.confirm');
     Route::get('/s2s-products', [S2sProductController::class, 'index'])->middleware('management-permission:curriculum')->name('s2s-products.index');
     Route::get('/s2s-product-mapping-audit', [S2sProductMappingAuditController::class, 'index'])->middleware('management-permission:curriculum')->name('s2s-product-mapping-audit.index');
+    Route::post('/s2s-product-mapping-audit/{training}/products', [S2sProductMappingAuditController::class, 'attach'])->middleware('management-permission:curriculum')->name('s2s-product-mapping-audit.attach');
+    Route::post('/s2s-product-mapping-audit/{training}/general', [S2sProductMappingAuditController::class, 'general'])->middleware('management-permission:curriculum')->name('s2s-product-mapping-audit.general');
     Route::post('/s2s-products/sync', [S2sProductController::class, 'sync'])->middleware('management-permission:superadmin')->name('s2s-products.sync');
     Route::get('/s2s-competency-syncs', [S2sCompetencySyncController::class, 'index'])->middleware('management-permission:competency')->name('s2s-competency-syncs.index');
     Route::post('/s2s-competency-syncs/{sync}/retry', [S2sCompetencySyncController::class, 'retry'])->middleware('management-permission:competency')->name('s2s-competency-syncs.retry');
