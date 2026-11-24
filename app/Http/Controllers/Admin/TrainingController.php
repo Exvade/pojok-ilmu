@@ -24,7 +24,7 @@ class TrainingController extends Controller
 
     public function index()
     {
-        $trainings = Training::with(['materials', 'preTest', 'postTest', 's2sProducts'])
+        $trainings = Training::with(['materials', 'preTest', 'postTest' => fn ($query) => $query->withCount('questions'), 's2sProducts'])
             ->withCount('enrollments')
             ->orderBy('kode_training')
             ->get();
@@ -58,7 +58,15 @@ class TrainingController extends Controller
             ])
             ->all();
 
-        return view('admin.trainings.index', compact('trainings', 'departments', 'productOptions', 'manpowerOptions'));
+        $totalTrainingCount = $trainings->count();
+        $notReadyCount = $trainings->reject(fn (Training $training): bool => $training->isReady())->count();
+        $showNotReadyOnly = request('kesiapan') === 'belum-siap';
+
+        if ($showNotReadyOnly) {
+            $trainings = $trainings->reject(fn (Training $training): bool => $training->isReady())->values();
+        }
+
+        return view('admin.trainings.index', compact('trainings', 'departments', 'productOptions', 'manpowerOptions', 'totalTrainingCount', 'notReadyCount', 'showNotReadyOnly'));
     }
 
     public function store(Request $request)

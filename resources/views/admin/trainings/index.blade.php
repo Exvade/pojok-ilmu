@@ -166,14 +166,22 @@
         </div>
     </x-card>
 
+    <div class="flex flex-wrap items-center gap-2" aria-label="Filter kesiapan training">
+        <a href="{{ route('admin.trainings.index') }}" @class(['inline-flex min-h-9 items-center gap-2 rounded-full border px-3.5 text-sm font-semibold transition', 'border-brand-dark bg-brand-dark text-white' => ! $showNotReadyOnly, 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200' => $showNotReadyOnly])>Semua training <span class="text-xs opacity-80">{{ $totalTrainingCount }}</span></a>
+        <a href="{{ route('admin.trainings.index', ['kesiapan' => 'belum-siap']) }}" @class(['inline-flex min-h-9 items-center gap-2 rounded-full border px-3.5 text-sm font-semibold transition', 'border-amber-600 bg-amber-600 text-white' => $showNotReadyOnly, 'border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-300 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200' => ! $showNotReadyOnly])>Belum siap <span class="text-xs opacity-80">{{ $notReadyCount }}</span></a>
+        <p class="text-xs text-gray-500">Training siap bila sudah punya materi dan post-test berisi soal.</p>
+    </div>
+
     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         @forelse($trainings as $training)
             @php($trainingDepartments = $training->departmentList())
+            @php($readinessIssues = $training->readinessIssues())
             <x-card class="flex flex-col">
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0"><p class="font-mono text-xs font-semibold text-brand-dark dark:text-green-400">{{ $training->kode_training }}</p><h2 class="mt-2 text-lg font-semibold leading-snug">{{ $training->judul }}</h2></div>
-                    <span class="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold leading-5 text-brand-dark dark:bg-green-950 dark:text-green-300">Level {{ $training->level }}</span>
+                    <div class="flex shrink-0 flex-col items-end gap-1.5"><span class="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold leading-5 text-brand-dark dark:bg-green-950 dark:text-green-300">Level {{ $training->level }}</span>@if($readinessIssues !== [])<span class="inline-flex items-center whitespace-nowrap rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold leading-5 text-amber-800 dark:bg-amber-950 dark:text-amber-200" data-training-not-ready>Belum siap</span>@endif</div>
                 </div>
+                @if($readinessIssues !== [])<p class="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">{{ implode(' · ', $readinessIssues) }}.@if($training->enrollments_count > 0) Operator yang ditugaskan belum bisa memulai training ini.@endif</p>@endif
                 <p class="mt-3 text-sm text-gray-600 dark:text-gray-300">{{ $training->deskripsi ?: 'Training belum memiliki keterangan.' }}</p>
                 <dl class="mt-5 grid gap-3 border-t border-gray-100 pt-4 text-xs dark:border-gray-700">
                     <div class="flex justify-between gap-3"><dt class="text-gray-500">Departemen</dt><dd class="text-right font-semibold" title="{{ $training->departmentLabel() }}">{{ count($trainingDepartments) === 0 ? 'Semua departemen' : (count($trainingDepartments) === 1 ? $trainingDepartments[0] : count($trainingDepartments) . ' departemen') }}</dd></div>
@@ -199,7 +207,7 @@
                 </form>
             </x-modal>
         @empty
-            <div class="md:col-span-2 xl:col-span-3"><x-empty-state title="Belum ada training" description="Tambahkan training pertama untuk memulai penyusunan materi." /></div>
+            <div class="md:col-span-2 xl:col-span-3">@if($showNotReadyOnly)<x-empty-state title="Semua training sudah siap" description="Setiap training sudah memiliki materi dan post-test berisi soal." />@else<x-empty-state title="Belum ada training" description="Tambahkan training pertama untuk memulai penyusunan materi." />@endif</div>
         @endforelse
     </div>
 

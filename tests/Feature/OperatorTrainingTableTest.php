@@ -18,7 +18,7 @@ test('training operator tampil sebagai tabel produk per level dengan level kompe
     $fuelTank = S2sProduct::create(['kode_part' => '12345678', 'nama_part' => 'COVER FUEL TANK', 'status' => 'aktif']);
     $radiator = S2sProduct::create(['kode_part' => '23746247', 'nama_part' => 'BASE RADIATOR', 'status' => 'aktif']);
 
-    $levelOneFuelTank = Training::create(['kode_training' => 'TBL-01', 'skill_id' => $skill->id, 'level' => 1, 'judul' => 'Training Fuel Tank']);
+    $levelOneFuelTank = makeTrainingReady(Training::create(['kode_training' => 'TBL-01', 'skill_id' => $skill->id, 'level' => 1, 'judul' => 'Training Fuel Tank']));
     $levelOneFuelTank->s2sProducts()->attach($fuelTank);
     $levelOneRadiator = Training::create(['kode_training' => 'TBL-02', 'skill_id' => $skill->id, 'level' => 1, 'judul' => 'Training Radiator']);
     $levelOneRadiator->s2sProducts()->attach($radiator);

@@ -24,10 +24,10 @@ test('sambutan menyebut jumlah training tanpa menganggap training sudah dimulai'
         ->assertOk()->assertSee('Saat ini tidak ada training yang tersedia dan belum mencapai level kompetensi 2.');
 
     foreach (range(1, 4) as $number) {
-        $training = Training::create([
+        $training = makeTrainingReady(Training::create([
             'kode_training' => "SAMBUTAN-{$number}", 'skill_id' => $skill->id,
             'level' => 1, 'judul' => "Training {$number}", 'passing_grade' => 80,
-        ]);
+        ]));
         TrainingEnrollment::create(['manpower_id' => $operator->id, 'training_id' => $training->id, 'status' => 'enrolled']);
     }
 
