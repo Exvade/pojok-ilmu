@@ -20,10 +20,11 @@ class DashboardController extends Controller
                 'manpower' => null,
                 'enrollments' => collect(),
                 'currentLevel' => 0,
+                'levelRows' => collect(),
             ]);
         }
 
-        $enrollments = TrainingEnrollment::with(['training.materials', 'training.preTest', 'training.postTest', 'ojtAssessment'])
+        $enrollments = TrainingEnrollment::with(['training.materials', 'training.s2sProducts', 'training.preTest', 'training.postTest', 'ojtAssessment'])
             ->where('manpower_id', $manpower->id)
             ->orderBy(Training::select('kode_training')
                 ->whereColumn('trainings.id', 'training_enrollments.training_id'))
@@ -40,6 +41,8 @@ class DashboardController extends Controller
         });
         $currentLevel = $progress->currentLevel($enrollments);
 
-        return view('operator.dashboard', compact('manpower', 'enrollments', 'currentLevel'));
+        $levelRows = $progress->levelRows($enrollments);
+
+        return view('operator.dashboard', compact('manpower', 'enrollments', 'currentLevel', 'levelRows'));
     }
 }

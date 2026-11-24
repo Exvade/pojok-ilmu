@@ -72,6 +72,64 @@ class ProductTrainingProgressService
         return $currentLevel;
     }
 
+    /**
+     * Level kompetensi per produk S2S: level training tertinggi untuk produk tersebut yang sudah Balok 2.
+     *
+     * @param  Collection<int, TrainingEnrollment>  $enrollments
+     * @return array<string, int>
+     */
+    public function productCompetencyLevels(Collection $enrollments): array
+    {
+        $levels = [];
+
+        foreach ($enrollments as $enrollment) {
+            if ($this->blockFor($enrollment) !== 2) {
+                continue;
+            }
+
+            foreach ($enrollment->training->s2sProducts as $product) {
+                $levels[$product->id] = max($levels[$product->id] ?? 0, (int) $enrollment->training->level);
+            }
+        }
+
+        return $levels;
+    }
+
+    /**
+     * Baris tabel training operator, dikelompokkan per level training. Satu baris per produk S2S;
+     * training tanpa produk tetap tampil satu baris memakai judul training.
+     *
+     * @param  Collection<int, TrainingEnrollment>  $enrollments
+     * @return Collection<int, Collection<int, array{enrollment: TrainingEnrollment, part_name: string, part_number: ?string, competency_level: int}>>
+     */
+    public function levelRows(Collection $enrollments): Collection
+    {
+        $productLevels = $this->productCompetencyLevels($enrollments);
+
+        return $enrollments
+            ->flatMap(function (TrainingEnrollment $enrollment) use ($productLevels): array {
+                $products = $enrollment->training->s2sProducts->sortBy('kode_part')->values();
+
+                if ($products->isEmpty()) {
+                    return [[
+                        'enrollment' => $enrollment,
+                        'part_name' => $enrollment->training->judul,
+                        'part_number' => null,
+                        'competency_level' => $this->blockFor($enrollment) === 2 ? (int) $enrollment->training->level : 0,
+                    ]];
+                }
+
+                return $products->map(fn ($product): array => [
+                    'enrollment' => $enrollment,
+                    'part_name' => $product->nama_part ?: $enrollment->training->judul,
+                    'part_number' => $product->kode_part,
+                    'competency_level' => $productLevels[$product->id] ?? 0,
+                ])->all();
+            })
+            ->groupBy(fn (array $row): int => (int) $row['enrollment']->training->level)
+            ->sortKeys();
+    }
+
     public function labelFor(TrainingEnrollment $enrollment): string
     {
         return match ($this->blockFor($enrollment)) {
