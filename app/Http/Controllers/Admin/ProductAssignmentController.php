@@ -40,7 +40,7 @@ class ProductAssignmentController extends Controller
             ->sort()
             ->values();
 
-        return view('admin.product-assignments.index-clean', compact('products', 'manpowers', 'departments', 'department'));
+        return view('admin.product-assignments.index', compact('products', 'manpowers', 'departments', 'department'));
     }
 
     public function store(Request $request): RedirectResponse
