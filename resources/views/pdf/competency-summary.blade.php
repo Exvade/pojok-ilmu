@@ -35,15 +35,9 @@
         .part-name { font-weight: bold; }
         .mono { letter-spacing: .3px; }
         .level-value { font-size: 11px; font-weight: bold; text-align: center; }
-        .blocks { border-collapse: collapse; margin: 0 auto; width: auto; }
-        .blocks td { border: 1px solid #94a3b8; height: 9px; padding: 0; width: 11px; }
-        .blocks td.filled { background: #14532d; border-color: #14532d; }
-        .block-number { font-size: 8px; font-weight: bold; margin-top: 2px; text-align: center; }
-        .status { font-weight: bold; }
-        .status-2 { color: #14532d; }
-        .status-1 { color: #92400e; }
-        .status-0 { color: #475569; }
-        .status-locked { color: #94a3b8; }
+        .status { font-weight: bold; white-space: nowrap; }
+        .status-competent { color: #14532d; }
+        .status-not-competent { color: #92400e; }
         .locked td { color: #94a3b8; }
         .empty { border: 1px dashed #cbd5e1; color: #64748b; padding: 14px; text-align: center; }
         .legend td { border: 0; padding: 2px 8px 2px 0; vertical-align: top; }
@@ -63,7 +57,7 @@
             <td>
                 <p class="brand">PT Mada Wikri Tunggal</p>
                 <h1>Ringkasan Kompetensi</h1>
-                <p class="subtitle">Capaian training dan level kompetensi produk karyawan · Pojok Ilmu</p>
+                <p class="subtitle">Capaian training dan level kompetensi karyawan · Pojok Ilmu</p>
             </td>
             <td style="text-align: right; width: 30%;">
                 <div class="level-badge">
@@ -88,9 +82,9 @@
         <table class="stats">
             <tr>
                 <td><div class="value">{{ $enrollments->count() }}</div><div class="label">Training ditugaskan</div></td>
-                <td><div class="value">{{ $enrollments->where('block', 2)->count() }}</div><div class="label">Balok 2 (kompeten)</div></td>
-                <td><div class="value">{{ $enrollments->where('block', 1)->count() }}</div><div class="label">Balok 1 (menunggu OJT)</div></td>
-                <td><div class="value">{{ $enrollments->where('block', 0)->count() }}</div><div class="label">Belum mencapai balok</div></td>
+                <td><div class="value">{{ $enrollments->where('is_competent', true)->count() }}</div><div class="label">Kompeten</div></td>
+                <td><div class="value">{{ $enrollments->where('is_competent', false)->count() }}</div><div class="label">Belum kompeten</div></td>
+                <td><div class="value">{{ $enrollments->where('block', 1)->count() }}</div><div class="label">Menunggu OJT</div></td>
                 <td><div class="value">{{ $enrollments->where('is_unlocked', false)->count() }}</div><div class="label">Masih terkunci</div></td>
             </tr>
         </table>
@@ -104,31 +98,17 @@
                     <tr>
                         <th class="number">No</th>
                         <th>Nama part / training</th>
-                        <th style="width: 12%;">No part</th>
-                        <th class="center" style="width: 11%;">Level kompetensi</th>
-                        <th class="center" style="width: 11%;">Acceptance level</th>
-                        <th style="width: 19%;">Status</th>
-                        <th style="width: 12%;">Tanggal capaian</th>
+                        <th style="width: 11%;">No part</th>
+                        <th class="center" style="width: 10%;">Level kompetensi</th>
+                        <th class="center" style="width: 10%;">Acceptance level</th>
+                        <th style="width: 13%;">Status</th>
+                        <th style="width: 11%;">Tanggal capaian</th>
+                        <th style="width: 11%;">Next progress</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($rows as $row)
-                        @php
-                            $enrollment = $row['enrollment'];
-                            $statusClass = ! $enrollment->is_unlocked ? 'status-locked' : 'status-' . $enrollment->block;
-                            $statusLabel = match (true) {
-                                ! $enrollment->is_unlocked => 'Terkunci',
-                                $enrollment->block === 2 => 'Kompeten',
-                                $enrollment->block === 1 => 'Menunggu OJT',
-                                $enrollment->status === 'in_progress' => 'Sedang berjalan',
-                                default => 'Belum dimulai',
-                            };
-                            $achievedAt = match ($enrollment->block) {
-                                2 => $enrollment->ojt_assessed_at,
-                                1 => $enrollment->post_test_completed_at,
-                                default => null,
-                            };
-                        @endphp
+                        @php($enrollment = $row['enrollment'])
                         <tr class="{{ $enrollment->is_unlocked ? '' : 'locked' }}">
                             <td class="number">{{ $loop->iteration }}</td>
                             <td>
@@ -137,14 +117,10 @@
                             </td>
                             <td class="mono">{{ $row['part_number'] ?? '-' }}</td>
                             <td class="level-value">{{ $row['competency_level'] }}</td>
-                            <td>
-                                <table class="blocks"><tr>
-                                    @foreach(range(1, 4) as $block)<td class="{{ $block <= $enrollment->block ? 'filled' : '' }}"></td>@endforeach
-                                </tr></table>
-                                <div class="block-number">{{ $enrollment->block }}</div>
-                            </td>
-                            <td class="status {{ $statusClass }}">{{ $statusLabel }}</td>
-                            <td>{{ $achievedAt?->translatedFormat('d M Y') ?? '-' }}</td>
+                            <td class="level-value">{{ $enrollment->training->acceptance_level }}</td>
+                            <td class="status {{ $enrollment->is_competent ? 'status-competent' : 'status-not-competent' }}">{{ $enrollment->is_competent ? 'Kompeten' : 'Belum kompeten' }}</td>
+                            <td>{{ $enrollment->achieved_at?->translatedFormat('d M Y') ?? '-' }}</td>
+                            <td>{{ $enrollment->next_progress_at?->translatedFormat('d M Y') ?? '-' }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -159,10 +135,11 @@
     <div class="section">
         <div class="section-title">Keterangan</div>
         <table class="legend">
-            <tr><td class="term">Balok 1</td><td>Lulus post-test dan menunggu penilaian OJT oleh Leader.</td></tr>
-            <tr><td class="term">Balok 2</td><td>Lulus OJT: mampu mengerjakan dengan bimbingan.</td></tr>
-            <tr><td class="term">Level kompetensi</td><td>Level training tertinggi untuk produk tersebut yang sudah mencapai Balok 2.</td></tr>
-            <tr><td class="term">Terkunci</td><td>Training level berikutnya terbuka setelah seluruh training pada level sebelumnya mencapai Balok 2.</td></tr>
+            <tr><td class="term">Level kompetensi</td><td>Capaian manpower pada training tersebut, ditulis 0 sampai 4. Level 1 = lulus post-test, level 2 = lulus OJT (mampu mengerjakan dengan bimbingan). Level 3 dan 4 belum dikembangkan.</td></tr>
+            <tr><td class="term">Acceptance level</td><td>Level kompetensi minimal yang ditetapkan pada training agar manpower dinyatakan kompeten.</td></tr>
+            <tr><td class="term">Status</td><td>Kompeten bila level kompetensi sudah mencapai acceptance level; selain itu belum kompeten.</td></tr>
+            <tr><td class="term">Next progress</td><td>Target progres berikutnya, satu bulan setelah tanggal capaian level kompetensi terakhir. Tidak berlaku setelah level 4.</td></tr>
+            <tr><td class="term">Baris abu-abu</td><td>Training level berikutnya masih terkunci sampai seluruh training pada level sebelumnya mencapai level kompetensi 2.</td></tr>
         </table>
     </div>
 </body>

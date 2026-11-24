@@ -40,7 +40,7 @@ class TrainingProgressSummarySheet implements FromArray, WithColumnWidths, WithE
             ['Dalam proses', $this->summary['in_progress']],
             ['Menunggu OJT', $this->summary['pending_ojt']],
             ['Perlu OJT ulang', $this->summary['retry_ojt']],
-            ['Sudah Balok 2', $this->summary['block_two']],
+            ['Sudah level kompetensi 2', $this->summary['block_two']],
         ];
     }
 

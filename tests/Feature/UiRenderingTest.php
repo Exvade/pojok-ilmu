@@ -101,7 +101,7 @@ test('skill matrix department filter excludes inactive and unsynchronized manpow
     $this->actingAs($admin)->get('/admin/dashboard?departemen=IT')
         ->assertOk()
         ->assertSee('Training Software Engineering')
-        ->assertSee('Balok 2')
+        ->assertSee('Level kompetensi 2')
         ->assertDontSee('Training Quality Control')
         ->assertDontSee('Plant lain')
         ->assertDontSee('WELDING - CIKARANG')

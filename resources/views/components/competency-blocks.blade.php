@@ -1,26 +1,22 @@
 @props(['value' => 0, 'showLabel' => true])
 
 @php
-    $achieved = max(0, min(4, (int) $value));
+    $achieved = max(0, min(\App\Models\Training::MAX_COMPETENCY_LEVEL, (int) $value));
     $label = match ($achieved) {
         1 => 'Lulus post-test',
         2 => 'Mampu mengerjakan dengan bimbingan',
-        3 => 'Balok 3 belum dikembangkan',
-        4 => 'Balok 4 belum dikembangkan',
+        3, 4 => 'Belum dikembangkan',
         default => 'Belum mulai',
     };
 @endphp
 
-<span {{ $attributes->class(['inline-flex items-center gap-1.5']) }} aria-label="{{ $achieved }} dari 4 balok tercapai">
-    <span class="grid grid-cols-2 overflow-hidden border border-gray-300 dark:border-gray-600" aria-hidden="true">
-        @foreach (range(1, 4) as $block)
-            <span @class([
-                'h-4 w-6 border-[0.5px] border-gray-300 transition-colors sm:h-5 sm:w-7 dark:border-gray-600',
-                'border-brand-dark bg-brand-dark dark:border-green-400 dark:bg-green-400' => $block <= $achieved,
-                'bg-white dark:bg-gray-900' => $block > $achieved,
-            ])></span>
-        @endforeach
-    </span>
+<span {{ $attributes->class(['inline-flex items-center gap-2']) }} aria-label="Level kompetensi {{ $achieved }} dari {{ \App\Models\Training::MAX_COMPETENCY_LEVEL }}">
+    <span @class([
+        'inline-flex h-7 min-w-7 items-center justify-center rounded-md px-2 text-sm font-bold',
+        'bg-brand-dark text-white dark:bg-green-500 dark:text-gray-950' => $achieved >= 2,
+        'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200' => $achieved === 1,
+        'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300' => $achieved === 0,
+    ]) aria-hidden="true">{{ $achieved }}</span>
     @if ($showLabel)
         <span class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ $label }}</span>
     @endif

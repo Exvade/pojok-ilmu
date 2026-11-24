@@ -5,12 +5,14 @@ namespace App\Services;
 use App\Models\MManpower;
 use App\Models\Training;
 use App\Models\TrainingEnrollment;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 class ProductTrainingProgressService
 {
     /**
-     * Training yang ditugaskan ke operator, urut kode training, lengkap dengan status balok dan kunci level.
+     * Training yang ditugaskan ke operator, urut kode training, lengkap dengan level kompetensi, status kompeten, next progress, dan kunci level.
      *
      * @return Collection<int, TrainingEnrollment>
      */
@@ -29,6 +31,9 @@ class ProductTrainingProgressService
                 ->map(fn (TrainingEnrollment $item): string => $item->training->judul)
                 ->all());
             $enrollment->setAttribute('block_label', $this->labelFor($enrollment));
+            $enrollment->setAttribute('is_competent', $this->isCompetent($enrollment));
+            $enrollment->setAttribute('achieved_at', $this->achievedAt($enrollment));
+            $enrollment->setAttribute('next_progress_at', $this->nextProgressAt($enrollment));
         });
 
         return $enrollments;
@@ -100,26 +105,37 @@ class ProductTrainingProgressService
     }
 
     /**
-     * Level kompetensi per produk S2S: level training tertinggi untuk produk tersebut yang sudah Balok 2.
-     *
-     * @param  Collection<int, TrainingEnrollment>  $enrollments
-     * @return array<string, int>
+     * Tanggal level kompetensi terakhir tercapai: OJT disetujui untuk level 2, post-test untuk level 1.
      */
-    public function productCompetencyLevels(Collection $enrollments): array
+    public function achievedAt(TrainingEnrollment $enrollment): ?CarbonInterface
     {
-        $levels = [];
+        return match ($this->blockFor($enrollment)) {
+            2 => $enrollment->ojt_assessed_at ?? $enrollment->post_test_completed_at,
+            1 => $enrollment->post_test_completed_at,
+            default => null,
+        };
+    }
 
-        foreach ($enrollments as $enrollment) {
-            if ($this->blockFor($enrollment) !== 2) {
-                continue;
-            }
-
-            foreach ($enrollment->training->s2sProducts as $product) {
-                $levels[$product->id] = max($levels[$product->id] ?? 0, (int) $enrollment->training->level);
-            }
+    /**
+     * Target progres berikutnya: satu bulan setelah level kompetensi terakhir tercapai, sampai level 4.
+     */
+    public function nextProgressAt(TrainingEnrollment $enrollment): ?CarbonInterface
+    {
+        if ($this->blockFor($enrollment) >= Training::MAX_COMPETENCY_LEVEL) {
+            return null;
         }
 
-        return $levels;
+        $achievedAt = $this->achievedAt($enrollment);
+
+        return $achievedAt ? Carbon::parse($achievedAt)->addMonthNoOverflow() : null;
+    }
+
+    /**
+     * Manpower kompeten bila level kompetensinya sudah mencapai acceptance level training.
+     */
+    public function isCompetent(TrainingEnrollment $enrollment): bool
+    {
+        return $this->blockFor($enrollment) >= (int) ($enrollment->training->acceptance_level ?: Training::MIN_ACCEPTANCE_LEVEL);
     }
 
     /**
@@ -131,10 +147,8 @@ class ProductTrainingProgressService
      */
     public function levelRows(Collection $enrollments): Collection
     {
-        $productLevels = $this->productCompetencyLevels($enrollments);
-
         return $enrollments
-            ->flatMap(function (TrainingEnrollment $enrollment) use ($productLevels): array {
+            ->flatMap(function (TrainingEnrollment $enrollment): array {
                 $products = $enrollment->training->s2sProducts->sortBy('kode_part')->values();
 
                 if ($products->isEmpty()) {
@@ -142,7 +156,7 @@ class ProductTrainingProgressService
                         'enrollment' => $enrollment,
                         'part_name' => $enrollment->training->judul,
                         'part_number' => null,
-                        'competency_level' => $this->blockFor($enrollment) === 2 ? (int) $enrollment->training->level : 0,
+                        'competency_level' => $this->blockFor($enrollment),
                     ]];
                 }
 
@@ -150,7 +164,7 @@ class ProductTrainingProgressService
                     'enrollment' => $enrollment,
                     'part_name' => $product->nama_part ?: $enrollment->training->judul,
                     'part_number' => $product->kode_part,
-                    'competency_level' => $productLevels[$product->id] ?? 0,
+                    'competency_level' => $this->blockFor($enrollment),
                 ])->all();
             })
             ->groupBy(fn (array $row): int => (int) $row['enrollment']->training->level)
@@ -160,9 +174,9 @@ class ProductTrainingProgressService
     public function labelFor(TrainingEnrollment $enrollment): string
     {
         return match ($this->blockFor($enrollment)) {
-            2 => 'Balok 2 - Mampu mengerjakan dengan bimbingan',
-            1 => 'Balok 1 - Lulus post-test',
-            default => 'Belum mencapai balok',
+            2 => 'Level kompetensi 2 - Mampu mengerjakan dengan bimbingan',
+            1 => 'Level kompetensi 1 - Lulus post-test',
+            default => 'Belum mencapai level kompetensi',
         };
     }
 }

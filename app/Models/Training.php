@@ -18,6 +18,12 @@ class Training extends BaseModel
 {
     use HasFactory, HasUuids, IsolatesPlant, SoftDeletes;
 
+    /** Level kompetensi tertinggi yang dapat dicapai manpower pada satu training. */
+    public const MAX_COMPETENCY_LEVEL = 4;
+
+    /** Acceptance level paling rendah yang boleh ditetapkan pada training. */
+    public const MIN_ACCEPTANCE_LEVEL = 2;
+
     protected $table = 'trainings';
 
     protected static function booted(): void
@@ -42,6 +48,7 @@ class Training extends BaseModel
             'departemens' => 'array',
             'requires_ojt' => 'boolean',
             'plant' => 'integer',
+            'acceptance_level' => 'integer',
         ];
     }
 
@@ -99,7 +106,7 @@ class Training extends BaseModel
         return $this->postTest();
     }
 
-    /** Post-test determines the completion of Balok 1. */
+    /** Post-test menentukan tercapainya level kompetensi 1. */
     public function postTest(): HasOne
     {
         return $this->hasOne(Quiz::class, 'training_id', 'id')->where('tipe', 'post_test');

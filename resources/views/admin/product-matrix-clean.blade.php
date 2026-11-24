@@ -18,14 +18,14 @@
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <x-card><p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Manpower aktif</p><p class="mt-2 text-3xl font-semibold">{{ $totalManpower }}</p></x-card>
             <x-card><p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Training ditugaskan</p><p class="mt-2 text-3xl font-semibold">{{ $products->count() }}</p></x-card>
-            <x-card><p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Balok 1</p><p class="mt-2 text-3xl font-semibold text-amber-600">{{ $totalBalokSatu }}</p><p class="mt-1 text-xs text-gray-500">Lulus post-test.</p></x-card>
-            <x-card><p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Balok 2</p><p class="mt-2 text-3xl font-semibold text-brand-dark dark:text-green-400">{{ $totalBalokDua }}</p><p class="mt-1 text-xs text-gray-500">Mampu mengerjakan dengan bimbingan.</p></x-card>
+            <x-card><p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Level kompetensi 1</p><p class="mt-2 text-3xl font-semibold text-amber-600">{{ $totalBalokSatu }}</p><p class="mt-1 text-xs text-gray-500">Lulus post-test.</p></x-card>
+            <x-card><p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Level kompetensi 2</p><p class="mt-2 text-3xl font-semibold text-brand-dark dark:text-green-400">{{ $totalBalokDua }}</p><p class="mt-1 text-xs text-gray-500">Mampu mengerjakan dengan bimbingan.</p></x-card>
         </div>
 
         <x-card>
             <x-slot name="header">
                 <div class="flex w-full flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                    <div><h2 class="font-heading text-lg font-bold">Penugasan dan balok kompetensi</h2><p class="mt-1 text-xs text-gray-500">Empat balok menunjukkan tahapan kompetensi. Balok 3 dan 4 ditampilkan sebagai arah pengembangan berikutnya.</p></div>
+                    <div><h2 class="font-heading text-lg font-bold">Penugasan dan level kompetensi</h2><p class="mt-1 text-xs text-gray-500">Level kompetensi ditulis dalam angka 0 sampai 4. Level kompetensi 3 dan 4 disiapkan untuk pengembangan berikutnya.</p></div>
                     <form action="{{ route('admin.dashboard') }}" method="GET" data-auto-search class="grid w-full gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto] lg:max-w-2xl">
                         <x-select-menu name="departemen" :options="['' => 'Semua departemen'] + $departemens->mapWithKeys(fn ($item) => [$item => $item])->all()" :selected="$departemenFilter" aria-label="Filter departemen" />
                         <x-input type="text" name="search" aria-label="Cari manpower" :value="$search" placeholder="Cari nama / NIK..." />

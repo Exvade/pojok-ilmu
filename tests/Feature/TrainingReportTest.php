@@ -47,7 +47,7 @@ test('hr can filter and export training progress report', function () {
         ->assertSee('Laporan training')
         ->assertSee('Menunggu OJT')
         ->assertSee('Sudah Kompeten')
-        ->assertSee('Balok 2');
+        ->assertSee('Level kompetensi 2');
 
     $this->get(route('admin.training-reports.export', ['status' => 'menunggu_ojt']))->assertOk();
 

@@ -224,6 +224,6 @@ test('pengelola dapat melihat profil dan riwayat training per manpower', functio
         ->assertOk()
         ->assertSee('Operator Profil')
         ->assertSee('BOX BATTERY')
-        ->assertSee('Balok 2')
+        ->assertSee('Level kompetensi 2')
         ->assertSee('Disetujui');
 });

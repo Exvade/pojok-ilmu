@@ -21,7 +21,7 @@ test('sambutan menyebut jumlah training tanpa menganggap training sudah dimulai'
     $skill = MSkill::create(['kode_skill' => 'SAMBUTAN', 'nama_skill' => 'Kompetensi', 'kategori' => 'Product Knowledge']);
 
     $this->actingAs($user)->get('/operator/dashboard')
-        ->assertOk()->assertSee('Saat ini tidak ada training yang tersedia dan belum mencapai Balok 2.');
+        ->assertOk()->assertSee('Saat ini tidak ada training yang tersedia dan belum mencapai level kompetensi 2.');
 
     foreach (range(1, 4) as $number) {
         $training = Training::create([
@@ -32,7 +32,7 @@ test('sambutan menyebut jumlah training tanpa menganggap training sudah dimulai'
     }
 
     $this->get('/operator/dashboard')->assertOk()
-        ->assertSee('Berdasarkan sistem, Anda memiliki 4 training yang belum mencapai Balok 2, yaitu Training 1, Training 2, Training 3, dan 1 training lainnya.')
+        ->assertSee('Berdasarkan sistem, Anda memiliki 4 training yang belum mencapai level kompetensi 2, yaitu Training 1, Training 2, Training 3, dan 1 training lainnya.')
         ->assertDontSee('training yang perlu dilanjutkan');
 });
 
