@@ -49,6 +49,7 @@ class Training extends BaseModel
             'requires_ojt' => 'boolean',
             'plant' => 'integer',
             'acceptance_level' => 'integer',
+            'is_general' => 'boolean',
         ];
     }
 

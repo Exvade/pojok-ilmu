@@ -77,11 +77,14 @@ class TrainingController extends Controller
             'passing_grade' => 'required|integer|min:50|max:100',
             's2s_product_ids' => ['nullable', 'array'],
             's2s_product_ids.*' => ['uuid', 'exists:s2s_products,id'],
+            'is_general' => ['nullable', 'boolean'],
             'manpower_ids' => ['nullable', 'array'],
             'manpower_ids.*' => ['integer', 'exists:m_manpower,id'],
         ], $this->acceptanceLevelMessages());
 
-        DB::transaction(function () use ($request, $data): void {
+        $isGeneral = $request->boolean('is_general');
+
+        DB::transaction(function () use ($request, $data, $isGeneral): void {
             $skill = MSkill::firstOrCreate(
                 ['kode_skill' => strtoupper($request->kode_training)],
                 [
@@ -97,13 +100,14 @@ class TrainingController extends Controller
                 ...$this->departmentAttributes($request->input('departemens')),
                 'level' => $request->level,
                 'acceptance_level' => $data['acceptance_level'] ?? Training::MIN_ACCEPTANCE_LEVEL,
+                'is_general' => $isGeneral,
                 'judul' => $request->judul,
                 'deskripsi' => $request->deskripsi,
                 'max_retries' => $request->max_retries,
                 'passing_grade' => $request->passing_grade,
                 'requires_ojt' => true,
             ]);
-            $training->s2sProducts()->sync($data['s2s_product_ids'] ?? []);
+            $training->s2sProducts()->sync($isGeneral ? [] : ($data['s2s_product_ids'] ?? []));
             $this->assignmentService->sync($training, $data['manpower_ids'] ?? [], 'Penugasan awal saat training dibuat.', $request->user());
         });
 
@@ -133,16 +137,20 @@ class TrainingController extends Controller
             'passing_grade' => 'required|integer|min:50|max:100',
             's2s_product_ids' => ['nullable', 'array'],
             's2s_product_ids.*' => ['uuid', 'exists:s2s_products,id'],
+            'is_general' => ['nullable', 'boolean'],
         ], $this->acceptanceLevelMessages());
 
+        $isGeneral = $request->boolean('is_general');
+
         try {
-            DB::transaction(function () use ($training, $data): void {
+            DB::transaction(function () use ($training, $data, $isGeneral): void {
                 $departments = $this->departmentsWithParticipants($training, $data['departemens']);
                 $training->update([
                     'kode_training' => strtoupper($data['kode_training']),
                     ...$this->departmentAttributes($departments),
                     'level' => $data['level'],
                     'acceptance_level' => $data['acceptance_level'] ?? $training->acceptance_level,
+                    'is_general' => $isGeneral,
                     'judul' => $data['judul'],
                     'deskripsi' => $data['deskripsi'] ?? null,
                     'max_retries' => $data['max_retries'],
@@ -154,7 +162,7 @@ class TrainingController extends Controller
                 $training->postTest()->update([
                     'passing_grade' => $data['passing_grade'],
                 ]);
-                $training->s2sProducts()->sync($data['s2s_product_ids'] ?? []);
+                $training->s2sProducts()->sync($isGeneral ? [] : ($data['s2s_product_ids'] ?? []));
             });
         } catch (Throwable $exception) {
             report($exception);
