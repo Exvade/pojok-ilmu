@@ -2,11 +2,38 @@
 
 namespace App\Services;
 
+use App\Models\MManpower;
+use App\Models\Training;
 use App\Models\TrainingEnrollment;
 use Illuminate\Support\Collection;
 
 class ProductTrainingProgressService
 {
+    /**
+     * Training yang ditugaskan ke operator, urut kode training, lengkap dengan status balok dan kunci level.
+     *
+     * @return Collection<int, TrainingEnrollment>
+     */
+    public function operatorEnrollments(MManpower $manpower): Collection
+    {
+        $enrollments = TrainingEnrollment::with(['training.materials', 'training.s2sProducts', 'training.preTest', 'training.postTest', 'ojtAssessment'])
+            ->where('manpower_id', $manpower->id)
+            ->orderBy(Training::select('kode_training')
+                ->whereColumn('trainings.id', 'training_enrollments.training_id'))
+            ->get();
+
+        $enrollments->each(function (TrainingEnrollment $enrollment) use ($enrollments): void {
+            $enrollment->setAttribute('block', $this->blockFor($enrollment));
+            $enrollment->setAttribute('is_unlocked', $this->isUnlocked($enrollment, $enrollments));
+            $enrollment->setAttribute('blocking_training_titles', $this->blockingEnrollments($enrollment, $enrollments)
+                ->map(fn (TrainingEnrollment $item): string => $item->training->judul)
+                ->all());
+            $enrollment->setAttribute('block_label', $this->labelFor($enrollment));
+        });
+
+        return $enrollments;
+    }
+
     public function blockFor(TrainingEnrollment $enrollment): int
     {
         if ($enrollment->status === 'passed' && $enrollment->ojt_status === 'approved') {

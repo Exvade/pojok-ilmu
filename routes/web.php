@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\TrainingController;
 use App\Http\Controllers\Admin\TrainingFollowUpController;
 use App\Http\Controllers\Admin\TrainingReportController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Operator\CompetencySummaryPdfController;
 use App\Http\Controllers\Operator\DashboardController as OperatorDashboardController;
 use App\Http\Controllers\Operator\MaterialController as OperatorMaterialController;
 use App\Http\Controllers\Operator\OjtPdfController;
@@ -126,6 +127,7 @@ Route::middleware(['auth', 'admin', 'active-plant'])->prefix('admin')->name('adm
 Route::middleware(['auth', 'active-operator'])->prefix('operator')->name('operator.')->group(function () {
     Route::get('/dashboard', [OperatorDashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile', [OperatorProfileController::class, 'show'])->name('profile');
+    Route::get('/competency-summary/pdf', CompetencySummaryPdfController::class)->name('competency-summary.pdf');
     Route::get('/training/{enrollment}/ojt-result', [OperatorProfileController::class, 'ojtResult'])->name('ojt-result');
     Route::get('/training/{enrollment}/ojt-result/pdf', [OjtPdfController::class, 'downloadForOperator'])->name('ojt-result.pdf');
     Route::get('/materials/{trainingId}', [OperatorMaterialController::class, 'show'])->name('materials.show');
