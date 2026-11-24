@@ -1,5 +1,9 @@
 <?php
 
+use App\Models\Quiz;
+use App\Models\QuizQuestion;
+use App\Models\Training;
+use App\Models\TrainingMaterial;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -47,4 +51,23 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * Lengkapi training dengan satu materi dan post-test bersoal agar dianggap siap dikerjakan operator.
+ */
+function makeTrainingReady(Training $training): Training
+{
+    TrainingMaterial::create(['training_id' => $training->id, 'urutan' => 1, 'judul' => 'Materi ' . $training->judul, 'tipe_media' => 'video_youtube', 'media_url' => 'https://example.com/video']);
+    $postTest = Quiz::create([
+        'training_id' => $training->id, 'tipe' => 'post_test', 'judul' => 'Post-test ' . $training->judul,
+        'durasi_menit' => 15, 'passing_grade' => 80, 'max_retries' => 3, 'cooldown_hours' => 24,
+    ]);
+    QuizQuestion::create([
+        'quiz_id' => $postTest->id, 'pertanyaan' => 'Pilih jawaban benar',
+        'opsi_a' => 'Benar', 'opsi_b' => 'Salah', 'opsi_c' => 'Tidak tahu', 'opsi_d' => 'Lewati',
+        'kunci_jawaban' => 'a',
+    ]);
+
+    return $training;
 }

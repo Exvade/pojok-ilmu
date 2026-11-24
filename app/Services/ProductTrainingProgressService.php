@@ -18,7 +18,7 @@ class ProductTrainingProgressService
      */
     public function operatorEnrollments(MManpower $manpower): Collection
     {
-        $enrollments = TrainingEnrollment::with(['training.materials', 'training.s2sProducts', 'training.preTest', 'training.postTest', 'ojtAssessment'])
+        $enrollments = TrainingEnrollment::with(['training.materials', 'training.s2sProducts', 'training.preTest', 'training.postTest' => fn ($query) => $query->withCount('questions'), 'ojtAssessment'])
             ->where('manpower_id', $manpower->id)
             ->orderBy(Training::select('kode_training')
                 ->whereColumn('trainings.id', 'training_enrollments.training_id'))
@@ -32,6 +32,7 @@ class ProductTrainingProgressService
                 ->all());
             $enrollment->setAttribute('block_label', $this->labelFor($enrollment));
             $enrollment->setAttribute('is_competent', $this->isCompetent($enrollment));
+            $enrollment->setAttribute('is_training_ready', $enrollment->training->isReady());
             $enrollment->setAttribute('achieved_at', $this->achievedAt($enrollment));
             $enrollment->setAttribute('next_progress_at', $this->nextProgressAt($enrollment));
         });

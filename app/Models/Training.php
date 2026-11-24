@@ -113,6 +113,29 @@ class Training extends BaseModel
         return $this->hasOne(Quiz::class, 'training_id', 'id')->where('tipe', 'post_test');
     }
 
+    /**
+     * Hal yang masih kurang agar training bisa dikerjakan operator sampai level kompetensi 1.
+     *
+     * @return array<int, string>
+     */
+    public function readinessIssues(): array
+    {
+        $postTestQuestionCount = $this->postTest
+            ? ($this->postTest->questions_count ?? $this->postTest->questions()->count())
+            : 0;
+
+        return array_values(array_filter([
+            $this->materials->isEmpty() ? 'Belum ada materi' : null,
+            ! $this->postTest ? 'Post-test belum ada' : null,
+            $this->postTest && $postTestQuestionCount === 0 ? 'Post-test belum memiliki soal' : null,
+        ]));
+    }
+
+    public function isReady(): bool
+    {
+        return $this->readinessIssues() === [];
+    }
+
     public function preTest(): HasOne
     {
         return $this->hasOne(Quiz::class, 'training_id', 'id')->where('tipe', 'pre_test');

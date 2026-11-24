@@ -110,7 +110,7 @@
 <div class="page-shell">
     @php
         $availableWelcomeTrainings = $enrollments
-            ->filter(fn ($enrollment): bool => $enrollment->is_unlocked && $enrollment->block < 2);
+            ->filter(fn ($enrollment): bool => $enrollment->is_unlocked && $enrollment->is_training_ready && $enrollment->block < 2);
         $welcomeTrainings = $availableWelcomeTrainings
             ->pluck('training.judul')
             ->take(3)
@@ -172,48 +172,52 @@
             @forelse($levelRows as $level => $rows)
                 <div data-training-level="{{ $level }}">
                     <h3 class="mb-2 text-sm font-semibold uppercase tracking-wider text-brand-dark dark:text-green-400">Level {{ $level }}</h3>
-                    <x-table class="[&_table]:min-w-[56rem] [&_table]:table-fixed">
-                        <x-slot name="thead">
-                            <th scope="col" class="w-14">No</th>
-                            <th scope="col">Nama part</th>
-                            <th scope="col" class="w-36">No part</th>
-                            <th scope="col" class="w-36 text-center">Level kompetensi</th>
-                            <th scope="col" class="w-36 text-center">Acceptance level</th>
-                            <th scope="col" class="w-64">Aksi</th>
-                        </x-slot>
+                    <div class="hidden md:block">
+                        <x-table class="[&_table]:min-w-[56rem] [&_table]:table-fixed">
+                            <x-slot name="thead">
+                                <th scope="col" class="w-14">No</th>
+                                <th scope="col">Nama part</th>
+                                <th scope="col" class="w-36">No part</th>
+                                <th scope="col" class="w-36 text-center">Level kompetensi</th>
+                                <th scope="col" class="w-36 text-center">Acceptance level</th>
+                                <th scope="col" class="w-64">Aksi</th>
+                            </x-slot>
+                            @foreach($rows as $row)
+                                @php($enrollment = $row['enrollment'])
+                                <tr class="{{ $enrollment->is_unlocked ? '' : 'opacity-60' }}">
+                                    <td class="text-gray-500">{{ $loop->iteration }}</td>
+                                    <td>
+                                        <p class="font-semibold">{{ $row['part_name'] }}</p>
+                                        <p class="mt-0.5 text-xs text-gray-500"><span class="font-mono">{{ $enrollment->training->kode_training }}</span> · {{ $enrollment->training->judul }}</p>
+                                    </td>
+                                    <td class="font-mono text-sm">{{ $row['part_number'] ?? ($enrollment->training->is_general ? 'Umum' : '–') }}</td>
+                                    <td class="text-center text-base font-semibold">{{ $row['competency_level'] }}</td>
+                                    <td class="text-center text-base font-semibold">{{ $enrollment->training->acceptance_level }}</td>
+                                    <td>@include('operator.partials.training-action', ['enrollment' => $enrollment])</td>
+                                </tr>
+                            @endforeach
+                        </x-table>
+                    </div>
+                    <div class="space-y-3 md:hidden" data-training-cards>
                         @foreach($rows as $row)
                             @php($enrollment = $row['enrollment'])
-                            <tr class="{{ $enrollment->is_unlocked ? '' : 'opacity-60' }}">
-                                <td class="text-gray-500">{{ $loop->iteration }}</td>
-                                <td>
-                                    <p class="font-semibold">{{ $row['part_name'] }}</p>
-                                    <p class="mt-0.5 text-xs text-gray-500"><span class="font-mono">{{ $enrollment->training->kode_training }}</span> · {{ $enrollment->training->judul }}</p>
-                                </td>
-                                <td class="font-mono text-sm">{{ $row['part_number'] ?? ($enrollment->training->is_general ? 'Umum' : '–') }}</td>
-                                <td class="text-center text-base font-semibold">{{ $row['competency_level'] }}</td>
-                                <td class="text-center text-base font-semibold">{{ $enrollment->training->acceptance_level }}</td>
-                                <td>
-                                    @if(! $enrollment->is_unlocked)
-                                        <span class="text-xs leading-5 text-gray-500">Terkunci. Selesaikan level kompetensi 2 untuk: {{ implode(', ', $enrollment->blocking_training_titles ?? []) }}.</span>
-                                    @elseif($enrollment->block === 2)
-                                        <x-button :href="route('operator.materials.show', $enrollment->training_id)" variant="outline" size="sm"><x-icon name="eye" class="h-4 w-4" />Lihat training</x-button>
-                                    @elseif($enrollment->block === 1)
-                                        @if($enrollment->ojtAssessment)
-                                            <x-button :href="route('operator.ojt-result', $enrollment->id)" variant="outline" size="sm"><x-icon name="eye" class="h-4 w-4" />Lihat hasil OJT</x-button>
-                                        @else
-                                            <span class="text-xs text-amber-800 dark:text-amber-200">Menunggu OJT dari penilai.</span>
-                                        @endif
-                                    @elseif($enrollment->training->preTest && ! $enrollment->pre_test_completed_at)
-                                        <x-button :href="route('operator.quizzes.show', $enrollment->training->preTest->id)" size="sm">Training sekarang <x-icon name="arrow" class="h-4 w-4" /></x-button>
-                                    @elseif($enrollment->next_attempt_at?->isFuture())
-                                        <span class="text-xs text-amber-800 dark:text-amber-200">Bisa mencoba lagi {{ $enrollment->next_attempt_at->translatedFormat('d M, H:i') }}</span>
-                                    @else
-                                        <x-button :href="route('operator.materials.show', $enrollment->training_id)" size="sm">Training sekarang <x-icon name="arrow" class="h-4 w-4" /></x-button>
-                                    @endif
-                                </td>
-                            </tr>
+                            <article class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800 {{ $enrollment->is_unlocked ? '' : 'opacity-60' }}">
+                                <div class="flex items-start gap-3">
+                                    <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-gray-100 text-xs font-semibold text-gray-600 dark:bg-gray-700 dark:text-gray-300">{{ $loop->iteration }}</span>
+                                    <div class="min-w-0">
+                                        <p class="font-semibold leading-snug">{{ $row['part_name'] }}</p>
+                                        <p class="mt-0.5 break-words text-xs text-gray-500"><span class="font-mono">{{ $enrollment->training->kode_training }}</span> · {{ $enrollment->training->judul }}</p>
+                                    </div>
+                                </div>
+                                <dl class="mt-3 grid grid-cols-3 gap-2 rounded-lg bg-gray-50 p-2.5 text-center dark:bg-gray-900/40">
+                                    <div class="min-w-0"><dt class="text-[11px] text-gray-500">No part</dt><dd class="mt-0.5 break-all font-mono text-xs font-semibold">{{ $row['part_number'] ?? ($enrollment->training->is_general ? 'Umum' : '–') }}</dd></div>
+                                    <div><dt class="text-[11px] text-gray-500">Level kompetensi</dt><dd class="mt-0.5 text-base font-semibold">{{ $row['competency_level'] }}</dd></div>
+                                    <div><dt class="text-[11px] text-gray-500">Acceptance level</dt><dd class="mt-0.5 text-base font-semibold">{{ $enrollment->training->acceptance_level }}</dd></div>
+                                </dl>
+                                <div class="mt-3">@include('operator.partials.training-action', ['enrollment' => $enrollment])</div>
+                            </article>
                         @endforeach
-                    </x-table>
+                    </div>
                 </div>
             @empty
                 <x-empty-state title="Belum ada training yang ditugaskan" description="Pengelola belum menugaskan training untuk Anda. Hubungi atasan atau pengelola training bila diperlukan." />
