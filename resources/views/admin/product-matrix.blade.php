@@ -23,8 +23,8 @@
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <x-card><p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Manpower aktif</p><p class="mt-2 text-3xl font-semibold">{{ $manpowerIds->count() }}</p><p class="mt-1 text-xs text-gray-500">Sesuai filter yang dipilih.</p></x-card>
             <x-card><p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Training ditugaskan</p><p class="mt-2 text-3xl font-semibold">{{ $products->count() }}</p><p class="mt-1 text-xs text-gray-500">Training yang memiliki penugasan.</p></x-card>
-            <x-card><p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Balok 1</p><p class="mt-2 text-3xl font-semibold text-amber-600">{{ $totalBalokSatu }}</p><p class="mt-1 text-xs text-gray-500">Lulus post-test, menunggu OJT.</p></x-card>
-            <x-card><p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Balok 2</p><p class="mt-2 text-3xl font-semibold text-brand-dark">{{ $totalBalokDua }}</p><p class="mt-1 text-xs text-gray-500">Training yang sudah disetujui OJT.</p></x-card>
+            <x-card><p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Level kompetensi 1</p><p class="mt-2 text-3xl font-semibold text-amber-600">{{ $totalBalokSatu }}</p><p class="mt-1 text-xs text-gray-500">Lulus post-test, menunggu OJT.</p></x-card>
+            <x-card><p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Level kompetensi 2</p><p class="mt-2 text-3xl font-semibold text-brand-dark">{{ $totalBalokDua }}</p><p class="mt-1 text-xs text-gray-500">Training yang sudah disetujui OJT.</p></x-card>
         </div>
 
         <x-card>
@@ -71,9 +71,9 @@
                                         @if(! $enrollment)
                                             <span class="text-xs text-gray-400">Tidak ditugaskan</span>
                                         @elseif($enrollment->block === 2)
-                                            <span class="inline-flex rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-brand-dark dark:bg-green-950 dark:text-green-300">Balok 2</span><p class="mt-1 text-[11px] text-gray-500">Mampu menjalankan</p>
+                                            <span class="inline-flex rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-brand-dark dark:bg-green-950 dark:text-green-300">Level kompetensi 2</span><p class="mt-1 text-[11px] text-gray-500">Mampu menjalankan</p>
                                         @elseif($enrollment->block === 1)
-                                            <span class="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950 dark:text-amber-200">Balok 1</span><p class="mt-1 text-[11px] text-gray-500">Menunggu OJT</p>
+                                            <span class="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950 dark:text-amber-200">Level kompetensi 1</span><p class="mt-1 text-[11px] text-gray-500">Menunggu OJT</p>
                                         @else
                                             <span class="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600 dark:bg-gray-700 dark:text-gray-300">Belum mulai</span>
                                         @endif

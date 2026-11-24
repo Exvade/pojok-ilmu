@@ -25,8 +25,8 @@
         <x-card bodyClass="p-5">
             <div class="grid gap-4 md:grid-cols-3">
                 <div><p class="text-sm font-semibold">Cara pakai</p><p class="mt-1 text-xs leading-5 text-gray-500">Pilih training, lalu pilih manpower yang wajib mempelajarinya.</p></div>
-                <div><p class="text-sm font-semibold">Balok 1</p><p class="mt-1 text-xs leading-5 text-gray-500">Menandakan manpower lulus post-test.</p></div>
-                <div><p class="text-sm font-semibold">Balok 2</p><p class="mt-1 text-xs leading-5 text-gray-500">Menandakan manpower mampu mengerjakan dengan bimbingan; dibuktikan melalui OJT lulus.</p></div>
+                <div><p class="text-sm font-semibold">Level kompetensi 1</p><p class="mt-1 text-xs leading-5 text-gray-500">Menandakan manpower lulus post-test.</p></div>
+                <div><p class="text-sm font-semibold">Level kompetensi 2</p><p class="mt-1 text-xs leading-5 text-gray-500">Menandakan manpower mampu mengerjakan dengan bimbingan; dibuktikan melalui OJT lulus.</p></div>
             </div>
         </x-card>
 
@@ -41,7 +41,7 @@
                         </div>
                         <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-brand-dark dark:bg-green-950 dark:text-green-300">{{ $product->enrollments_count }} ditugaskan</span>
                     </div>
-                    <p class="mt-4 text-sm text-gray-600 dark:text-gray-300">Semua manpower yang ditugaskan memulai dari proses training, lalu mengejar data Balok 1 dan Balok 2 di sistem.</p>
+                    <p class="mt-4 text-sm text-gray-600 dark:text-gray-300">Semua manpower yang ditugaskan memulai dari proses training, lalu mengejar data level kompetensi 1 dan level kompetensi 2 di sistem.</p>
                     <x-slot name="footer">
                         <div class="flex items-center justify-between gap-2">
                             <x-button :href="route('admin.product-assignments.history', $product)" variant="ghost" size="sm" aria-label="Lihat riwayat penugasan {{ $product->judul }}" title="Riwayat penugasan">

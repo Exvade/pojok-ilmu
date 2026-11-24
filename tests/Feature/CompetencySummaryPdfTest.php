@@ -53,7 +53,9 @@ test('isi ringkasan kompetensi memuat identitas dan capaian per level', function
         'levelRows' => app(ProductTrainingProgressService::class)->levelRows($enrollments),
     ])->render();
 
-    expect($html)->toContain('Level Manpower', 'Operator PDF-ISI', 'PDF-ISI', 'PRODUKSI PLASTIK A', 'Level 1', 'BASE RADIATOR', '23746247', 'Menunggu OJT', 'Level 2', 'Cover Comp', 'Terkunci');
+    expect($html)->toContain('Level Manpower', 'Operator PDF-ISI', 'PDF-ISI', 'PRODUKSI PLASTIK A', 'Level 1', 'BASE RADIATOR', '23746247', 'Menunggu OJT', 'Level 2', 'Cover Comp', 'Belum kompeten', 'Next progress')
+        ->not->toContain('Sedang berjalan')
+        ->not->toContain('Balok');
 });
 
 test('pengguna tanpa data karyawan tidak dapat mengunduh ringkasan kompetensi', function () {

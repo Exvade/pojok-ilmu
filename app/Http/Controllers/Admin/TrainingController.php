@@ -70,6 +70,7 @@ class TrainingController extends Controller
             'departemens' => ['required', 'array', 'min:1'],
             'departemens.*' => ['string', 'max:255'],
             'level' => 'required|integer|min:1|max:3',
+            'acceptance_level' => ['nullable', 'integer', 'min:' . Training::MIN_ACCEPTANCE_LEVEL, 'max:' . Training::MAX_COMPETENCY_LEVEL],
             'judul' => 'required|string',
             'deskripsi' => 'nullable|string',
             'max_retries' => 'required|integer|min:1',
@@ -78,7 +79,7 @@ class TrainingController extends Controller
             's2s_product_ids.*' => ['uuid', 'exists:s2s_products,id'],
             'manpower_ids' => ['nullable', 'array'],
             'manpower_ids.*' => ['integer', 'exists:m_manpower,id'],
-        ]);
+        ], $this->acceptanceLevelMessages());
 
         DB::transaction(function () use ($request, $data): void {
             $skill = MSkill::firstOrCreate(
@@ -95,6 +96,7 @@ class TrainingController extends Controller
                 'skill_id' => $skill->id,
                 ...$this->departmentAttributes($request->input('departemens')),
                 'level' => $request->level,
+                'acceptance_level' => $data['acceptance_level'] ?? Training::MIN_ACCEPTANCE_LEVEL,
                 'judul' => $request->judul,
                 'deskripsi' => $request->deskripsi,
                 'max_retries' => $request->max_retries,
@@ -124,13 +126,14 @@ class TrainingController extends Controller
             'departemens' => ['required', 'array', 'min:1'],
             'departemens.*' => ['string', 'max:255'],
             'level' => 'required|integer|min:1|max:3',
+            'acceptance_level' => ['nullable', 'integer', 'min:' . Training::MIN_ACCEPTANCE_LEVEL, 'max:' . Training::MAX_COMPETENCY_LEVEL],
             'judul' => 'required|string',
             'deskripsi' => 'nullable|string',
             'max_retries' => 'required|integer|min:1',
             'passing_grade' => 'required|integer|min:50|max:100',
             's2s_product_ids' => ['nullable', 'array'],
             's2s_product_ids.*' => ['uuid', 'exists:s2s_products,id'],
-        ]);
+        ], $this->acceptanceLevelMessages());
 
         try {
             DB::transaction(function () use ($training, $data): void {
@@ -139,6 +142,7 @@ class TrainingController extends Controller
                     'kode_training' => strtoupper($data['kode_training']),
                     ...$this->departmentAttributes($departments),
                     'level' => $data['level'],
+                    'acceptance_level' => $data['acceptance_level'] ?? $training->acceptance_level,
                     'judul' => $data['judul'],
                     'deskripsi' => $data['deskripsi'] ?? null,
                     'max_retries' => $data['max_retries'],
@@ -262,5 +266,14 @@ class TrainingController extends Controller
             ->all();
 
         return collect($departments)->merge($participantDepartments)->unique()->values()->all();
+    }
+
+    /** @return array<string, string> */
+    private function acceptanceLevelMessages(): array
+    {
+        return [
+            'acceptance_level.min' => 'Acceptance level minimal ' . Training::MIN_ACCEPTANCE_LEVEL . '. Nilai di bawah ' . Training::MIN_ACCEPTANCE_LEVEL . ' tidak diperbolehkan.',
+            'acceptance_level.max' => 'Acceptance level maksimal ' . Training::MAX_COMPETENCY_LEVEL . '.',
+        ];
     }
 }

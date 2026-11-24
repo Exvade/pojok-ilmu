@@ -16,7 +16,7 @@ class TrainingReportService
             'remedi' => 'Perlu remedi',
             'menunggu_ojt' => 'Menunggu OJT',
             'ojt_ulang' => 'Perlu OJT ulang',
-            'balok_2' => 'Balok 2',
+            'balok_2' => 'Level kompetensi 2',
         ];
     }
 

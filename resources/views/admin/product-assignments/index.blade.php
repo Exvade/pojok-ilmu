@@ -16,14 +16,14 @@
         </div>
 
         <x-card bodyClass="p-5">
-            <div class="grid gap-4 md:grid-cols-3"><div><p class="text-sm font-semibold">Cara pakai</p><p class="mt-1 text-xs leading-5 text-gray-500">Pilih training, lalu pilih manpower yang wajib mempelajarinya.</p></div><div><p class="text-sm font-semibold">Balok 1</p><p class="mt-1 text-xs leading-5 text-gray-500">Menandakan manpower lulus post-test.</p></div><div><p class="text-sm font-semibold">Balok 2</p><p class="mt-1 text-xs leading-5 text-gray-500">Menandakan manpower mampu mengerjakan dengan bimbingan; dibuktikan melalui OJT lulus.</p></div></div>
+            <div class="grid gap-4 md:grid-cols-3"><div><p class="text-sm font-semibold">Cara pakai</p><p class="mt-1 text-xs leading-5 text-gray-500">Pilih training, lalu pilih manpower yang wajib mempelajarinya.</p></div><div><p class="text-sm font-semibold">Level kompetensi 1</p><p class="mt-1 text-xs leading-5 text-gray-500">Menandakan manpower lulus post-test.</p></div><div><p class="text-sm font-semibold">Level kompetensi 2</p><p class="mt-1 text-xs leading-5 text-gray-500">Menandakan manpower mampu mengerjakan dengan bimbingan; dibuktikan melalui OJT lulus.</p></div></div>
         </x-card>
 
         <div @class(['grid gap-4', 'md:grid-cols-2' => $products->count() > 1])>
             @forelse($products as $product)
                 <x-card>
                     <div class="flex items-start justify-between gap-4"><div><p class="font-mono text-xs font-semibold text-brand-dark dark:text-green-400">{{ $product->kode_training }}</p><h2 class="mt-1 text-lg font-semibold">{{ $product->judul }}</h2><p class="mt-1 text-xs text-gray-500">{{ $product->departemen ?? 'Departemen belum diatur' }} · Level {{ $product->level }}</p></div><span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-brand-dark dark:bg-green-950 dark:text-green-300">{{ $product->enrollments_count }} ditugaskan</span></div>
-                    <p class="mt-4 text-sm text-gray-600 dark:text-gray-300">Semua manpower yang ditugaskan memulai dari proses training, lalu mengejar data Balok 1 dan Balok 2 di sistem.</p>
+                    <p class="mt-4 text-sm text-gray-600 dark:text-gray-300">Semua manpower yang ditugaskan memulai dari proses training, lalu mengejar data level kompetensi 1 dan level kompetensi 2 di sistem.</p>
                     <x-slot name="footer"><x-button type="button" @click="$dispatch('open-modal', 'assign-{{ $product->id }}')" size="sm">Atur manpower <x-icon name="arrow" class="h-4 w-4" /></x-button></x-slot>
                 </x-card>
                 <x-modal name="assign-{{ $product->id }}" title="Tugaskan {{ $product->judul }}" maxWidth="xl">

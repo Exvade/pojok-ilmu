@@ -118,15 +118,15 @@
         $remainingWelcomeTrainings = $availableWelcomeTrainings->count() - $welcomeTrainings->count();
         $welcomeName = $manpower?->nama ?? auth()->user()->name;
         $welcomeSpeech = $welcomeTrainings->isEmpty()
-            ? "Selamat datang, {$welcomeName}. Saat ini tidak ada training yang tersedia dan belum mencapai Balok 2."
-            : "Selamat datang, {$welcomeName}. Berdasarkan sistem, Anda memiliki " . $availableWelcomeTrainings->count() . ' training yang belum mencapai Balok 2, yaitu ' . $welcomeTrainings->implode(', ') . ($remainingWelcomeTrainings > 0 ? ", dan {$remainingWelcomeTrainings} training lainnya." : '.');
+            ? "Selamat datang, {$welcomeName}. Saat ini tidak ada training yang tersedia dan belum mencapai level kompetensi 2."
+            : "Selamat datang, {$welcomeName}. Berdasarkan sistem, Anda memiliki " . $availableWelcomeTrainings->count() . ' training yang belum mencapai level kompetensi 2, yaitu ' . $welcomeTrainings->implode(', ') . ($remainingWelcomeTrainings > 0 ? ", dan {$remainingWelcomeTrainings} training lainnya." : '.');
     @endphp
 
     <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
             <p class="text-xs font-semibold uppercase tracking-wider text-brand-dark dark:text-green-400">Training saya</p>
             <h1 class="page-title">Halo, {{ $manpower?->nama ?? auth()->user()->name }}</h1>
-            <p class="page-description">Berikut adalah training yang ditugaskan kepada Anda. Selesaikan training sampai Balok 2 agar tercatat kompeten pada training tersebut.</p>
+            <p class="page-description">Berikut adalah training yang ditugaskan kepada Anda. Selesaikan training sampai level kompetensi 2 agar tercatat kompeten pada training tersebut.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2"><x-button :href="route('operator.profile')" variant="outline" size="sm"><x-icon name="user" class="h-4 w-4" />Profil saya</x-button><x-button :href="route('operator.competency-summary.pdf')" data-no-loading variant="outline" size="sm"><x-icon name="download" class="h-4 w-4" />Unduh kompetensi (PDF)</x-button><div class="rounded-md border border-gray-200 bg-white px-3 py-2 text-xs dark:border-gray-700 dark:bg-gray-800"><p class="font-semibold">{{ $manpower?->departemen ?? 'Departemen belum tersedia' }}</p><p class="mt-1 text-gray-500">{{ $manpower?->bagian ?? 'Jabatan belum tersedia' }}</p></div></div>
     </div>
@@ -153,21 +153,21 @@
         </div>
 
     <div class="grid gap-4 sm:grid-cols-3">
-        <x-card><p class="text-xs font-medium text-gray-500">Level Manpower</p><p class="mt-3 text-3xl font-semibold">{{ $currentLevel ? 'Level '.$currentLevel : 'Belum ada' }}</p><p class="mt-1 text-xs text-gray-500">Level lengkap bila semua training pada level tersebut Balok 2.</p></x-card>
-        <x-card><p class="text-xs font-medium text-gray-500">Training Balok 2</p><p class="mt-3 text-3xl font-semibold">{{ $enrollments->where('block', 2)->count() }}</p><p class="mt-1 text-xs text-gray-500">Mampu mengerjakan dengan bimbingan.</p></x-card>
+        <x-card><p class="text-xs font-medium text-gray-500">Level Manpower</p><p class="mt-3 text-3xl font-semibold">{{ $currentLevel ? 'Level '.$currentLevel : 'Belum ada' }}</p><p class="mt-1 text-xs text-gray-500">Level lengkap bila semua training pada level tersebut level kompetensi 2.</p></x-card>
+        <x-card><p class="text-xs font-medium text-gray-500">Training level kompetensi 2</p><p class="mt-3 text-3xl font-semibold">{{ $enrollments->where('block', 2)->count() }}</p><p class="mt-1 text-xs text-gray-500">Mampu mengerjakan dengan bimbingan.</p></x-card>
         <x-card><p class="text-xs font-medium text-gray-500">Menunggu OJT</p><p class="mt-3 text-3xl font-semibold">{{ $enrollments->where('block', 1)->count() }}</p><p class="mt-1 text-xs text-gray-500">Post-test lulus dan menunggu penilaian praktik.</p></x-card>
     </div>
 
     <x-card bodyClass="p-5">
         <div class="flex flex-col gap-4 md:flex-row md:items-center">
-            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-brand-dark text-sm font-bold text-white">1</div><div><p class="text-sm font-semibold">Balok 1: lulus post-test</p><p class="mt-1 text-xs text-gray-500">Selesaikan pre-test, materi, lalu post-test.</p></div>
+            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-brand-dark text-sm font-bold text-white">1</div><div><p class="text-sm font-semibold">Level kompetensi 1: lulus post-test</p><p class="mt-1 text-xs text-gray-500">Selesaikan pre-test, materi, lalu post-test.</p></div>
             <div class="hidden h-8 w-px bg-gray-200 md:block dark:bg-gray-700"></div>
-            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-brand-dark text-sm font-bold text-white">2</div><div><p class="text-sm font-semibold">Balok 2: mampu mengerjakan dengan bimbingan</p><p class="mt-1 text-xs text-gray-500">Capaian ini dibuktikan setelah OJT dinyatakan lulus oleh Leader.</p></div>
+            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-brand-dark text-sm font-bold text-white">2</div><div><p class="text-sm font-semibold">Level kompetensi 2: mampu mengerjakan dengan bimbingan</p><p class="mt-1 text-xs text-gray-500">Capaian ini dibuktikan setelah OJT dinyatakan lulus oleh Leader.</p></div>
         </div>
     </x-card>
 
     <section aria-labelledby="assigned-training-heading">
-        <div class="mb-4"><h2 id="assigned-training-heading" class="text-lg font-semibold">Training yang ditugaskan</h2><p class="mt-1 text-xs text-gray-500">Training Level 2 dan seterusnya terbuka setelah seluruh training tugas pada level sebelumnya mencapai Balok 2.</p></div>
+        <div class="mb-4"><h2 id="assigned-training-heading" class="text-lg font-semibold">Training yang ditugaskan</h2><p class="mt-1 text-xs text-gray-500">Training Level 2 dan seterusnya terbuka setelah seluruh training tugas pada level sebelumnya mencapai level kompetensi 2.</p></div>
         <div class="space-y-6">
             @forelse($levelRows as $level => $rows)
                 <div data-training-level="{{ $level }}">
@@ -191,10 +191,10 @@
                                 </td>
                                 <td class="font-mono text-sm">{{ $row['part_number'] ?? '–' }}</td>
                                 <td class="text-center text-base font-semibold">{{ $row['competency_level'] }}</td>
-                                <td class="text-center text-base font-semibold">{{ $enrollment->block }}</td>
+                                <td class="text-center text-base font-semibold">{{ $enrollment->training->acceptance_level }}</td>
                                 <td>
                                     @if(! $enrollment->is_unlocked)
-                                        <span class="text-xs leading-5 text-gray-500">Terkunci. Selesaikan Balok 2 untuk: {{ implode(', ', $enrollment->blocking_training_titles ?? []) }}.</span>
+                                        <span class="text-xs leading-5 text-gray-500">Terkunci. Selesaikan level kompetensi 2 untuk: {{ implode(', ', $enrollment->blocking_training_titles ?? []) }}.</span>
                                     @elseif($enrollment->block === 2)
                                         <x-button :href="route('operator.materials.show', $enrollment->training_id)" variant="outline" size="sm"><x-icon name="eye" class="h-4 w-4" />Lihat training</x-button>
                                     @elseif($enrollment->block === 1)

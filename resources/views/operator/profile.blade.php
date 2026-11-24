@@ -14,8 +14,8 @@
         </div>
 
         <div class="grid gap-4 sm:grid-cols-3">
-            <x-card><p class="text-xs font-medium text-gray-500">Posisi level saat ini</p><p class="mt-2 text-2xl font-semibold">{{ $currentLevel ? 'Level ' . $currentLevel : 'Belum mencapai Level 1' }}</p><p class="mt-1 text-xs text-gray-500">Level lengkap setelah seluruh training pada level tersebut mencapai Balok 2.</p></x-card>
-            <x-card><p class="text-xs font-medium text-gray-500">Training Balok 2</p><p class="mt-2 text-3xl font-semibold text-brand-dark dark:text-green-400">{{ $enrollments->where('block', 2)->count() }}</p><p class="mt-1 text-xs text-gray-500">Mampu mengerjakan dengan bimbingan.</p></x-card>
+            <x-card><p class="text-xs font-medium text-gray-500">Posisi level saat ini</p><p class="mt-2 text-2xl font-semibold">{{ $currentLevel ? 'Level ' . $currentLevel : 'Belum mencapai Level 1' }}</p><p class="mt-1 text-xs text-gray-500">Level lengkap setelah seluruh training pada level tersebut mencapai level kompetensi 2.</p></x-card>
+            <x-card><p class="text-xs font-medium text-gray-500">Training level kompetensi 2</p><p class="mt-2 text-3xl font-semibold text-brand-dark dark:text-green-400">{{ $enrollments->where('block', 2)->count() }}</p><p class="mt-1 text-xs text-gray-500">Mampu mengerjakan dengan bimbingan.</p></x-card>
             <x-card><p class="text-xs font-medium text-gray-500">Departemen</p><p class="mt-2 font-semibold">{{ $manpower->departemen }}</p><p class="mt-1 text-xs text-gray-500">{{ $manpower->bagian }}</p></x-card>
         </div>
 
@@ -23,7 +23,7 @@
             <x-slot name="header">
                 <div>
                     <h2 class="font-heading text-lg font-bold">Perjalanan level</h2>
-                    <p class="mt-1 text-xs text-gray-500">Selesaikan semua training pada satu level hingga Balok 2 untuk membuka level berikutnya.</p>
+                    <p class="mt-1 text-xs text-gray-500">Selesaikan semua training pada satu level hingga level kompetensi 2 untuk membuka level berikutnya.</p>
                 </div>
             </x-slot>
 
@@ -38,7 +38,7 @@
                         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div>
                                 <p class="text-xs font-semibold uppercase tracking-wider text-brand-dark dark:text-green-400">Level {{ $level['number'] }}</p>
-                                <h3 class="mt-1 text-base font-semibold">{{ $level['completed'] }} dari {{ $level['enrollments']->count() }} training mencapai Balok 2</h3>
+                                <h3 class="mt-1 text-base font-semibold">{{ $level['completed'] }} dari {{ $level['enrollments']->count() }} training mencapai level kompetensi 2</h3>
                             </div>
                             <span @class([
                                 'inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold',
@@ -50,9 +50,9 @@
 
                         @if (! $level['is_unlocked'])
                             @if ($level['blocking_training_titles'] !== [])
-                                <p class="mt-3 text-xs leading-5 text-amber-800 dark:text-amber-200">Selesaikan Balok 2 untuk: {{ implode(', ', $level['blocking_training_titles']) }}.</p>
+                                <p class="mt-3 text-xs leading-5 text-amber-800 dark:text-amber-200">Selesaikan level kompetensi 2 untuk: {{ implode(', ', $level['blocking_training_titles']) }}.</p>
                             @else
-                                <p class="mt-3 text-xs leading-5 text-amber-800 dark:text-amber-200">Level {{ implode(' dan ', $level['missing_prerequisite_levels']) }} perlu ditugaskan dan diselesaikan hingga Balok 2 terlebih dahulu.</p>
+                                <p class="mt-3 text-xs leading-5 text-amber-800 dark:text-amber-200">Level {{ implode(' dan ', $level['missing_prerequisite_levels']) }} perlu ditugaskan dan diselesaikan hingga level kompetensi 2 terlebih dahulu.</p>
                             @endif
                         @endif
 
@@ -74,7 +74,7 @@
         <x-card>
             <x-slot name="header"><div><h2 class="font-heading text-lg font-bold">Detail riwayat training</h2><p class="mt-1 text-xs text-gray-500">Rincian hasil post-test dan OJT untuk setiap training.</p></div></x-slot>
             <x-table>
-                <x-slot name="head"><tr><th>Training</th><th>Post-test</th><th>OJT</th><th>Balok</th><th class="text-right">Aksi</th></tr></x-slot>
+                <x-slot name="head"><tr><th>Training</th><th>Post-test</th><th>OJT</th><th>Level kompetensi</th><th class="text-right">Aksi</th></tr></x-slot>
                 @forelse ($enrollments as $enrollment)
                     @php($postTest = $enrollment->attempts->first(fn ($attempt) => $attempt->quiz?->tipe === 'post_test'))
                     <tr>

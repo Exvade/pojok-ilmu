@@ -20,7 +20,7 @@ function plantTestSkill(): MSkill
 }
 
 test('migrasi mengisi data lama ke plant bawaan', function () {
-    $this->artisan('migrate:rollback', ['--step' => 1])->assertSuccessful();
+    $this->artisan('migrate:rollback', ['--path' => 'database/migrations/2026_11_23_142918_create_user_plants_and_training_plant.php'])->assertSuccessful();
 
     $skill = plantTestSkill();
     DB::table('trainings')->insert([

@@ -28,7 +28,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="status">{{ $assessment->is_passed ? 'LULUS - BALOK 2' : 'PERLU OJT ULANG' }}</div>
+        <div class="status">{{ $assessment->is_passed ? 'LULUS - LEVEL KOMPETENSI 2' : 'PERLU OJT ULANG' }}</div>
         <p class="brand">PT Mada Wikri Tunggal</p>
         <h1>Hasil On the Job Training</h1>
         <p class="subtitle">{{ $enrollment->training->judul }} - Level {{ $enrollment->training->level }} - {{ $enrollment->training->kode_training }}</p>
@@ -73,6 +73,6 @@
         <table class="summary"><tr><td>Penilai OJT<br><br><br><strong>{{ $assessment->assessor?->name ?? '-' }}</strong></td><td>Peserta OJT<br><br><br><strong>{{ $enrollment->manpower->nama }}</strong></td></tr></table>
     </div>
 
-    <p class="footer">Dokumen ini dibuat secara elektronik oleh sistem Pojok Ilmu pada {{ now()->translatedFormat('d F Y H:i') }}. Hasil lulus menandakan Balok 2: mampu mengerjakan dengan bimbingan.</p>
+    <p class="footer">Dokumen ini dibuat secara elektronik oleh sistem Pojok Ilmu pada {{ now()->translatedFormat('d F Y H:i') }}. Hasil lulus menandakan level kompetensi 2: mampu mengerjakan dengan bimbingan.</p>
 </body>
 </html>

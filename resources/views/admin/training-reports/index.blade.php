@@ -49,13 +49,13 @@
             <x-card><p class="text-sm font-medium text-gray-500">Total penugasan</p><p class="mt-2 text-3xl font-semibold">{{ $summary['total'] }}</p><p class="mt-1 text-xs text-gray-500">Sesuai filter departemen dan pencarian.</p></x-card>
             <x-card><p class="text-sm font-medium text-gray-500">Belum mulai / proses</p><p class="mt-2 text-3xl font-semibold text-sky-700 dark:text-sky-300">{{ $summary['not_started'] + $summary['in_progress'] }}</p><p class="mt-1 text-xs text-gray-500">{{ $summary['not_started'] }} belum mulai · {{ $summary['in_progress'] }} sedang training.</p></x-card>
             <x-card><p class="text-sm font-medium text-gray-500">Menunggu tindak lanjut</p><p class="mt-2 text-3xl font-semibold text-amber-600">{{ $summary['pending_ojt'] + $summary['retry_ojt'] }}</p><p class="mt-1 text-xs text-gray-500">{{ $summary['pending_ojt'] }} menunggu OJT · {{ $summary['retry_ojt'] }} perlu OJT ulang.</p></x-card>
-            <x-card><p class="text-sm font-medium text-gray-500">Sudah Balok 2</p><p class="mt-2 text-3xl font-semibold text-brand-dark dark:text-green-300">{{ $summary['block_two'] }}</p><p class="mt-1 text-xs text-gray-500">Mampu mengerjakan dengan bimbingan.</p></x-card>
+            <x-card><p class="text-sm font-medium text-gray-500">Sudah level kompetensi 2</p><p class="mt-2 text-3xl font-semibold text-brand-dark dark:text-green-300">{{ $summary['block_two'] }}</p><p class="mt-1 text-xs text-gray-500">Mampu mengerjakan dengan bimbingan.</p></x-card>
         </div>
 
         <x-card bodyClass="p-0">
             <x-slot name="header"><div><h2 class="font-heading text-lg font-bold">Ringkasan per departemen</h2><p class="mt-1 text-xs text-gray-500">Jumlah penugasan pada setiap tahap training.</p></div></x-slot>
             <x-table>
-                <x-slot name="head"><tr><th>Departemen</th><th>Total</th><th>Belum mulai</th><th>Proses</th><th>Menunggu OJT</th><th>OJT ulang</th><th>Balok 2</th></tr></x-slot>
+                <x-slot name="head"><tr><th>Departemen</th><th>Total</th><th>Belum mulai</th><th>Proses</th><th>Menunggu OJT</th><th>OJT ulang</th><th>Level kompetensi 2</th></tr></x-slot>
                 @forelse($departmentSummary as $department)
                     <tr>
                         <td class="font-semibold">{{ $department->department_group }}</td><td>{{ $department->total }}</td><td>{{ $department->belum_dimulai }}</td><td>{{ $department->dalam_proses }}</td><td class="text-amber-700 dark:text-amber-300">{{ $department->menunggu_ojt }}</td><td class="text-red-600">{{ $department->ojt_ulang }}</td><td class="font-semibold text-brand-dark dark:text-green-300">{{ $department->balok_dua }}</td>
