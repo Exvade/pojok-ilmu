@@ -32,7 +32,7 @@ test('operator dapat mengunduh ringkasan kompetensi dalam bentuk pdf', function 
     $response = $this->get(route('operator.competency-summary.pdf'))->assertOk()
         ->assertHeader('content-type', 'application/pdf');
 
-    expect($response->headers->get('content-disposition'))->toContain('ringkasan-kompetensi-pdf-op-')
+    expect($response->headers->get('content-disposition'))->toContain('Ringkasan Kompetensi - Operator Pdf-Op - ' . now()->translatedFormat('d M Y') . '.pdf')
         ->and($response->getContent())->toStartWith('%PDF');
 });
 
@@ -53,7 +53,7 @@ test('isi ringkasan kompetensi memuat identitas dan capaian per level', function
         'levelRows' => app(ProductTrainingProgressService::class)->levelRows($enrollments),
     ])->render();
 
-    expect($html)->toContain('Operator PDF-ISI', 'PDF-ISI', 'PRODUKSI PLASTIK A', 'Level 1', 'BASE RADIATOR', '23746247', 'Menunggu OJT', 'Level 2', 'Cover Comp', 'Terkunci');
+    expect($html)->toContain('Level Manpower', 'Operator PDF-ISI', 'PDF-ISI', 'PRODUKSI PLASTIK A', 'Level 1', 'BASE RADIATOR', '23746247', 'Menunggu OJT', 'Level 2', 'Cover Comp', 'Terkunci');
 });
 
 test('pengguna tanpa data karyawan tidak dapat mengunduh ringkasan kompetensi', function () {

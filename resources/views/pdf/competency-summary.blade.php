@@ -67,7 +67,7 @@
             </td>
             <td style="text-align: right; width: 30%;">
                 <div class="level-badge">
-                    <div class="label">Level saat ini</div>
+                    <div class="label">Level Manpower</div>
                     <div class="value">{{ $currentLevel ? 'Level ' . $currentLevel : 'Belum ada' }}</div>
                 </div>
             </td>

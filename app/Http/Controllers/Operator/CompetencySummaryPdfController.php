@@ -26,9 +26,9 @@ class CompetencySummaryPdfController extends Controller
             'currentLevel' => $progress->currentLevel($enrollments),
             'levelRows' => $progress->levelRows($enrollments),
         ])->setPaper('a4')->download(sprintf(
-            'ringkasan-kompetensi-%s-%s.pdf',
-            str($manpower->nik)->slug(),
-            now()->format('Ymd'),
+            'Ringkasan Kompetensi - %s - %s.pdf',
+            str($manpower->nama)->lower()->title()->replaceMatches('/[\\\\\/:*?"<>|]+/', ' ')->squish(),
+            now()->translatedFormat('d M Y'),
         ));
     }
 }
