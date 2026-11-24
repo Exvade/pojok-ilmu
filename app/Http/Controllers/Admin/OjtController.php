@@ -87,7 +87,7 @@ class OjtController extends Controller
         $enrollment = $this->eligibleEnrollment($request, $enrollment);
         $assessment = $enrollment->ojtAssessment;
 
-        return view('admin.ojt.form-clean', [
+        return view('admin.ojt.form', [
             'enrollment' => $enrollment,
             'assessment' => $assessment,
             'theoryQuestions' => self::THEORY_QUESTIONS,

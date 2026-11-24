@@ -75,7 +75,7 @@ class SkillMatrixController extends Controller
             ->sort()
             ->values();
 
-        return view('admin.product-matrix-clean', compact(
+        return view('admin.product-matrix', compact(
             'totalManpower',
             'manpowers',
             'products',
