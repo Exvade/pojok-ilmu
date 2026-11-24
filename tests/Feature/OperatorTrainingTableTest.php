@@ -35,6 +35,7 @@ test('training operator tampil sebagai tabel produk per level dengan level kompe
         ->assertSeeInOrder(['Level 1', 'COVER FUEL TANK', '12345678', 'BASE RADIATOR', '23746247', 'Level 2', 'BASE RADIATOR', 'Training Tanpa Produk'])
         ->assertSee('Training sekarang')
         ->assertSee('Terkunci. Selesaikan Balok 2 untuk: Training Fuel Tank.')
+        ->assertSee('Level Manpower')
         ->assertSee('Acceptance level')
         ->assertDontSee('balok tercapai')
         ->assertDontSee('Nanti');
