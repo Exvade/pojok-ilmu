@@ -128,7 +128,7 @@
             <h1 class="page-title">Halo, {{ $manpower?->nama ?? auth()->user()->name }}</h1>
             <p class="page-description">Berikut adalah training yang ditugaskan kepada Anda. Selesaikan training sampai Balok 2 agar tercatat kompeten pada training tersebut.</p>
         </div>
-        <div class="flex flex-wrap items-center gap-2"><x-button :href="route('operator.profile')" variant="outline" size="sm"><x-icon name="user" class="h-4 w-4" />Profil saya</x-button><div class="rounded-md border border-gray-200 bg-white px-3 py-2 text-xs dark:border-gray-700 dark:bg-gray-800"><p class="font-semibold">{{ $manpower?->departemen ?? 'Departemen belum tersedia' }}</p><p class="mt-1 text-gray-500">{{ $manpower?->bagian ?? 'Jabatan belum tersedia' }}</p></div></div>
+        <div class="flex flex-wrap items-center gap-2"><x-button :href="route('operator.profile')" variant="outline" size="sm"><x-icon name="user" class="h-4 w-4" />Profil saya</x-button><x-button :href="route('operator.competency-summary.pdf')" data-no-loading variant="outline" size="sm"><x-icon name="download" class="h-4 w-4" />Unduh kompetensi (PDF)</x-button><div class="rounded-md border border-gray-200 bg-white px-3 py-2 text-xs dark:border-gray-700 dark:bg-gray-800"><p class="font-semibold">{{ $manpower?->departemen ?? 'Departemen belum tersedia' }}</p><p class="mt-1 text-gray-500">{{ $manpower?->bagian ?? 'Jabatan belum tersedia' }}</p></div></div>
     </div>
 
         <div x-data="welcomeSpeech($el.dataset.message, $el.dataset.shouldPlay === 'true')" data-message="{{ $welcomeSpeech }}" data-should-play="{{ session('play_welcome_speech') ? 'true' : 'false' }}" aria-live="polite">
